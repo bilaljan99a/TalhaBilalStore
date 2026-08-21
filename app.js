@@ -1,0 +1,190 @@
+const WHATSAPP_NUMBER = '923119167630';
+const currency = value => `Rs. ${Number(value).toLocaleString('en-PK')}`;
+
+const productGrid = document.getElementById('productGrid');
+const orderModal = document.getElementById('orderModal');
+const selectedProduct = document.getElementById('selectedProduct');
+const orderForm = document.getElementById('orderForm');
+const cartDrawer = document.getElementById('cartDrawer');
+const drawerOverlay = document.getElementById('drawerOverlay');
+const cartItems = document.getElementById('cartItems');
+const cartCount = document.getElementById('cartCount');
+const cartTotal = document.getElementById('cartTotal');
+const cart = [];
+let activeCheckout = null;
+
+function findProduct(id) {
+  return PRODUCTS.find(product => product.id === id);
+}
+
+function renderProducts() {
+  productGrid.innerHTML = PRODUCTS.map(product => `
+    <article class="product-card">
+      <div class="product-visual">
+        <span class="tag">${product.tag}</span>
+        <div class="product-symbol">${product.symbol}</div>
+      </div>
+      <div class="product-info">
+        <h3>${product.name}</h3>
+        <p>${product.description}</p>
+        <div class="price-row">
+          <div><span class="price">${currency(product.price)}</span><span class="old-price">${currency(product.oldPrice)}</span></div>
+        </div>
+        <div class="product-actions">
+          <button class="buy-btn" data-buy="${product.id}" type="button">Buy Now — COD</button>
+          <button class="add-btn" data-add="${product.id}" type="button">Add to Cart</button>
+        </div>
+      </div>
+    </article>
+  `).join('');
+}
+
+function openOrder(product, quantity = 1) {
+  activeCheckout = { product, quantity };
+  document.getElementById('orderProduct').value = product.name;
+  document.getElementById('orderPrice').value = product.price;
+  document.getElementById('orderQuantity').value = quantity;
+  selectedProduct.innerHTML = `<div><strong>${product.name}</strong><div>Quantity: ${quantity}</div></div><strong>${currency(product.price * quantity)}</strong>`;
+  orderModal.hidden = false;
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('fullName').focus(), 50);
+}
+
+function closeOrder() {
+  orderModal.hidden = true;
+  document.body.style.overflow = '';
+  orderForm.reset();
+  activeCheckout = null;
+}
+
+function addToCart(id) {
+  const existing = cart.find(item => item.id === id);
+  if (existing) existing.quantity += 1;
+  else cart.push({ id, quantity: 1 });
+  renderCart();
+  openCart();
+}
+
+function renderCart() {
+  const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const total = cart.reduce((sum, item) => {
+    const product = findProduct(item.id);
+    return sum + product.price * item.quantity;
+  }, 0);
+  cartCount.textContent = totalQuantity;
+  cartTotal.textContent = currency(total);
+
+  if (!cart.length) {
+    cartItems.innerHTML = '<div class="empty-cart">Your cart is empty.<br>Choose a product to get started.</div>';
+    return;
+  }
+
+  cartItems.innerHTML = cart.map(item => {
+    const product = findProduct(item.id);
+    return `<div class="cart-item">
+      <div class="cart-thumb">${product.symbol}</div>
+      <div><h4>${product.name}</h4><p>${currency(product.price)} each</p>
+        <div class="cart-qty"><button data-dec="${product.id}" type="button">−</button><strong>${item.quantity}</strong><button data-inc="${product.id}" type="button">+</button><button class="cart-remove" data-remove="${product.id}" type="button">Remove</button></div>
+      </div>
+      <strong>${currency(product.price * item.quantity)}</strong>
+    </div>`;
+  }).join('');
+}
+
+function openCart() {
+  cartDrawer.classList.add('open');
+  cartDrawer.setAttribute('aria-hidden', 'false');
+  drawerOverlay.hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCart() {
+  cartDrawer.classList.remove('open');
+  cartDrawer.setAttribute('aria-hidden', 'true');
+  drawerOverlay.hidden = true;
+  document.body.style.overflow = '';
+}
+
+function checkoutCart() {
+  if (!cart.length) return;
+  if (cart.length === 1) {
+    const item = cart[0];
+    openOrder(findProduct(item.id), item.quantity);
+    closeCart();
+    return;
+  }
+  const combined = {
+    name: cart.map(item => `${findProduct(item.id).name} × ${item.quantity}`).join(', '),
+    price: cart.reduce((sum, item) => sum + findProduct(item.id).price * item.quantity, 0),
+    symbol: 'ORDER',
+    description: 'Multiple products'
+  };
+  openOrder(combined, 1);
+  closeCart();
+}
+
+productGrid.addEventListener('click', event => {
+  const buy = event.target.closest('[data-buy]');
+  const add = event.target.closest('[data-add]');
+  if (buy) openOrder(findProduct(buy.dataset.buy));
+  if (add) addToCart(add.dataset.add);
+});
+
+document.getElementById('closeModal').addEventListener('click', closeOrder);
+orderModal.addEventListener('click', event => { if (event.target === orderModal) closeOrder(); });
+document.getElementById('cartButton').addEventListener('click', openCart);
+document.getElementById('closeCart').addEventListener('click', closeCart);
+drawerOverlay.addEventListener('click', closeCart);
+document.getElementById('cartCheckout').addEventListener('click', checkoutCart);
+
+cartItems.addEventListener('click', event => {
+  const inc = event.target.closest('[data-inc]');
+  const dec = event.target.closest('[data-dec]');
+  const remove = event.target.closest('[data-remove]');
+  if (inc) {
+    const item = cart.find(x => x.id === inc.dataset.inc);
+    item.quantity += 1;
+  }
+  if (dec) {
+    const item = cart.find(x => x.id === dec.dataset.dec);
+    item.quantity -= 1;
+    if (item.quantity <= 0) cart.splice(cart.indexOf(item), 1);
+  }
+  if (remove) {
+    const index = cart.findIndex(x => x.id === remove.dataset.remove);
+    if (index >= 0) cart.splice(index, 1);
+  }
+  renderCart();
+});
+
+orderForm.addEventListener('submit', event => {
+  event.preventDefault();
+  const data = new FormData(orderForm);
+  const product = activeCheckout?.product;
+  const quantity = activeCheckout?.quantity || 1;
+  if (!product) return;
+
+  const total = Number(product.price) * Number(quantity);
+  const message = [
+    '🛍️ *NEW COD ORDER — TALHA BILAL STORE*',
+    '',
+    `📦 Product: ${product.name}`,
+    `🔢 Quantity: ${quantity}`,
+    `💰 Total: ${currency(total)}`,
+    '',
+    `👤 Full Name: ${data.get('fullName')}`,
+    `📱 Phone: ${data.get('phone')}`,
+    `🏠 Complete Address: ${data.get('address')}`,
+    `🏙️ City: ${data.get('city')}`,
+    '',
+    '💵 Payment: Cash on Delivery'
+  ].join('\n');
+
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  window.open(whatsappUrl, '_blank', 'noopener');
+  closeOrder();
+});
+
+document.getElementById('year').textContent = new Date().getFullYear();
+renderProducts();
+renderCart();
