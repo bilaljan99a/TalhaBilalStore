@@ -1,0 +1,20 @@
+/* Store UI fixes — keep product information and actions above/below image artwork. */
+.product-card{position:relative;overflow:hidden}
+.product-visual{overflow:hidden;flex:0 0 280px;z-index:1}
+.product-visual .product-image{display:block;max-width:100%;max-height:100%;object-fit:contain}
+.product-info{position:relative;z-index:3;background:#fff;min-height:156px}
+.price-row{position:relative;z-index:4;display:flex!important;visibility:visible!important;opacity:1!important;min-height:30px;margin-top:0!important}
+.price{display:inline-block!important;visibility:visible!important;opacity:1!important;color:var(--ink)!important}
+.product-actions{position:relative;z-index:5;display:grid!important;visibility:visible!important;opacity:1!important}
+.buy-btn,.add-btn{position:relative;z-index:6;visibility:visible!important;opacity:1!important}
+.home-products .product-card{overflow:hidden}
+
+/* Weight-based courier fees. */
+.delivery-note{font-size:11px;color:var(--muted);margin-top:4px}
+
+@media(max-width:560px){
+  .product-visual{flex-basis:185px;height:185px;overflow:hidden}
+  .product-info{min-height:145px;padding:11px}
+  .price-row{min-height:27px}
+  .product-actions{margin-top:10px!important}
+}
