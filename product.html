@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Mango Pulp Drink Premix product details, preparation method and ingredients.">
+<title>Mango Pulp | Talha Bilal Store</title>
+<link rel="icon" href="assets/TalhaBilalStore%20Logo.jpg">
+<link rel="stylesheet" href="styles.css?v=20260901-3">
+<link rel="stylesheet" href="pages.css?v=20260901-3">
+<link rel="stylesheet" href="store-fixes.css?v=20260901-2">
+<style>
+.detail-page{padding:42px 0 70px}.detail-wrap{max-width:1120px;margin:auto}.detail-top{display:grid;grid-template-columns:minmax(300px,1fr) minmax(320px,1fr);gap:48px;align-items:start}.detail-image{background:#fff;border:1px solid #e7e7e7;border-radius:20px;padding:18px}.detail-image img{display:block;width:100%;height:auto;max-height:560px;object-fit:contain;border-radius:12px}.detail-info h1{font-size:clamp(30px,4vw,48px);line-height:1.05;margin:10px 0 14px}.detail-price{font-size:30px;font-weight:800;margin:20px 0}.detail-description{font-size:17px;line-height:1.7;color:var(--muted)}.detail-actions{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}.detail-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 24px;border-radius:10px;text-decoration:none;font-weight:800}.detail-buy{background:#ff6a00;color:#fff}.detail-back{border:1px solid #ddd;color:var(--ink);background:#fff}.detail-section{margin-top:48px;padding:30px;background:#fff;border:1px solid #e7e7e7;border-radius:20px}.detail-section h2{margin:0 0 18px;font-size:28px}.recipe-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.recipe-box{background:#fff8f2;border-radius:14px;padding:20px}.recipe-box strong{display:block;margin-bottom:8px}.detail-section ul{margin:0;padding-left:22px;line-height:1.9}.nutrition{overflow:auto}.nutrition table{width:100%;border-collapse:collapse;min-width:430px}.nutrition th,.nutrition td{text-align:left;padding:10px 12px;border-bottom:1px solid #eee}.note{color:var(--muted);font-size:14px;margin-top:16px}.detail-breadcrumb{margin-bottom:22px;color:var(--muted);font-size:14px}.detail-breadcrumb a{color:inherit}.detail-loading{padding:80px;text-align:center}
+@media(max-width:760px){.detail-page{padding:24px 0 50px}.detail-top{grid-template-columns:1fr;gap:25px}.detail-section{margin-top:28px;padding:22px}.recipe-grid{grid-template-columns:1fr}.detail-actions a{width:100%}}
+</style>
+</head>
+<body>
+<div class="announcement">🚚 Cash on Delivery • 📦 Quality Products • 🛒 Easy Website Ordering</div>
+<header class="site-header"><div class="container nav-wrap"><a class="brand" href="index.html"><img src="assets/TalhaBilalStore%20Logo.jpg" alt="Talha Bilal Store"></a><nav class="desktop-nav"><a href="index.html">Home</a><a href="products.html">All Products</a><a href="why-us.html">Why Us</a><a href="how-to-order.html">How to Order</a><a href="policies.html">Policies</a></nav><a class="cart-button" href="products.html">🛒 Shop Products</a></div></header>
+<main class="detail-page"><div class="container detail-wrap" id="detail"></div></main>
+<footer class="footer"><div class="container footer-grid"><div><img class="footer-logo" src="assets/TalhaBilalStore%20Logo.jpg" alt="Talha Bilal Store"><p>Simple online shopping with Cash on Delivery.</p></div><div><h4>Shop</h4><a href="products.html">All Products</a><a href="index.html">Home</a></div><div><h4>Customer Care</h4><a href="why-us.html">Why Us</a><a href="how-to-order.html">How to Order</a><a href="policies.html">Delivery &amp; Returns</a><a href="policies.html">Privacy Policy</a></div></div></footer>
+<script src="products.js?v=20260901-3"></script>
+<script>
+const currency=v=>`Rs. ${Number(v).toLocaleString('en-PK')}`;
+const id=new URLSearchParams(location.search).get('id');
+const p=PRODUCTS.find(x=>x.id===id)||PRODUCTS[0];
+const detail=document.getElementById('detail');
+document.title=`${p.name} | Talha Bilal Store`;
+detail.innerHTML=`
+<div class="detail-breadcrumb"><a href="index.html">Home</a> / <a href="products.html">All Products</a> / ${p.name}</div>
+<section class="detail-top">
+<div class="detail-image"><img src="${p.image}" alt="${p.name}"></div>
+<div class="detail-info"><span class="eyebrow">${p.tag||'MANGO PULP'}</span><h1>${p.name}</h1><p class="detail-description">${p.description||'Mango Pulp Drink Premix for preparing refreshing mango juice at home.'}</p><div class="detail-price">${currency(p.price)}</div><p><strong>Pack:</strong> ${p.weight}kg &nbsp; • &nbsp; <strong>Cash on Delivery</strong></p><div class="detail-actions"><a class="detail-buy" href="index.html?buy=${encodeURIComponent(p.id)}">Buy Now — COD →</a><a class="detail-back" href="products.html">← All Products</a></div></div>
+</section>
+<section class="detail-section"><h2>How to Prepare Mango Juice</h2><div class="recipe-grid"><div class="recipe-box"><strong>For 1 kg Mango Pulp</strong><div>• 1 kg Mango Pulp<br>• 7 liters water<br>• 600 grams sugar</div></div><div class="recipe-box"><strong>Simple Method</strong><div>Mix 1 kg mango pulp with 7 liters of water. Add 600 grams of sugar and mix well until fully dissolved. This makes approximately 9.8–10 liters of mango juice. If you prefer a sweeter taste, add a little extra sugar.</div></div></div><p class="note">This preparation formula is provided for the 1 kg mango pulp pack and is the same base formula referenced for the mango pulp products.</p></section>
+<section class="detail-section"><h2>Ingredients</h2><ul><li>Water</li><li>Sugar</li><li>Mango Pulp 60%</li><li>Acidity Regulators: Citric Acid, Sodium Citrate (E331)</li><li>Thickening Agents: Xanthan Gum, Guar Gum (E412)</li><li>Preservative: Sodium Benzoate (E211)</li><li>Permitted Food Colors: E102–E110, Beta Carotene (E160)</li><li>Artificial Flavor (Mango-SMC)</li><li>Titanium Dioxide (Color Enhancer E171)</li></ul><p class="note">Ingredients are transcribed from the product information/label provided for the store. Please follow the physical pack label for the latest ingredient information.</p></section>
+<section class="detail-section nutrition"><h2>Nutrition Information</h2><table><tr><th>Per 100 ml</th><th>Amount</th></tr><tr><td>Energy</td><td>122 kcal</td></tr><tr><td>Carbohydrate</td><td>30 g</td></tr><tr><td>of which sugar</td><td>10 g</td></tr><tr><td>Fat</td><td>0 g</td></tr><tr><td>Protein</td><td>0.5 g</td></tr></table><p class="note">Net weight when packed: 1000 g ± 50 g.</p></section>`;
+</script>
+</body>
+</html>
