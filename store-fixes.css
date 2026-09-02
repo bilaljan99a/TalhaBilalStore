@@ -12,11 +12,11 @@
 .product-title-link:hover h3{text-decoration:underline;text-underline-offset:3px}
 .delivery-note{font-size:11px;color:var(--muted);margin-top:4px}
 
-/* Uploaded real product banner on the homepage. */
+/* Uploaded real product banner on the homepage — show the complete image without cropping. */
 .store-banner{padding:18px 0 34px;background:#fff}
 .store-banner .container{max-width:1280px}
 .store-banner a{display:block;border-radius:18px;overflow:hidden;line-height:0}
-.store-banner img{display:block;width:100%;height:auto;max-height:430px;object-fit:cover;object-position:center}
+.store-banner img{display:block;width:100%;height:auto;max-height:none;object-fit:contain;object-position:center}
 
 @media(max-width:560px){
   .product-visual{flex-basis:185px;height:185px;overflow:hidden}
@@ -24,5 +24,5 @@
   .price-row{min-height:27px}
   .product-actions{margin-top:10px!important}
   .store-banner{padding:10px 0 24px}
-  .store-banner img{max-height:240px;object-fit:cover}
+  .store-banner img{width:100%;height:auto;max-height:none;object-fit:contain}
 }
