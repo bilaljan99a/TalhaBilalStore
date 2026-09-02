@@ -1,6 +1,6 @@
-// Customer sees only Rs. 200 delivery; the remaining courier cost is built into the product price.
+// Customer sees a separate delivery fee at checkout; product prices include the remaining courier cost.
 const PRODUCTS = [
-  { id:'mango-1kg', name:'Mango Pulp Drink Premix 1kg', description:'Refreshing mango drink premix for easy homemade mango juice.', price:399, oldPrice:600, weight:1, image:'assets/products/1kg-mango-pulp.webp', tag:'POPULAR' },
+  { id:'mango-1kg', name:'Mango Pulp Drink Premix 1kg', description:'Refreshing mango drink premix for easy homemade mango juice.', price:450, oldPrice:600, weight:1, image:'assets/products/1kg-mango-pulp.webp', tag:'POPULAR' },
   { id:'mango-2kg', name:'Mango Pulp Drink Premix 2kg', description:'Instant mango drink mix — makes approximately 16 liters.', price:795, oldPrice:1290, weight:2, image:'assets/products/2kg-mango-pulp.jpg', tag:'DEAL' },
   { id:'mango-3kg', name:'Mango Pulp Drink Premix 3kg', description:'Liquid mango pulp mix — makes approximately 24–30 liters.', price:1214, oldPrice:1680, weight:3, image:'assets/products/3kg-mango-pulp.webp', tag:'BEST SELLER' },
   { id:'mango-4kg', name:'Mango Pulp Drink Premix 4kg', description:'Family-size mango drink premix for larger gatherings.', price:1650, oldPrice:2270, weight:4, image:'assets/products/4kg-mango-pulp.webp', tag:'VALUE' },
