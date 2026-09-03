@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Read customer reviews and see customer-shared photos from Talha Bilal Store.">
+<meta name="theme-color" content="#ff6a00"><title>Customer Reviews | Talha Bilal Store</title>
+<link rel="icon" href="assets/TalhaBilalStore%20Logo.jpg">
+<link rel="stylesheet" href="styles.css?v=20260901-3"><link rel="stylesheet" href="pages.css?v=20260901-3"><link rel="stylesheet" href="store-fixes.css?v=20260903-3">
+<style>
+.reviews-hero{padding:70px 0 48px;background:linear-gradient(180deg,#fff8f2 0%,#fff 100%)}
+.reviews-hero-inner{max-width:850px;text-align:center;margin:auto}.reviews-hero h1{font-size:clamp(34px,5vw,58px);margin:10px 0 16px}.reviews-hero p{max-width:680px;margin:auto;color:#666;line-height:1.75}
+.rating-summary{display:flex;justify-content:center;gap:14px;align-items:center;margin-top:24px;font-weight:800}.stars{letter-spacing:3px;font-size:22px}
+.review-section{padding:60px 0}.review-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.review-card{background:#fff;border:1px solid #e8e8e8;border-radius:18px;padding:24px;box-shadow:0 8px 25px rgba(0,0,0,.05)}.review-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.review-name{font-weight:900}.review-date{font-size:12px;color:#888}.review-stars{margin:12px 0;color:#f5a000;letter-spacing:2px}.review-product{display:inline-block;background:#fff3e8;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800;color:#b95400;margin-bottom:13px}.review-text{color:#555;line-height:1.75;margin:0}.review-images{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}.review-images img{width:74px;height:74px;object-fit:cover;border-radius:10px;border:1px solid #eee}
+.empty-reviews{text-align:center;padding:45px 20px;border:1px dashed #ddd;border-radius:18px;color:#666}.empty-reviews strong{display:block;color:#222;font-size:18px;margin-bottom:7px}
+.customer-gallery{padding:60px 0;background:#fafafa}.gallery-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}.gallery-card{background:#fff;border:1px solid #e8e8e8;border-radius:16px;padding:9px;overflow:hidden}.gallery-card img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;display:block}.gallery-card .gallery-caption{padding:12px 5px 5px}.gallery-card strong{display:block;font-size:14px}.gallery-card span{font-size:12px;color:#888}
+.review-cta{padding:58px 0}.review-cta-box{background:#171717;color:#fff;border-radius:22px;padding:38px;display:flex;justify-content:space-between;align-items:center;gap:25px}.review-cta-box h2{margin:4px 0 8px}.review-cta-box p{margin:0;color:#ccc}.review-cta-box a{white-space:nowrap}
+@media(max-width:1000px){.review-list{grid-template-columns:repeat(2,minmax(0,1fr))}.gallery-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:620px){.reviews-hero{padding:50px 0 35px}.review-list{grid-template-columns:1fr}.gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.review-cta-box{padding:28px;display:block}.review-cta-box a{display:inline-block;margin-top:18px}.rating-summary{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<div class="announcement">🚚 Cash on Delivery • 📦 Quality Products • 🔐 Customer Accounts</div>
+<header class="site-header"><div class="container nav-wrap"><a class="brand" href="index.html"><img src="assets/TalhaBilalStore%20Logo.jpg" alt="Talha Bilal Store"></a><nav class="desktop-nav"><a href="index.html">Home</a><a href="products.html">All Products</a><a href="why-us.html">Why Us</a><a href="how-to-order.html">How to Order</a><a href="reviews.html">Reviews</a><a href="policies.html">Policies</a><a href="track-order.html">Track Order</a><a href="account.html">My Account</a></nav><button class="cart-button" id="cartButton" type="button">🛒 Cart <span id="cartCount">0</span></button></div></header>
+<main>
+<section class="reviews-hero"><div class="container reviews-hero-inner"><span class="eyebrow">CUSTOMER REVIEWS</span><h1>Real orders. Real feedback.</h1><p>See reviews submitted by customers after their delivered orders, along with customer-shared product photos. New reviews appear here after submission.</p><div class="rating-summary"><span class="stars">★★★★★</span><span id="ratingSummary">Loading customer ratings…</span></div></div></section>
+<section class="review-section"><div class="container"><div class="section-heading"><div><span class="eyebrow">WHAT CUSTOMERS SAY</span><h2>Latest Customer Reviews</h2></div><p>Reviews shown here come from the store's customer review system.</p></div><div id="reviewList" class="review-list"><div class="empty-reviews"><strong>Loading reviews…</strong>Please wait a moment.</div></div></div></section>
+<section class="customer-gallery"><div class="container"><div class="section-heading"><div><span class="eyebrow">CUSTOMER-SHARED PHOTOS</span><h2>From Our Customers</h2></div><p>Photos shared by customers are featured below with the name used when the photo was shared.</p></div><div class="gallery-grid">
+<article class="gallery-card"><img src="assets/testimonial1.PNG" alt="Mango pulp photo shared by Usman A." loading="lazy"><div class="gallery-caption"><strong>Usman A.</strong><span>Customer-shared photo</span></div></article>
+<article class="gallery-card"><img src="assets/testimonial2.PNG" alt="Mango pulp photo shared by Mr. David William" loading="lazy"><div class="gallery-caption"><strong>Mr. David William</strong><span>Customer-shared photo</span></div></article>
+<article class="gallery-card"><img src="assets/testimonial3.PNG" alt="Mango pulp photo shared by Mirza Baig" loading="lazy"><div class="gallery-caption"><strong>Mirza Baig</strong><span>Customer-shared photo</span></div></article>
+<article class="gallery-card"><img src="assets/testimonial4.PNG" alt="Mango pulp photo shared by a customer" loading="lazy"><div class="gallery-caption"><strong>Customer</strong><span>Name shared privately</span></div></article>
+<article class="gallery-card"><img src="assets/testimonial5.PNG" alt="Mango pulp photo shared by Asmat Zoya" loading="lazy"><div class="gallery-caption"><strong>Asmat Zoya</strong><span>Customer-shared photo</span></div></article>
+<article class="gallery-card"><img src="assets/testimonial6.PNG" alt="Mango pulp photo shared by Anjum Shehzad" loading="lazy"><div class="gallery-caption"><strong>Anjum Shehzad</strong><span>Customer-shared photo</span></div></article>
+<article class="gallery-card"><img src="assets/testimonial7.PNG" alt="Mango pulp photo shared by Aqib Mahmood" loading="lazy"><div class="gallery-caption"><strong>Aqib Mahmood</strong><span>Customer-shared photo</span></div></article>
+<article class="gallery-card"><img src="assets/testimonial8.PNG" alt="Mango pulp photo shared by Maria Iqbal" loading="lazy"><div class="gallery-caption"><strong>Maria Iqbal</strong><span>Customer-shared photo</span></div></article>
+<article class="gallery-card"><img src="assets/testimonial9.PNG" alt="Mango pulp photo shared by Muhammad Abid" loading="lazy"><div class="gallery-caption"><strong>Muhammad Abid</strong><span>Customer-shared photo</span></div></article>
+<article class="gallery-card"><img src="assets/testimonial10.PNG" alt="Mango pulp photo shared by Shuja Zaidi" loading="lazy"><div class="gallery-caption"><strong>Shuja Zaidi</strong><span>Customer-shared photo</span></div></article>
+</div></div></section>
+<section class="review-cta"><div class="container"><div class="review-cta-box"><div><span class="eyebrow">HAVE YOU ORDERED?</span><h2>Share your experience</h2><p>After your order is delivered, sign in to your account to leave a review.</p></div><a class="primary-btn light" href="account.html">My Account →</a></div></div></section>
+</main>
+<footer class="footer"><div class="container footer-grid"><div><img class="footer-logo" src="assets/TalhaBilalStore%20Logo.jpg" alt="Talha Bilal Store"><p>Simple online shopping with Cash on Delivery.</p></div><div><h4>Shop</h4><a href="products.html">All Products</a><a href="index.html">Home</a><a href="account.html">My Account</a></div><div><h4>Customer Care</h4><a href="why-us.html">Why Us</a><a href="how-to-order.html">How to Order</a><a href="reviews.html">Reviews</a><a href="track-order.html">Track Order</a><a href="policies.html">Delivery &amp; Returns</a><a href="policies.html">Privacy Policy</a></div></div><div class="container footer-bottom"><span>© 2026 Talha Bilal Store. All rights reserved.</span><span>Cash on Delivery</span></div></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="auth.js"></script><script src="app.js?v=20260903-2"></script>
+<script>
+const SUPABASE_URL='https://dxdjqeqlmyawqrzphzdb.supabase.co';
+const SUPABASE_ANON_KEY=window.SUPABASE_ANON_KEY||'';
+const reviewList=document.getElementById('reviewList');
+const ratingSummary=document.getElementById('ratingSummary');
+function stars(n){return '★'.repeat(Number(n)||0)+'☆'.repeat(5-(Number(n)||0));}
+function esc(v){return String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[m]));}
+async function loadReviews(){
+ try{
+  if(!SUPABASE_ANON_KEY){throw new Error('Supabase client key not configured');}
+  const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  const {data,error}=await client.from('reviews').select('*').eq('approved',true).order('created_at',{ascending:false});
+  if(error) throw error;
+  if(!data||!data.length){reviewList.innerHTML='<div class="empty-reviews"><strong>No reviews yet</strong>Be the first customer to share your experience after your order is delivered.</div>';ratingSummary.textContent='No customer ratings yet';return;}
+  const avg=data.reduce((s,r)=>s+Number(r.rating||0),0)/data.length;
+  ratingSummary.textContent=avg.toFixed(1)+' / 5 from '+data.length+' customer review'+(data.length===1?'':'s');
+  reviewList.innerHTML=data.map(r=>{
+   let imgs='';try{const a=Array.isArray(r.image_urls)?r.image_urls:JSON.parse(r.image_urls||'[]');imgs=(a||[]).map(u=>'<img src="'+esc(u)+'" alt="Customer review photo" loading="lazy">').join('')}catch(e){}
+   const d=r.created_at?new Date(r.created_at).toLocaleDateString('en-PK',{day:'numeric',month:'short',year:'numeric'}):'';
+   return '<article class="review-card"><div class="review-top"><div class="review-name">'+esc(r.customer_name||'Customer')+'</div><div class="review-date">'+esc(d)+'</div></div><div class="review-stars" aria-label="'+esc(r.rating)+' out of 5 stars">'+stars(r.rating)+'</div><div class="review-product">'+esc(r.product_name||'Mango Pulp')+'</div><p class="review-text">'+esc(r.review_text||'Great experience.')+'</p>'+(imgs?'<div class="review-images">'+imgs+'</div>':'')+'</article>';
+  }).join('');
+ }catch(e){
+  reviewList.innerHTML='<div class="empty-reviews"><strong>Customer reviews</strong>Reviews will appear here once the review service is connected and customers submit feedback.</div>';
+  ratingSummary.textContent='Customer ratings';
+ }
+}
+loadReviews();
+</script>
+</body></html>
