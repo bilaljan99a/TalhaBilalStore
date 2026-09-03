@@ -12,7 +12,7 @@
 .rating-summary{display:flex;justify-content:center;gap:14px;align-items:center;margin-top:24px;font-weight:800}.stars{letter-spacing:3px;font-size:22px}
 .review-section{padding:60px 0}.review-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.review-card{background:#fff;border:1px solid #e8e8e8;border-radius:18px;padding:24px;box-shadow:0 8px 25px rgba(0,0,0,.05)}.review-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.review-name{font-weight:900}.review-date{font-size:12px;color:#888}.review-stars{margin:12px 0;color:#f5a000;letter-spacing:2px}.review-product{display:inline-block;background:#fff3e8;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800;color:#b95400;margin-bottom:13px}.review-text{color:#555;line-height:1.75;margin:0}.review-images{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}.review-images img{width:74px;height:74px;object-fit:cover;border-radius:10px;border:1px solid #eee}
 .empty-reviews{text-align:center;padding:45px 20px;border:1px dashed #ddd;border-radius:18px;color:#666}.empty-reviews strong{display:block;color:#222;font-size:18px;margin-bottom:7px}
-.customer-gallery{padding:60px 0;background:#fafafa}.gallery-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}.gallery-card{background:#fff;border:1px solid #e8e8e8;border-radius:16px;padding:9px;overflow:hidden}.gallery-card img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;display:block}.gallery-card .gallery-caption{padding:12px 5px 5px}.gallery-card strong{display:block;font-size:14px}.gallery-card span{font-size:12px;color:#888}
+.customer-gallery{padding:60px 0;background:#fafafa}.gallery-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}.gallery-card{background:#fff;border:1px solid #e8e8e8;border-radius:16px;padding:9px;overflow:hidden}.gallery-card img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;display:block}.gallery-card .gallery-caption{padding:12px 5px 5px}.gallery-card strong{display:block;font-size:14px}.gallery-card span{font-size:12px;color:#888;display:block;margin-top:3px}
 .review-cta{padding:58px 0}.review-cta-box{background:#171717;color:#fff;border-radius:22px;padding:38px;display:flex;justify-content:space-between;align-items:center;gap:25px}.review-cta-box h2{margin:4px 0 8px}.review-cta-box p{margin:0;color:#ccc}.review-cta-box a{white-space:nowrap}
 @media(max-width:1000px){.review-list{grid-template-columns:repeat(2,minmax(0,1fr))}.gallery-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:620px){.reviews-hero{padding:50px 0 35px}.review-list{grid-template-columns:1fr}.gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.review-cta-box{padding:28px;display:block}.review-cta-box a{display:inline-block;margin-top:18px}.rating-summary{flex-wrap:wrap}}
@@ -41,17 +41,13 @@
 <footer class="footer"><div class="container footer-grid"><div><img class="footer-logo" src="assets/TalhaBilalStore%20Logo.jpg" alt="Talha Bilal Store"><p>Simple online shopping with Cash on Delivery.</p></div><div><h4>Shop</h4><a href="products.html">All Products</a><a href="index.html">Home</a><a href="account.html">My Account</a></div><div><h4>Customer Care</h4><a href="why-us.html">Why Us</a><a href="how-to-order.html">How to Order</a><a href="reviews.html">Reviews</a><a href="track-order.html">Track Order</a><a href="policies.html">Delivery &amp; Returns</a><a href="policies.html">Privacy Policy</a></div></div><div class="container footer-bottom"><span>© 2026 Talha Bilal Store. All rights reserved.</span><span>Cash on Delivery</span></div></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="auth.js"></script><script src="app.js?v=20260903-2"></script>
 <script>
-const SUPABASE_URL='https://dxdjqeqlmyawqrzphzdb.supabase.co';
-const SUPABASE_ANON_KEY=window.SUPABASE_ANON_KEY||'';
 const reviewList=document.getElementById('reviewList');
 const ratingSummary=document.getElementById('ratingSummary');
 function stars(n){return '★'.repeat(Number(n)||0)+'☆'.repeat(5-(Number(n)||0));}
 function esc(v){return String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[m]));}
 async function loadReviews(){
  try{
-  if(!SUPABASE_ANON_KEY){throw new Error('Supabase client key not configured');}
-  const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-  const {data,error}=await client.from('reviews').select('*').eq('approved',true).order('created_at',{ascending:false});
+  const {data,error}=await tbSupabase.from('reviews').select('*').eq('approved',true).order('created_at',{ascending:false});
   if(error) throw error;
   if(!data||!data.length){reviewList.innerHTML='<div class="empty-reviews"><strong>No reviews yet</strong>Be the first customer to share your experience after your order is delivered.</div>';ratingSummary.textContent='No customer ratings yet';return;}
   const avg=data.reduce((s,r)=>s+Number(r.rating||0),0)/data.length;
