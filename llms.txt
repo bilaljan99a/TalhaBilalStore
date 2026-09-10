@@ -1,0 +1,23 @@
+# Talha Bilal Store
+
+Talha Bilal Store is an online store serving customers in Pakistan with Mango Pulp Drink Premix and Cash on Delivery ordering.
+
+## Website
+
+- [Home](https://www.talhabilalstore.com/)
+- [All Products](https://www.talhabilalstore.com/products)
+- [How to Order](https://www.talhabilalstore.com/how-to-order)
+- [Customer Reviews](https://www.talhabilalstore.com/reviews)
+- [Policies](https://www.talhabilalstore.com/policies)
+- [Track Order](https://www.talhabilalstore.com/track-order)
+
+## Product information
+
+- Mango Pulp Drink Premix is available in multiple pack sizes.
+- Product pages provide current pricing and product details.
+- Customers can place orders using Cash on Delivery.
+
+## Crawling guidance
+
+- Public shopping and informational pages may be crawled and referenced.
+- Account, login, admin, and order-related private areas should not be treated as public content.
