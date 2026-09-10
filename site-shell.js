@@ -1,7 +1,7 @@
 (() => {
   const BASE='https://www.talhabilalstore.com/';
   const LOGO='assets/TalhaBilalStore%20Logo.png';
-  const links=[['Home','index.html'],['All Products','/products'],['Why Us','why-us.html'],['How to Order','how-to-order.html'],['Reviews','reviews.html'],['Policies','policies.html'],['Track Order','track-order.html'],['My Account','account.html']];
+  const links=[['Home','index.html'],['All Products','/products']];
   const socials=[
     {label:'Facebook',url:'https://www.facebook.com/Talhabilalstore/',icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8h3V4h-3c-3.3 0-5 1.9-5 5v3H6v4h3v4h4v-4h3.2l.8-4H13V9c0-.7.3-1 1-1Z" fill="currentColor"/></svg>'},
     {label:'Instagram',url:'https://www.instagram.com/talhabilalstore',icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.7" r="1.2" fill="currentColor"/></svg>'}
