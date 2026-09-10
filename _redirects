@@ -1,7 +1,0 @@
-# Clean product URLs — serve the existing product page without changing the browser URL.
-/product/mango-1kg /product.html?id=mango-1kg 200
-/product/mango-2kg /product.html?id=mango-2kg 200
-/product/mango-3kg /product.html?id=mango-3kg 200
-/product/mango-4kg /product.html?id=mango-4kg 200
-/product/mango-5kg /product.html?id=mango-5kg 200
-/product/mango-10kg /product.html?id=mango-10kg 200
