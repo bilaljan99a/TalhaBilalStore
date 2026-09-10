@@ -1,6 +1,6 @@
 (() => {
   const BASE='https://www.talhabilalstore.com/';
-  const LOGO='assets/TalhaBilalStore%20Logo.png';
+  const LOGO='/assets/TalhaBilalStore%20Logo.png';
   const links=[['Home','index.html'],['All Products','/products']];
   const socials=[
     {label:'Facebook',url:'https://www.facebook.com/Talhabilalstore/',icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8h3V4h-3c-3.3 0-5 1.9-5 5v3H6v4h3v4h4v-4h3.2l.8-4H13V9c0-.7.3-1 1-1Z" fill="currentColor"/></svg>'},
@@ -9,7 +9,7 @@
   function loadShellStyles(){
     const existing=document.querySelector('link[data-store-shell]');
     if(existing)return;
-    const link=document.createElement('link');link.id='storeShellStyles';link.dataset.storeShell='true';link.rel='stylesheet';link.href='store-shell.css?v=20260909-1';document.head.appendChild(link);
+    const link=document.createElement('link');link.id='storeShellStyles';link.dataset.storeShell='true';link.rel='stylesheet';link.href='/store-shell.css?v=20260909-1';document.head.appendChild(link);
   }
   function productIdFromPath(){const m=location.pathname.match(/^\/product\/([^/]+)\/?$/i);return m?decodeURIComponent(m[1]):null}
   function addCanonical(){const existing=document.querySelector('link[rel="canonical"]');if(existing){if(productIdFromPath())existing.href=`${BASE}product/${encodeURIComponent(productIdFromPath())}`;return}const path=location.pathname;const productId=productIdFromPath();let canonical=path.replace(/\.html$/i,'');if(productId)canonical=`/product/${encodeURIComponent(productId)}`;canonical=canonical==='/'?BASE:BASE+canonical.replace(/^\//,'');const link=document.createElement('link');link.rel='canonical';link.href=canonical;document.head.appendChild(link)}
