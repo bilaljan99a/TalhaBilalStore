@@ -1,4 +1,23 @@
 (() => {
+  // Meta Pixel — Talha Bilal Store
+  // Pixel ID: 2937138116646692
+  if (!window.fbq) {
+    window.fbq = function(){ window.fbq.callMethod ? window.fbq.callMethod.apply(window.fbq, arguments) : window.fbq.queue.push(arguments); };
+    window._fbq = window.fbq;
+    window.fbq.push = window.fbq;
+    window.fbq.loaded = true;
+    window.fbq.version = '2.0';
+    window.fbq.queue = [];
+    const pixelScript = document.createElement('script');
+    pixelScript.async = true;
+    pixelScript.src = 'https://connect.facebook.net/en_US/fbevents.js';
+    const firstScript = document.getElementsByTagName('script')[0];
+    if (firstScript) firstScript.parentNode.insertBefore(pixelScript, firstScript);
+    else document.head.appendChild(pixelScript);
+  }
+  window.fbq('init', '2937138116646692');
+  window.fbq('track', 'PageView');
+
   const BASE='https://www.talhabilalstore.com/';
   const LOGO='/assets/TalhaBilalStore%20Logo.png';
   const links=[['Home','index.html'],['All Products','/products']];
@@ -21,7 +40,7 @@
   function addCanonical(){const existing=document.querySelector('link[rel="canonical"]');if(existing){if(productIdFromPath())existing.href=`${BASE}product/${encodeURIComponent(productIdFromPath())}`;return}const path=location.pathname;const productId=productIdFromPath();let canonical=path.replace(/\.html$/i,'');if(productId)canonical=`/product/${encodeURIComponent(productId)}`;canonical=canonical==='/'?BASE:BASE+canonical.replace(/^\//,'');const link=document.createElement('link');link.rel='canonical';link.href=canonical;document.head.appendChild(link)}
   function setOpenGraph(){let image=`${BASE}assets/here-banner.webp`;const id=productIdFromPath();const p=id&&Array.isArray(window.PRODUCTS)?window.PRODUCTS.find(x=>x.id===id):null;if(p?.image)image=new URL(p.image,BASE).href;let meta=document.querySelector('meta[property="og:image"]');if(!meta){meta=document.createElement('meta');meta.setAttribute('property','og:image');document.head.appendChild(meta)}meta.content=image}
   function setRobots(){if(!/(^|\/)(admin|login|account|thank-you)\.html$/i.test(location.pathname))return;let meta=document.querySelector('meta[name="robots"]');if(!meta){meta=document.createElement('meta');meta.name='robots';document.head.appendChild(meta)}meta.content='noindex,nofollow'}
-  function standardizeHeader(){const wrap=document.querySelector('.site-header .nav-wrap');if(!wrap)return;wrap.innerHTML=`<a class="brand" href="index.html"><img src="${LOGO}" alt="Talha Bilal Store"></a><nav class="desktop-nav"></nav><a class="cart-button" href="/products">🛒 Shop Products</a>`}
+  function standardizeHeader(){const wrap=document.querySelector('.site-header .nav-wrap');if(!wrap)return;wrap.innerHTML=`<a class="brand" href="index.html"><img class="brand-logo" src="${LOGO}" alt="Talha Bilal Store"></a><nav class="desktop-nav"></nav><a class="cart-button" href="/products">🛒 Shop Products</a>`}
   function standardizeNav(){const nav=document.querySelector('.desktop-nav');if(nav)nav.innerHTML=links.map(([label,href])=>`<a href="${href}">${label}</a>`).join('')}
   function standardizeFooter(){const footer=document.querySelector('.footer');if(!footer)return;const grid=footer.querySelector('.footer-grid');if(grid)grid.innerHTML=`<div class="footer-brand"><img class="footer-logo" src="${LOGO}" alt="Talha Bilal Store"><p>Quality Mango Pulp Drink Premix delivered across Pakistan with Cash on Delivery.</p><div class="footer-socials" aria-label="Social media"><span>Follow us</span>${socials.map(s=>`<a href="${s.url}" target="_blank" rel="noopener noreferrer" aria-label="${s.label}">${s.icon}</a>`).join('')}</div></div><div><h4>Shop</h4><a href="/products">All Products</a><a href="/products?view=best-sellers">Best Sellers</a><a href="/products?view=new-products">New Products</a><a href="index.html">Home</a></div><div><h4>Customer Support</h4><a href="how-to-order.html">How to Order</a><a href="track-order.html">Track Order</a><a href="reviews.html">Customer Reviews</a><a href="policies.html#contact">Contact Us</a></div><div><h4>Information</h4><a href="why-us.html">Why Choose Us</a><a href="policies.html#privacy">Privacy Policy</a><a href="policies.html#returns">Return &amp; Exchange</a><a href="account.html">My Account</a></div>`;const bottom=footer.querySelector('.footer-bottom');if(bottom)bottom.innerHTML='<span>© 2026 Talha Bilal Store. All rights reserved.</span><span>Cash on Delivery • Quality Products • Customer Support</span>'}
   function standardizeAnnouncement(){const bar=document.querySelector('.announcement');if(!bar)return;bar.innerHTML='<span class="announcement-sr">🚚 Buy With Cash on Delivery • 📦 Quality Products</span><div class="announcement-viewport"><div class="announcement-track"><span>🚚 Buy With Cash on Delivery&nbsp;&nbsp; • &nbsp;&nbsp;📦 Quality Products</span><span aria-hidden="true">🚚 Buy With Cash on Delivery&nbsp;&nbsp; • &nbsp;&nbsp;📦 Quality Products</span><span aria-hidden="true">🚚 Buy With Cash on Delivery&nbsp;&nbsp; • &nbsp;&nbsp;📦 Quality Products</span><span aria-hidden="true">🚚 Buy With Cash on Delivery&nbsp;&nbsp; • &nbsp;&nbsp;📦 Quality Products</span></div></div>'}
