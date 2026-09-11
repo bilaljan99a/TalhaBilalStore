@@ -1,5 +1,4 @@
 (() => {
-  const PIXEL_ID = '2937138116646692';
   const currency = 'PKR';
 
   function track(event, data) {
@@ -43,13 +42,6 @@
   document.addEventListener('click', event => {
     const addButton = event.target.closest?.('[data-add]');
     if (addButton) trackAddToCart(addButton.dataset.add, 1);
-
-    const addLink = event.target.closest?.('a[href*="?add="]');
-    if (addLink) {
-      const href = new URL(addLink.href, location.origin);
-      const id = href.searchParams.get('add');
-      if (id) trackAddToCart(id, 1);
-    }
   }, true);
 
   function trackInitiateCheckout() {
@@ -117,7 +109,10 @@
     watchCheckout();
 
     const addId = new URLSearchParams(location.search).get('add');
-    if (addId) trackAddToCart(addId, 1);
+    if (addId) {
+      trackAddToCart(addId, 1);
+      history.replaceState({}, '', location.pathname);
+    }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
