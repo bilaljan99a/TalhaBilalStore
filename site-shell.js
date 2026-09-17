@@ -39,7 +39,7 @@
   function loadMetaEvents(){
     if(document.querySelector('script[data-meta-events]'))return;
     const script=document.createElement('script');
-    script.src='/meta-events.js?v=20260911-1';
+    script.src='/meta-events.js?v=20260917-1';
     script.dataset.metaEvents='true';
     document.head.appendChild(script);
   }
