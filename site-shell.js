@@ -15,6 +15,9 @@
     if (firstScript) firstScript.parentNode.insertBefore(pixelScript, firstScript);
     else document.head.appendChild(pixelScript);
   }
+  // Disable Meta's browser-side automatic/codeless event estimation.
+  // Our site sends the real events explicitly from meta-events.js.
+  window.fbq('set', 'autoConfig', false, '2937138116646692');
   window.fbq('init', '2937138116646692');
   window.fbq('track', 'PageView');
 
@@ -39,7 +42,7 @@
   function loadMetaEvents(){
     if(document.querySelector('script[data-meta-events]'))return;
     const script=document.createElement('script');
-    script.src='/meta-events.js?v=20260917-1';
+    script.src='/meta-events.js?v=20260917-2';
     script.dataset.metaEvents='true';
     document.head.appendChild(script);
   }
