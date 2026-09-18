@@ -109,13 +109,13 @@
       data = JSON.parse(sessionStorage.getItem(`tb_pending_purchase_${orderId}`) || '{}');
     } catch {}
 
-    sessionStorage.setItem(key, '1');
     track('Purchase', {
       ...data,
       content_type: data.content_type || 'product',
       value: Number(data.value || 0),
       currency: data.currency || currency
     });
+    sessionStorage.setItem(key, '1');
     sessionStorage.removeItem(`tb_pending_purchase_${orderId}`);
   }
 
