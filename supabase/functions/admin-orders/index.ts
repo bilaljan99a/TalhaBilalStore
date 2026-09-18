@@ -16,10 +16,19 @@ Deno.serve(async(req)=>{
       if(error) return out({error:error.message},500);
       const {data:daily,error:de}=await db.from("daily_finance").select("*").order("finance_date",{ascending:false});
       if(de) return out({error:de.message},500);
-      return out({orders:data,daily_finance:daily||[]});
+      const {data:settings,error:se}=await db.from("finance_settings").select("lifetime_ads_cost").eq("id",true).maybeSingle();
+      if(se) return out({error:se.message},500);
+      return out({orders:data,daily_finance:daily||[],lifetime_ads_cost:Number(settings?.lifetime_ads_cost||0)});
     }
     if(req.method==="PATCH"){
       const b=await req.json();
+      if(b.lifetime_ads_cost!==undefined){
+        const ads=Number(b.lifetime_ads_cost);
+        if(!Number.isFinite(ads)||ads<0)return out({error:"Invalid lifetime ads cost"},400);
+        const {error}=await db.from("finance_settings").upsert({id:true,lifetime_ads_cost:ads,updated_at:new Date().toISOString()},{onConflict:"id"});
+        if(error)return out({error:error.message},500);
+        return out({success:true});
+      }
       if(b.finance_date!==undefined && b.daily_ads_cost!==undefined){
         const financeDate=String(b.finance_date).slice(0,10);
         const ads=Number(b.daily_ads_cost);
