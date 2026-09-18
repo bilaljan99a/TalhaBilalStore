@@ -83,17 +83,13 @@
         try {
           const result = await response.clone().json();
           if (result?.success && result?.order_number) {
-            const key = `tb_meta_purchase_${result.order_number}`;
-            if (!sessionStorage.getItem(key)) {
-              sessionStorage.setItem(key, '1');
-              track('Purchase', {
-                content_ids: Array.isArray(orderPayload.items) ? orderPayload.items.map(i => i.id).filter(Boolean) : [],
-                content_type: 'product',
-                value: Number(orderPayload.total || 0),
-                currency,
-                num_items: Array.isArray(orderPayload.items) ? orderPayload.items.reduce((sum, i) => sum + Number(i.quantity || 0), 0) : 0
-              });
-            }
+            sessionStorage.setItem(`tb_pending_purchase_${result.order_number}`, JSON.stringify({
+              content_ids: Array.isArray(orderPayload.items) ? orderPayload.items.map(i => i.id).filter(Boolean) : [],
+              content_type: 'product',
+              value: Number(orderPayload.total || 0),
+              currency,
+              num_items: Array.isArray(orderPayload.items) ? orderPayload.items.reduce((sum, i) => sum + Number(i.quantity || 0), 0) : 0
+            }));
           }
         } catch {}
       }
@@ -101,10 +97,33 @@
     };
   }
 
+  function trackThankYouPurchase() {
+    const orderId = new URLSearchParams(location.search).get('order');
+    if (!orderId) return;
+
+    const key = `purchase_tracked_${orderId}`;
+    if (sessionStorage.getItem(key)) return;
+
+    let data = {};
+    try {
+      data = JSON.parse(sessionStorage.getItem(`tb_pending_purchase_${orderId}`) || '{}');
+    } catch {}
+
+    sessionStorage.setItem(key, '1');
+    track('Purchase', {
+      ...data,
+      content_type: data.content_type || 'product',
+      value: Number(data.value || 0),
+      currency: data.currency || currency
+    });
+    sessionStorage.removeItem(`tb_pending_purchase_${orderId}`);
+  }
+
   function init() {
     if (window.__tbMetaEventsInitialized) return;
     window.__tbMetaEventsInitialized = true;
     installPurchaseTracking();
+    trackThankYouPurchase();
     trackViewContent();
     watchCheckout();
 
