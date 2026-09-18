@@ -14,10 +14,20 @@ Deno.serve(async(req)=>{
     if(req.method==="GET"){
       const {data,error}=await db.from("orders").select("*").order("created_at",{ascending:false});
       if(error) return out({error:error.message},500);
-      return out({orders:data});
+      const {data:daily,error:de}=await db.from("daily_finance").select("*").order("finance_date",{ascending:false});
+      if(de) return out({error:de.message},500);
+      return out({orders:data,daily_finance:daily||[]});
     }
     if(req.method==="PATCH"){
       const b=await req.json();
+      if(b.finance_date!==undefined && b.daily_ads_cost!==undefined){
+        const financeDate=String(b.finance_date).slice(0,10);
+        const ads=Number(b.daily_ads_cost);
+        if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(financeDate)||!Number.isFinite(ads)||ads<0) return out({error:"Invalid daily ads cost"},400);
+        const {error}=await db.from("daily_finance").upsert({finance_date:financeDate,ads_cost:ads,updated_at:new Date().toISOString()},{onConflict:"finance_date"});
+        if(error) return out({error:error.message},500);
+        return out({success:true});
+      }
       if(!b.id) return out({error:"Missing order id"},400);
       const patch:any={};
       if(b.status!==undefined) patch.status=String(b.status);
