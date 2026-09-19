@@ -8,7 +8,8 @@ Deno.serve(async(req)=>{
     const auth=req.headers.get("Authorization")||"";
     const anon=Deno.env.get("SUPABASE_ANON_KEY")!;
     const client=createClient(Deno.env.get("SUPABASE_URL")!,anon,{global:{headers:{Authorization:auth}}});
-    const {data:{user},error:ae}=await client.auth.getUser();
+    const token=auth.replace(/^Bearer\s+/i,"").trim();
+    const {data:{user},error:ae}=await client.auth.getUser(token);
     if(ae||!user||user.email?.toLowerCase()!=="bilaljan99@gmail.com") return out({error:"Unauthorized"},401);
     const db=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     if(req.method==="GET"){
