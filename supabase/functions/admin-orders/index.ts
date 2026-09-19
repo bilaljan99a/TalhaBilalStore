@@ -6,12 +6,14 @@ Deno.serve(async(req)=>{
   if(req.method==="OPTIONS") return new Response("ok",{headers:cors});
   try{
     const auth=req.headers.get("Authorization")||"";
-    const anon=Deno.env.get("SUPABASE_ANON_KEY")!;
-    const client=createClient(Deno.env.get("SUPABASE_URL")!,anon,{global:{headers:{Authorization:auth}}});
     const token=auth.replace(/^Bearer\s+/i,"").trim();
+    let userId="";
+    try{
+      const parts=token.split(".");
+      if(parts.length===3) userId=String(JSON.parse(atob(parts[1].replace(/-/g,"+").replace(/_/g,"/"))).sub||"");
+    }catch{}
+    if(userId!=="954b6c13-d735-4b87-9a91-bb8020f0eed4") return out({error:"Unauthorized"},401);
     const db=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const {data:{user},error:ae}=await db.auth.getUser(token);
-    if(ae||!user||user.email?.toLowerCase()!=="bilaljan99@gmail.com") return out({error:"Unauthorized"},401);
     if(req.method==="GET"){
       const [ordersResult,dailyResult]=await Promise.all([
         db.from("orders").select("*").order("created_at",{ascending:false}),
