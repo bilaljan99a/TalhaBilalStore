@@ -9,9 +9,9 @@ Deno.serve(async(req)=>{
     const anon=Deno.env.get("SUPABASE_ANON_KEY")!;
     const client=createClient(Deno.env.get("SUPABASE_URL")!,anon,{global:{headers:{Authorization:auth}}});
     const token=auth.replace(/^Bearer\s+/i,"").trim();
-    const {data:{user},error:ae}=await client.auth.getUser(token);
-    if(ae||!user||user.email?.toLowerCase()!=="bilaljan99@gmail.com") return out({error:"Unauthorized"},401);
     const db=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const {data:{user},error:ae}=await db.auth.getUser(token);
+    if(ae||!user||user.email?.toLowerCase()!=="bilaljan99@gmail.com") return out({error:"Unauthorized"},401);
     if(req.method==="GET"){
       const [ordersResult,dailyResult]=await Promise.all([
         db.from("orders").select("*").order("created_at",{ascending:false}),
