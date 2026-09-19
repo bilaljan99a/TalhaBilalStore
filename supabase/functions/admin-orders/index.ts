@@ -12,11 +12,13 @@ Deno.serve(async(req)=>{
     if(ae||!user||user.email?.toLowerCase()!=="bilaljan99@gmail.com") return out({error:"Unauthorized"},401);
     const db=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     if(req.method==="GET"){
-      const {data,error}=await db.from("orders").select("*").order("created_at",{ascending:false});
-      if(error) return out({error:error.message},500);
-      const {data:daily,error:de}=await db.from("daily_finance").select("*").order("finance_date",{ascending:false});
-      if(de) return out({error:de.message},500);
-      return out({orders:data,daily_finance:daily||[]});
+      const [ordersResult,dailyResult]=await Promise.all([
+        db.from("orders").select("*").order("created_at",{ascending:false}),
+        db.from("daily_finance").select("*").order("finance_date",{ascending:false})
+      ]);
+      if(ordersResult.error) return out({error:ordersResult.error.message},500);
+      if(dailyResult.error) return out({error:dailyResult.error.message},500);
+      return out({orders:ordersResult.data||[],daily_finance:dailyResult.data||[]});
     }
     if(req.method==="PATCH"){
       const b=await req.json();
