@@ -118,13 +118,19 @@
       data = JSON.parse(sessionStorage.getItem(`tb_pending_purchase_${orderId}`) || '{}');
     } catch {}
 
+    const purchaseValue = Number(data.value);
+    if (!Number.isFinite(purchaseValue) || purchaseValue <= 0) {
+      console.warn('Meta Purchase skipped: valid order value was not available.');
+      return;
+    }
+
     localStorage.setItem(key, '1');
     sessionStorage.setItem(key, '1');
 
     track('Purchase', {
       ...data,
       content_type: data.content_type || 'product',
-      value: Number(data.value || 0),
+      value: purchaseValue,
       currency: data.currency || currency
     });
     sessionStorage.removeItem(`tb_pending_purchase_${orderId}`);
