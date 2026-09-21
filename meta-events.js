@@ -102,12 +102,20 @@
     if (!orderId) return;
 
     const key = `purchase_tracked_${orderId}`;
-    if (sessionStorage.getItem(key)) return;
+    const alreadyTracked =
+      localStorage.getItem(key) === '1' ||
+      sessionStorage.getItem(key) === '1';
+    if (alreadyTracked) return;
 
     let data = {};
     try {
       data = JSON.parse(sessionStorage.getItem(`tb_pending_purchase_${orderId}`) || '{}');
     } catch {}
+
+    // Set the guard BEFORE sending the event so two near-simultaneous
+    // executions/tabs cannot both pass the check.
+    localStorage.setItem(key, '1');
+    sessionStorage.setItem(key, '1');
 
     track('Purchase', {
       ...data,
@@ -115,7 +123,6 @@
       value: Number(data.value || 0),
       currency: data.currency || currency
     });
-    sessionStorage.setItem(key, '1');
     sessionStorage.removeItem(`tb_pending_purchase_${orderId}`);
   }
 
