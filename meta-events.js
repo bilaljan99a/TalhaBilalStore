@@ -45,6 +45,12 @@
   }, true);
 
   function trackInitiateCheckout() {
+    // Prevent duplicate checkout events caused by multiple near-simultaneous
+    // modal/DOM callbacks. A new checkout after this short window is still tracked.
+    const now = Date.now();
+    if (now - Number(window.__tbLastInitiateCheckoutAt || 0) < 1500) return;
+    window.__tbLastInitiateCheckoutAt = now;
+
     const totalEl = document.getElementById('checkoutGrandTotal');
     const total = totalEl ? Number(String(totalEl.textContent).replace(/[^0-9.]/g, '')) : 0;
     const quantityEl = document.getElementById('orderQuantity');
@@ -112,8 +118,6 @@
       data = JSON.parse(sessionStorage.getItem(`tb_pending_purchase_${orderId}`) || '{}');
     } catch {}
 
-    // Set the guard BEFORE sending the event so two near-simultaneous
-    // executions/tabs cannot both pass the check.
     localStorage.setItem(key, '1');
     sessionStorage.setItem(key, '1');
 
