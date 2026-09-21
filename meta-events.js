@@ -107,6 +107,12 @@
     const orderId = new URLSearchParams(location.search).get('order');
     if (!orderId) return;
 
+    // Page-level guard: protects against more than one Purchase trigger/script
+    // trying to send the same order during the same page load.
+    const pageKey = `tbPurchaseSent_${orderId}`;
+    if (window[pageKey]) return;
+    window[pageKey] = true;
+
     const key = `purchase_tracked_${orderId}`;
     const alreadyTracked =
       localStorage.getItem(key) === '1' ||
@@ -124,6 +130,8 @@
       return;
     }
 
+    // Mark before sending so another synchronous/near-simultaneous callback
+    // cannot send the same order twice.
     localStorage.setItem(key, '1');
     sessionStorage.setItem(key, '1');
 
