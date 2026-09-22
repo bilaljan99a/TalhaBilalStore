@@ -20,7 +20,43 @@ const checkoutProductTotal=document.getElementById('checkoutProductTotal');
 const checkoutDelivery=document.getElementById('checkoutDelivery');
 const checkoutGrandTotal=document.getElementById('checkoutGrandTotal');
 const CART_KEY='tb_cart_v2';
+const TRAFFIC_KEY='tb_traffic_v1';
 let activeCheckout=null;
+
+function getTrafficAttribution(){
+  try{
+    const current=new URL(location.href);
+    const stored=JSON.parse(localStorage.getItem(TRAFFIC_KEY)||'null');
+    if(stored&&stored.source)return stored;
+    const p=current.searchParams;
+    const utmSource=(p.get('utm_source')||'').toLowerCase();
+    const utmMedium=(p.get('utm_medium')||'').toLowerCase();
+    const utmCampaign=p.get('utm_campaign')||'';
+    const fbclid=p.get('fbclid');
+    const ref=document.referrer||'';
+    let source='Direct',medium='direct',campaign='';
+    if(/^(facebook|instagram|meta)$/.test(utmSource)&&/(paid|paid_social|cpc|ppc|ads)/.test(utmMedium)){
+      source='Facebook Ads'; medium=utmMedium; campaign=utmCampaign;
+    }else if(/^(facebook|instagram|meta)$/.test(utmSource)&&/(organic|social|referral)/.test(utmMedium)){
+      source='Facebook Organic'; medium=utmMedium; campaign=utmCampaign;
+    }else if(/^(facebook|instagram|meta)$/.test(utmSource)){
+      source='Facebook/Instagram'; medium=utmMedium||'social'; campaign=utmCampaign;
+    }else if(/google/.test(utmSource)){
+      source='Google'; medium=utmMedium||'referral'; campaign=utmCampaign;
+    }else if(fbclid){
+      source='Facebook/Instagram'; medium='meta'; campaign=utmCampaign;
+    }else if(/facebook\\.com|instagram\\.com/i.test(ref)){
+      source='Facebook Organic'; medium='referral';
+    }else if(utmSource){
+      source=utmSource; medium=utmMedium||'referral'; campaign=utmCampaign;
+    }else if(ref){
+      try{source=new URL(ref).hostname.replace(/^www\\./,'');medium='referral'}catch{}
+    }
+    const attribution={source,medium,campaign,landing_page:current.pathname+current.search};
+    localStorage.setItem(TRAFFIC_KEY,JSON.stringify(attribution));
+    return attribution;
+  }catch{return{source:'Unknown',medium:'unknown',campaign:'',landing_page:location.pathname}}
+}
 
 function loadCart(){try{const parsed=JSON.parse(localStorage.getItem(CART_KEY)||'[]');return Array.isArray(parsed)?parsed.filter(i=>i&&PRODUCTS.some(p=>p.id===i.id)&&Number(i.quantity)>0).map(i=>({id:i.id,quantity:Math.max(1,Math.floor(Number(i.quantity)))})):[]}catch{return[]}}
 const cart=loadCart();
@@ -40,7 +76,7 @@ function renderCart(){const totals=cartTotals();if(cartCount)cartCount.textConte
 function openCart(){if(!cartDrawer||!drawerOverlay)return;cartDrawer.classList.add('open');cartDrawer.setAttribute('aria-hidden','false');cartDrawer.inert=false;drawerOverlay.hidden=false;document.body.style.overflow='hidden'}
 function closeCart(){if(!cartDrawer||!drawerOverlay)return;cartDrawer.classList.remove('open');cartDrawer.setAttribute('aria-hidden','true');cartDrawer.inert=true;drawerOverlay.hidden=true;document.body.style.overflow=''}
 function checkoutCart(){if(cart.length)openCartOrder()}
-async function saveOrder(){const d=new FormData(orderForm);if(!activeCheckout)throw new Error('No product selected.');const fullName=String(d.get('fullName')||'').trim(),phone=String(d.get('phone')||'').trim(),address=String(d.get('address')||'').trim(),city=String(d.get('city')||'').trim(),nearestLandmark=String(d.get('nearest_landmark')||'').trim(),email=String(d.get('email')||'').trim();if(!fullName||!phone||!address||!city)throw new Error('Please complete all required fields.');const payload={full_name:fullName,phone,address,city,nearest_landmark:nearestLandmark,email:email||null,items:activeCheckout.items,product_total:activeCheckout.productTotal,delivery_fee:activeCheckout.delivery,total:activeCheckout.productTotal+activeCheckout.delivery,total_weight:activeCheckout.weight};const res=await fetch(ORDER_FUNCTION,{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_KEY},body:JSON.stringify(payload)});const result=await res.json().catch(()=>({}));if(!res.ok||!result.success)throw new Error(result.error||'Order could not be placed.');return result.order_number}
+async function saveOrder(){const d=new FormData(orderForm);if(!activeCheckout)throw new Error('No product selected.');const fullName=String(d.get('fullName')||'').trim(),phone=String(d.get('phone')||'').trim(),address=String(d.get('address')||'').trim(),city=String(d.get('city')||'').trim(),nearestLandmark=String(d.get('nearest_landmark')||'').trim(),email=String(d.get('email')||'').trim();if(!fullName||!phone||!address||!city)throw new Error('Please complete all required fields.');const traffic=getTrafficAttribution();const payload={full_name:fullName,phone,address,city,nearest_landmark:nearestLandmark,email:email||null,items:activeCheckout.items,product_total:activeCheckout.productTotal,delivery_fee:activeCheckout.delivery,total:activeCheckout.productTotal+activeCheckout.delivery,total_weight:activeCheckout.weight,traffic_source:traffic.source,traffic_medium:traffic.medium,traffic_campaign:traffic.campaign||null,traffic_landing_page:traffic.landing_page||null};const res=await fetch(ORDER_FUNCTION,{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_KEY},body:JSON.stringify(payload)});const result=await res.json().catch(()=>({}));if(!res.ok||!result.success)throw new Error(result.error||'Order could not be placed.');return result.order_number}
 if(grid)grid.addEventListener('click',e=>{const b=e.target.closest('[data-buy]'),a=e.target.closest('[data-add]');if(b){const p=findProduct(b.dataset.buy);if(p)openOrder(p)}if(a)addToCart(a.dataset.add)});
 document.getElementById('closeModal')?.addEventListener('click',closeOrder);orderModal?.addEventListener('click',e=>{if(e.target===orderModal)closeOrder()});document.getElementById('cartButton')?.addEventListener('click',openCart);document.getElementById('closeCart')?.addEventListener('click',closeCart);drawerOverlay?.addEventListener('click',closeCart);document.getElementById('cartCheckout')?.addEventListener('click',checkoutCart);
 cartItems?.addEventListener('click',e=>{const inc=e.target.closest('[data-inc]'),dec=e.target.closest('[data-dec]'),remove=e.target.closest('[data-remove]');if(inc){const i=cart.find(x=>x.id===inc.dataset.inc);if(i)i.quantity++}if(dec){const i=cart.find(x=>x.id===dec.dataset.dec);if(i){i.quantity--;if(i.quantity<=0)cart.splice(cart.indexOf(i),1)}}if(remove){const i=cart.findIndex(x=>x.id===remove.dataset.remove);if(i>=0)cart.splice(i,1)}persistCart();renderCart()});
