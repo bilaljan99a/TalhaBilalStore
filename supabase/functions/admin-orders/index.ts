@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"GET, PATCH, OPTIONS","Content-Type":"application/json"};
+const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"GET, PATCH, POST, OPTIONS","Content-Type":"application/json"};
 const out=(x:any,s=200)=>new Response(JSON.stringify(x),{status:s,headers:cors});
 Deno.serve(async(req)=>{
   if(req.method==="OPTIONS") return new Response("ok",{headers:cors});
@@ -22,6 +22,42 @@ Deno.serve(async(req)=>{
       if(ordersResult.error) return out({error:ordersResult.error.message},500);
       if(dailyResult.error) return out({error:dailyResult.error.message},500);
       return out({orders:ordersResult.data||[],daily_finance:dailyResult.data||[]});
+    }
+    if(req.method==="POST"){
+      const b=await req.json();
+      if(b.action==="import_delivered"){
+        const updates=Array.isArray(b.updates)?b.updates:[];
+        if(!updates.length) return out({error:"No delivered orders found in the import file."},400);
+        const externalIds=[...new Set(updates.map((x:any)=>String(x?.externalOrderId||"").trim()).filter(Boolean))];
+        if(!externalIds.length) return out({error:"The file does not contain valid externalOrderId values."},400);
+        if(externalIds.length>5000) return out({error:"Import file is too large. Please import up to 5,000 delivered orders at a time."},400);
+
+        const {data:matchedOrders,error:lookupError}=await db.from("orders").select("id,order_number,status").in("order_number",externalIds);
+        if(lookupError) return out({error:lookupError.message},500);
+
+        const matchedByNumber=new Map((matchedOrders||[]).map((o:any)=>[String(o.order_number).trim(),o]));
+        const missing=externalIds.filter((id)=>!matchedByNumber.has(id));
+        const eligible=(matchedOrders||[]).filter((o:any)=>o.status!=="Cancelled"&&o.status!=="Returned"&&o.status!=="Delivered");
+        const alreadyDelivered=(matchedOrders||[]).filter((o:any)=>o.status==="Delivered");
+        const protectedOrders=(matchedOrders||[]).filter((o:any)=>o.status==="Cancelled"||o.status==="Returned");
+
+        if(eligible.length){
+          const {error:updateError}=await db.from("orders").update({status:"Delivered"}).in("id",eligible.map((o:any)=>o.id));
+          if(updateError) return out({error:updateError.message},500);
+        }
+
+        return out({
+          success:true,
+          imported:externalIds.length,
+          matched:matchedOrders?.length||0,
+          updated:eligible.length,
+          alreadyDelivered:alreadyDelivered.length,
+          skippedProtected:protectedOrders.length,
+          missing,
+          updatedOrderIds:eligible.map((o:any)=>o.order_number)
+        });
+      }
+      return out({error:"Unknown import action"},400);
     }
     if(req.method==="PATCH"){
       const b=await req.json();
