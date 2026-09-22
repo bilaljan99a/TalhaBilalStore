@@ -26,15 +26,14 @@ let activeCheckout=null;
 function getTrafficAttribution(){
   try{
     const current=new URL(location.href);
-    const stored=JSON.parse(localStorage.getItem(TRAFFIC_KEY)||'null');
-    if(stored&&stored.source)return stored;
     const p=current.searchParams;
     const utmSource=(p.get('utm_source')||'').toLowerCase();
     const utmMedium=(p.get('utm_medium')||'').toLowerCase();
     const utmCampaign=p.get('utm_campaign')||'';
     const fbclid=p.get('fbclid');
     const ref=document.referrer||'';
-    let source='Direct',medium='direct',campaign='';
+    const stored=JSON.parse(localStorage.getItem(TRAFFIC_KEY)||'null');
+    let source='',medium='',campaign='';
     if(/^(facebook|instagram|meta)$/.test(utmSource)&&/(paid|paid_social|cpc|ppc|ads)/.test(utmMedium)){
       source='Facebook Ads'; medium=utmMedium; campaign=utmCampaign;
     }else if(/^(facebook|instagram|meta)$/.test(utmSource)&&/(organic|social|referral)/.test(utmMedium)){
@@ -52,6 +51,8 @@ function getTrafficAttribution(){
     }else if(ref){
       try{source=new URL(ref).hostname.replace(/^www\\./,'');medium='referral'}catch{}
     }
+    if(!source&&stored&&stored.source)return stored;
+    if(!source){source='Direct';medium='direct'}
     const attribution={source,medium,campaign,landing_page:current.pathname+current.search};
     localStorage.setItem(TRAFFIC_KEY,JSON.stringify(attribution));
     return attribution;
