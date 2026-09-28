@@ -25,37 +25,76 @@ Deno.serve(async(req)=>{
     }
     if(req.method==="POST"){
       const b=await req.json();
+      if(b.action==="import_courier_status"){
+        const updates=Array.isArray(b.updates)?b.updates:[];
+        if(!updates.length) return out({error:"No supported courier status rows found in the import file."},400);
+        if(updates.length>10000) return out({error:"Import file is too large. Please import up to 10,000 courier rows at a time."},400);
+
+        // Read only the fields needed for a safe status sync. Existing orders are
+        // updated by their stored tracking number; no orders are created/deleted.
+        const {data:orders,error:lookupError}=await db.from("orders").select("id,order_number,status,tracking_number");
+        if(lookupError) return out({error:lookupError.message},500);
+
+        const byTracking=new Map<string,any>();
+        for(const o of (orders||[])){
+          const t=String(o.tracking_number||"").trim();
+          if(t) byTracking.set(t,o);
+        }
+
+        const matched=new Map<string,any>();
+        const missing:string[]=[];
+        for(const x of updates){
+          const trackingNo=String(x?.trackingNo||"").trim();
+          const originalTrackingNo=String(x?.originalTrackingNo||"").trim();
+          const o=(trackingNo&&byTracking.get(trackingNo))||(originalTrackingNo&&byTracking.get(originalTrackingNo));
+          if(o) matched.set(String(o.id),{order:o, status:String(x?.status||"").trim()});
+          else missing.push(trackingNo||originalTrackingNo||"");
+        }
+
+        const changed:any[]=[];
+        let unchanged=0, skippedProtected=0;
+        for(const {order,status} of matched.values()){
+          if(order.status==="Cancelled"){skippedProtected++;continue;}
+          if(order.status===status){unchanged++;continue;}
+          changed.push({id:order.id,order_number:order.order_number,status});
+        }
+
+        for(const x of changed){
+          const {error:updateError}=await db.from("orders").update({status:x.status}).eq("id",x.id);
+          if(updateError) return out({error:updateError.message},500);
+        }
+
+        return out({
+          success:true,
+          imported:updates.length,
+          matched:matched.size,
+          updated:changed.length,
+          unchanged,
+          skippedProtected,
+          skippedUnknown:missing.length,
+          missing,
+          updatedOrderIds:changed.map((x:any)=>x.order_number)
+        });
+      }
+
+      // Backward-compatible delivered import. Kept isolated from courier-status
+      // sync so existing workflows are not affected.
       if(b.action==="import_delivered"){
         const updates=Array.isArray(b.updates)?b.updates:[];
         if(!updates.length) return out({error:"No delivered orders found in the import file."},400);
         const externalIds=[...new Set(updates.map((x:any)=>String(x?.externalOrderId||"").trim()).filter(Boolean))];
         if(!externalIds.length) return out({error:"The file does not contain valid externalOrderId values."},400);
         if(externalIds.length>5000) return out({error:"Import file is too large. Please import up to 5,000 delivered orders at a time."},400);
-
         const {data:matchedOrders,error:lookupError}=await db.from("orders").select("id,order_number,status").in("order_number",externalIds);
         if(lookupError) return out({error:lookupError.message},500);
-
-        const matchedByNumber=new Map((matchedOrders||[]).map((o:any)=>[String(o.order_number).trim(),o]));
-        const missing=externalIds.filter((id)=>!matchedByNumber.has(id));
         const eligible=(matchedOrders||[]).filter((o:any)=>o.status!=="Cancelled"&&o.status!=="Returned"&&o.status!=="Delivered");
         const alreadyDelivered=(matchedOrders||[]).filter((o:any)=>o.status==="Delivered");
         const protectedOrders=(matchedOrders||[]).filter((o:any)=>o.status==="Cancelled"||o.status==="Returned");
-
         if(eligible.length){
           const {error:updateError}=await db.from("orders").update({status:"Delivered"}).in("id",eligible.map((o:any)=>o.id));
           if(updateError) return out({error:updateError.message},500);
         }
-
-        return out({
-          success:true,
-          imported:externalIds.length,
-          matched:matchedOrders?.length||0,
-          updated:eligible.length,
-          alreadyDelivered:alreadyDelivered.length,
-          skippedProtected:protectedOrders.length,
-          missing,
-          updatedOrderIds:eligible.map((o:any)=>o.order_number)
-        });
+        return out({success:true,imported:externalIds.length,matched:matchedOrders?.length||0,updated:eligible.length,alreadyDelivered:alreadyDelivered.length,skippedProtected:protectedOrders.length,missing:externalIds.filter((id)=>!(matchedOrders||[]).some((o:any)=>String(o.order_number).trim()===id)),updatedOrderIds:eligible.map((o:any)=>o.order_number)});
       }
       return out({error:"Unknown import action"},400);
     }
