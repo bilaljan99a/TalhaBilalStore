@@ -30,8 +30,8 @@ Deno.serve(async(req)=>{
         if(!updates.length) return out({error:"No supported courier status rows found in the import file."},400);
         if(updates.length>10000) return out({error:"Import file is too large. Please import up to 10,000 courier rows at a time."},400);
 
-        // Read only the fields needed for a safe status sync. Existing orders are
-        // updated by their stored tracking number; no orders are created/deleted.
+        // IMPORTANT: Courier Tracking is the only matching key.
+        // externalOrderId/order ID and Original Tracking No are deliberately ignored.
         const {data:orders,error:lookupError}=await db.from("orders").select("id,order_number,status,tracking_number");
         if(lookupError) return out({error:lookupError.message},500);
 
@@ -45,16 +45,16 @@ Deno.serve(async(req)=>{
         const missing:string[]=[];
         for(const x of updates){
           const trackingNo=String(x?.trackingNo||"").trim();
-          const originalTrackingNo=String(x?.originalTrackingNo||"").trim();
-          const o=(trackingNo&&byTracking.get(trackingNo))||(originalTrackingNo&&byTracking.get(originalTrackingNo));
-          if(o) matched.set(String(o.id),{order:o, status:String(x?.status||"").trim()});
-          else missing.push(trackingNo||originalTrackingNo||"");
+          if(!trackingNo){missing.push("");continue;}
+          const o=byTracking.get(trackingNo);
+          if(o) matched.set(String(o.id),{order:o,status:String(x?.status||"").trim()});
+          else missing.push(trackingNo);
         }
 
         const changed:any[]=[];
-        let unchanged=0, skippedProtected=0;
+        let unchanged=0;
         for(const {order,status} of matched.values()){
-          if(order.status==="Cancelled"){skippedProtected++;continue;}
+          if(!status) continue;
           if(order.status===status){unchanged++;continue;}
           changed.push({id:order.id,order_number:order.order_number,status});
         }
@@ -70,7 +70,7 @@ Deno.serve(async(req)=>{
           matched:matched.size,
           updated:changed.length,
           unchanged,
-          skippedProtected,
+          skippedProtected:0,
           skippedUnknown:missing.length,
           missing,
           updatedOrderIds:changed.map((x:any)=>x.order_number)
