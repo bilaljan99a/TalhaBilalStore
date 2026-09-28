@@ -55,6 +55,10 @@ Deno.serve(async(req)=>{
         let unchanged=0;
         for(const {order,status} of matched.values()){
           if(!status) continue;
+          // Never downgrade a final Delivery Failed status to an in-progress status.
+          // A later confirmed Delivered/Cancelled state may still replace it.
+          const inProgress=["New","Confirmed","Processing","Transit To Ship","Shipping","Out for Delivery"];
+          if(order.status==="Delivery Failed"&&inProgress.includes(status)){unchanged++;continue;}
           if(order.status===status){unchanged++;continue;}
           changed.push({id:order.id,order_number:order.order_number,status});
         }
