@@ -13,6 +13,8 @@ const STATIC_PAGES=[
   '/track-order',
   '/why-us',
   '/how-to-order',
+  '/contact.html',
+  '/privacy.html',
   '/blog.html'
 ];
 
