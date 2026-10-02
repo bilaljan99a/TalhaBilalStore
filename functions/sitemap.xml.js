@@ -15,7 +15,10 @@ const STATIC_PAGES=[
   '/how-to-order',
   '/contact.html',
   '/privacy.html',
-  '/blog.html'
+  '/blog.html',
+  '/blog/how-to-make-mango-drink-from-mango-pulp-premix.html',
+  '/blog/where-to-buy-mango-pulp-in-pakistan.html',
+  '/blog/pakistani-mango-varieties-guide.html'
 ];
 
 function xmlEscape(value){
@@ -35,9 +38,10 @@ function normalizeBlogPath(href){
     value=value.slice(SITE.length);
   }
 
+  value=value.split('#')[0].split('?')[0];
+
   if(!value.startsWith('/blog/') || !value.endsWith('.html')) return null;
 
-  value=value.split('#')[0].split('?')[0];
   return value;
 }
 
@@ -52,7 +56,9 @@ async function getBlogPages(){
 
     const html=await response.text();
     const pages=new Set();
-    const hrefPattern=/href\\s*=\\s*["']([^"']+)["']/gi;
+
+    // Discover future blog posts automatically from blog.html.
+    const hrefPattern=/href\s*=\s*["']([^"']+)["']/gi;
     let match;
 
     while((match=hrefPattern.exec(html))!==null){
