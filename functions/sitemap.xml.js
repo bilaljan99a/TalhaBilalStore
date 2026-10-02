@@ -12,9 +12,13 @@ const PAGES=[
   '/policies',
   '/track-order',
   '/why-us',
-  '/how-to-order'
+  '/how-to-order',
+  '/blog.html',
+  '/blog/how-to-make-mango-drink-from-mango-pulp-premix.html',
+  '/blog/where-to-buy-mango-pulp-in-pakistan.html',
+  '/blog/pakistani-mango-varieties-guide.html'
 ];
-function xmlEscape(value){return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;')}
+function xmlEscape(value){return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&apos;')}
 export async function onRequestGet(){
   const body=`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${PAGES.map(path=>`  <url><loc>${xmlEscape(SITE+path)}</loc></url>`).join('\n')}\n</urlset>`;
   return new Response(body,{headers:{'Content-Type':'application/xml; charset=UTF-8','Cache-Control':'public, max-age=3600'}});
