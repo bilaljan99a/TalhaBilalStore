@@ -10,7 +10,7 @@
 *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
 button,input,textarea,select{font:inherit}button{cursor:pointer}
 .layout{min-height:100vh;display:grid;grid-template-columns:245px 1fr}.sidebar{background:var(--nav);color:#fff;padding:24px 16px;position:sticky;top:0;height:100vh}.brand{font-size:18px;font-weight:800;padding:0 10px 26px}.brand small{display:block;color:#969ba4;font-size:11px;font-weight:500;margin-top:4px}.nav button{display:block;width:100%;border:0;background:transparent;color:#c9ccd1;text-align:left;padding:11px 12px;border-radius:9px;margin:3px 0}.nav button:hover,.nav button.active{background:#282b31;color:#fff}.main{min-width:0}.topbar{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px}.demo-badge{font-size:12px;font-weight:700;color:#9a4d00;background:#fff1e7;padding:7px 10px;border-radius:999px}.content{padding:28px;max-width:1400px}.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}.page-head h1{font-size:25px;margin:0 0 5px}.page-head p{margin:0;color:var(--muted);font-size:14px}.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:10px 14px;font-weight:650}.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px}.card{padding:18px}.card span{display:block;color:var(--muted);font-size:12px}.card strong{font-size:23px;display:block;margin-top:8px}.panel{padding:20px;margin-top:18px}.panel h2{font-size:17px;margin:0 0 15px}.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);font-size:13px}.table th{color:var(--muted);font-size:11px;text-transform:uppercase}.status{display:inline-block;padding:5px 8px;border-radius:999px;background:#eef8f1;color:var(--success);font-size:11px;font-weight:700}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.field.full{grid-column:1/-1}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}.field input,.field textarea,.field select{width:100%;border:1px solid #d9dce1;border-radius:8px;padding:10px 11px;background:#fff}.field textarea{min-height:105px;resize:vertical}.section-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.hint{font-size:12px;color:var(--muted);margin-top:6px}.item-list{display:grid;gap:10px}.item{display:flex;align-items:center;justify-content:space-between;gap:15px;border:1px solid var(--line);padding:14px;border-radius:9px}.item strong{font-size:14px}.item small{display:block;color:var(--muted);margin-top:3px}.item-actions{display:flex;gap:7px}.danger{color:#b42318}.hidden{display:none!important}@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:relative;height:auto;padding:12px}.brand{padding:8px 10px}.nav{display:flex;overflow:auto;gap:4px}.nav button{white-space:nowrap;width:auto}.cards{grid-template-columns:1fr 1fr}}@media(max-width:600px){.content{padding:18px}.topbar{padding:0 18px}.cards,.form-grid{grid-template-columns:1fr}.page-head{flex-direction:column}}
-</style>
+ .live-extra{padding:10px 12px;border-radius:9px;background:#eef5ff;color:#174ea6;font-size:12px;font-weight:700}.login-card{max-width:430px;margin:60px auto}.live-error{color:#b42318;font-size:13px;margin-top:10px}.live-table td,.live-table th{white-space:nowrap}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.toolbar input,.toolbar select{border:1px solid #d9dce1;border-radius:8px;padding:9px;background:#fff}</style>
 </head>
 <body>
 <div class="layout">
@@ -28,11 +28,11 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 </nav>
 </aside>
 <main class="main">
-<header class="topbar"><strong id="crumb">Dashboard</strong><span class="demo-badge">DEMO ONLY — Existing Admin Untouched</span></header>
+<header class="topbar"><strong id="crumb">Dashboard</strong><span class="live-extra" id="liveState">Checking secure CMS access…</span></header>
 <div class="content" id="app"></div>
 </main>
 </div>
-<script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\n<script>
 const seed={
 products:[{name:'Mango Premix Drink — 1kg',price:'450',status:'Active'},{name:'Mango Premix Drink — 2kg',price:'800',status:'Active'},{name:'Mango Premix Drink — 5kg',price:'1850',status:'Active'}],
 pages:[{name:'Homepage',sections:'Hero • Featured Products • Reviews • FAQ • CTA'},{name:'Why Us',sections:'Quality • 60% Mango Pulp • Easy Ordering'},{name:'How to Order',sections:'Order Steps • COD • Delivery'}],
@@ -122,7 +122,84 @@ function seo(){app.innerHTML=head('SEO Manager','Central place for page titles, 
 function settings(){app.innerHTML=head('Website Settings','Store-wide information used by the website.')+'<div class="panel"><div class="form-grid"><div class="field"><label>Store Name</label><input id="sn" value="'+esc(db.settings.store)+'"></div><div class="field"><label>WhatsApp</label><input id="sw" value="'+esc(db.settings.whatsapp)+'"></div><div class="field full"><label>Announcement Bar</label><input id="sa" value="'+esc(db.settings.announcement)+'"></div></div><div class="section-actions"><button class="btn primary" onclick="db.settings.store=document.getElementById('sn').value;db.settings.whatsapp=document.getElementById('sw').value;db.settings.announcement=document.getElementById('sa').value;save();alert('Demo settings saved.')">Save Settings</button></div></div>'}
 function removeItem(type,i){if(confirm('Delete this demo item?')){db[type].splice(i,1);save();render(type==='products'?'products':type)}}
 document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-page]');if(b)render(b.dataset.page)});
-render();
+
+const SUPABASE_URL="https://dxdjqeqlmyawqrzphzdb.supabase.co";
+const SUPABASE_KEY="sb_publishable__VZebPfljfwPNTxcWbDD7Q_pzIJvn_K";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let liveData=null;
+function money(v){return "Rs. "+Number(v||0).toLocaleString("en-PK",{maximumFractionDigits:2})}
+function liveLogin(){
+ app.innerHTML=head("Secure CMS Login","Sign in with the same Supabase admin account used by the existing admin panel.")+
+ '<div class="panel login-card"><div class="field"><label>Email</label><input id="loginEmail" type="email" autocomplete="username"></div>'+
+ '<div class="field" style="margin-top:12px"><label>Password</label><input id="loginPassword" type="password" autocomplete="current-password"></div>'+
+ '<div id="loginError" class="live-error"></div><div class="section-actions"><button class="btn primary" onclick="doLogin()">Sign In</button></div>'+
+ '<p class="hint">Read-only mirror of real Orders and Finance. Existing admin and website are not modified.</p></div>';
+}
+async function doLogin(){
+ const email=document.getElementById("loginEmail").value.trim(),password=document.getElementById("loginPassword").value;
+ const {error}=await supabaseClient.auth.signInWithPassword({email,password});
+ if(error){document.getElementById("loginError").textContent=error.message;return}
+ await loadLiveData();
+}
+async function logoutCMS(){await supabaseClient.auth.signOut();liveData=null;document.getElementById("liveState").textContent="Signed out";liveLogin()}
+async function loadLiveData(){
+ document.getElementById("liveState").textContent="Loading real admin data…";
+ const {data:{session}}=await supabaseClient.auth.getSession();
+ if(!session){document.getElementById("liveState").textContent="Login required";liveLogin();return}
+ const {data,error}=await supabaseClient.functions.invoke("cms-data");
+ if(error){document.getElementById("liveState").textContent="Connection error";app.innerHTML=head("CMS Connection Error","Secure live-data service could not be reached.")+'<div class="panel"><p class="live-error">'+esc(error.message)+'</p><button class="btn" onclick="loadLiveData()">Retry</button></div>';return}
+ liveData=data;document.getElementById("liveState").textContent="LIVE • Real Admin Data";render("dashboard");
+}
+async function orders(){
+ if(!liveData)return liveLogin();
+ const rows=liveData.orders||[];
+ app.innerHTML=head("Orders","LIVE read-only mirror of the real Orders data.","<button class='btn' onclick='loadLiveData()'>Refresh</button>")+
+ '<div class="toolbar"><input id="orderSearch" placeholder="Search order, customer, phone, city…" oninput="filterLiveOrders()">'+
+ '<select id="orderStatusFilter" onchange="filterLiveOrders()"><option value="">All statuses</option>'+
+ [...new Set(rows.map(o=>o.status).filter(Boolean))].sort().map(s=>"<option>"+esc(s)+"</option>").join("")+
+ '</select><button class="btn" onclick="logoutCMS()">Sign Out</button></div>'+
+ '<div class="panel"><div class="table-wrap"><table class="table live-table"><thead><tr><th>Order</th><th>Customer</th><th>Phone</th><th>City</th><th>Items</th><th>Sales</th><th>Status</th><th>Tracking</th><th>Date</th></tr></thead><tbody id="liveOrdersBody"></tbody></table></div></div>'+
+ '<div class="panel"><p class="hint">'+rows.length+' real orders loaded. No order data is written by this CMS.</p></div>';
+ renderLiveOrders(rows);
+}
+function renderLiveOrders(rows){
+ const body=document.getElementById("liveOrdersBody");if(!body)return;
+ body.innerHTML=rows.map(o=>{
+  const items=Array.isArray(o.items)?o.items.map(i=>i.name||i.product_name||i.title||"Item").join(", "):(o.items||"—");
+  return "<tr><td><strong>"+esc(o.order_number)+"</strong></td><td>"+esc(o.full_name)+"</td><td>"+esc(o.phone)+"</td><td>"+esc(o.city)+"</td><td>"+esc(typeof items==="object"?JSON.stringify(items):items)+"</td><td>"+money(o.total)+"</td><td>"+esc(o.status)+"</td><td>"+esc(o.tracking_number||"—")+"</td><td>"+esc(new Date(o.created_at).toLocaleString("en-PK"))+"</td></tr>";
+ }).join("")||'<tr><td colspan="9">No matching orders.</td></tr>';
+}
+function filterLiveOrders(){
+ const q=(document.getElementById("orderSearch")?.value||"").toLowerCase(),s=document.getElementById("orderStatusFilter")?.value||"";
+ renderLiveOrders((liveData.orders||[]).filter(o=>(!s||o.status===s)&&(!q||[o.order_number,o.full_name,o.phone,o.city,o.address].join(" ").toLowerCase().includes(q))));
+}
+async function finance(){
+ if(!liveData)return liveLogin();
+ const o=liveData.orders||[],d=liveData.daily_finance||[];
+ const eligible=o.filter(x=>!/^cancelled$/i.test(x.status||""));
+ const sales=eligible.filter(x=>!/^delivery failed$/i.test(x.status||"")).reduce((a,x)=>a+Number(x.total||0),0);
+ const sum=k=>eligible.reduce((a,x)=>a+Number(x[k]||0),0);
+ const product=sum("product_cost"),shipping=sum("shipping_cost"),ads=sum("ads_cost"),packaging=sum("packaging_cost"),returns=sum("return_shipping_cost"),other=sum("other_cost");
+ const profit=sales-product-shipping-ads-packaging-returns-other;
+ app.innerHTML=head("Finance","LIVE read-only mirror using real order finance fields and daily finance records.","<button class='btn' onclick='loadLiveData()'>Refresh</button>")+
+ '<div class="cards"><div class="card"><span>Total Sales</span><strong>'+money(sales)+'</strong></div><div class="card"><span>Product Cost</span><strong>'+money(product)+'</strong></div><div class="card"><span>Delivery Cost</span><strong>'+money(shipping)+'</strong></div><div class="card"><span>Ads Cost</span><strong>'+money(ads)+'</strong></div><div class="card"><span>Packaging</span><strong>'+money(packaging)+'</strong></div><div class="card"><span>Return Shipping</span><strong>'+money(returns)+'</strong></div><div class="card"><span>Other Cost</span><strong>'+money(other)+'</strong></div><div class="card"><span>Live P/L</span><strong>'+money(profit)+'</strong></div></div>'+
+ demoRows("Daily Finance — Real Data",["Date","Ads Cost"],d.map(x=>[x.finance_date,money(x.ads_cost)]))+
+ '<div class="panel"><h2>Real Order Finance</h2><div class="table-wrap"><table class="table live-table"><tr><th>Order</th><th>Status</th><th>Sales</th><th>Product</th><th>Delivery</th><th>Ads</th><th>Packaging</th><th>Return</th><th>Other</th><th>P/L</th></tr>'+
+ eligible.map(x=>{const p=Number(x.total||0)-Number(x.product_cost||0)-Number(x.shipping_cost||0)-Number(x.ads_cost||0)-Number(x.packaging_cost||0)-Number(x.return_shipping_cost||0)-Number(x.other_cost||0);return "<tr><td>"+esc(x.order_number)+"</td><td>"+esc(x.status)+"</td><td>"+money(x.total)+"</td><td>"+money(x.product_cost)+"</td><td>"+money(x.shipping_cost)+"</td><td>"+money(x.ads_cost)+"</td><td>"+money(x.packaging_cost)+"</td><td>"+money(x.return_shipping_cost)+"</td><td>"+money(x.other_cost)+"</td><td>"+money(p)+"</td></tr>"}).join("")+
+ '</table></div></div><div class="panel"><p class="hint">Real data is read through a separate secured CMS service. Existing Orders/Finance logic is untouched.</p></div>';
+}
+function dashboard(){
+ if(!liveData)return liveLogin();
+ const rows=liveData.orders||[],active=rows.filter(o=>!/cancelled|delivery failed/i.test(o.status||"")),delivered=rows.filter(o=>/delivered/i.test(o.status||""));
+ const sales=active.reduce((a,o)=>a+Number(o.total||0),0);
+ app.innerHTML=head("CMS Dashboard","Real-time overview from the existing admin database.","<button class='btn' onclick='loadLiveData()'>Refresh</button>")+
+ '<div class="cards"><div class="card"><span>Real Orders</span><strong>'+rows.length+'</strong></div><div class="card"><span>Total Sales</span><strong>'+money(sales)+'</strong></div><div class="card"><span>Delivered</span><strong>'+delivered.length+'</strong></div><div class="card"><span>Daily Finance Rows</span><strong>'+(liveData.daily_finance||[]).length+'</strong></div></div>'+
+ '<div class="panel"><h2>Live Data</h2><p class="hint">Orders, daily finance, finance settings and existing admin records are loaded live. This CMS does not write to those tables.</p></div>'+
+ '<div class="panel"><h2>CMS Content Modules</h2><p class="hint">Products, categories, homepage, banners, blog, SEO, promotions, media, FAQs and settings remain isolated demo modules until we connect their actual website content.</p></div>';
+}
+supabaseClient.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){liveData=null;liveLogin()}});
+
+loadLiveData();
 </script>
 </body>
 </html>
