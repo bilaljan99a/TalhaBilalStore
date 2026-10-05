@@ -11,3 +11,6 @@
 
 /* Legacy logo sources are hidden before site-shell swaps them to the final PNG. */
 .brand img[src$="logo.svg"],.brand img[src$="TalhaBilalStore%20Logo.jpg"],.brand img[src$="TalhaBilalStore Logo.jpg"],.footer-logo[src$="logo.svg"],.footer-logo[src$="TalhaBilalStore%20Logo.jpg"],.footer-logo[src$="TalhaBilalStore Logo.jpg"]{visibility:hidden}
+
+.announcement svg,.announcement-whatsapp-icon{width:15px!important;height:15px!important;max-width:15px!important;max-height:15px!important;display:inline-block!important;vertical-align:-3px!important}
+.footer-socials svg{width:17px!important;height:17px!important;max-width:17px!important;max-height:17px!important}
