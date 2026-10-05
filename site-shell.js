@@ -1,42 +1,35 @@
 (() => {
   // Meta Pixel — Talha Bilal Store
   // Pixel ID: 2937138116646692
-  // Initialize using Meta's standard queue pattern so PageView is queued
-  // immediately, even if fbevents.js takes time to load.
   const TB_META_PIXEL_ID = '2937138116646692';
-  function initMetaPixel(){
-    if (typeof window.fbq !== 'function') return false;
-    if (window.fbq.__tbPixelInitialized) return true;
-    try {
-      window.fbq('init', TB_META_PIXEL_ID);
-      window.fbq('track', 'PageView');
-      window.fbq.__tbPixelInitialized = true;
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
+
+  // Use Meta's canonical browser Pixel loader/queue.
+  // This keeps PageView queued immediately and avoids custom loader behavior.
   if (!window.fbq) {
-    window.fbq = function(){ window.fbq.callMethod ? window.fbq.callMethod.apply(window.fbq, arguments) : window.fbq.queue.push(arguments); };
-    window._fbq = window.fbq;
-    window.fbq.push = window.fbq;
-    window.fbq.loaded = true;
-    window.fbq.version = '2.0';
-    window.fbq.queue = [];
-    // Queue init + PageView immediately. This is important for Meta Test Events.
+    const n = window.fbq = function () {
+      n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+    };
+    if (!window._fbq) window._fbq = n;
+    n.push = n;
+    n.loaded = true;
+    n.version = '2.0';
+    n.queue = [];
+
+    const t = document.createElement('script');
+    t.async = true;
+    t.src = 'https://connect.facebook.net/en_US/fbevents.js';
+    t.onerror = () => { window.__tbMetaPixelLoadFailed = true; };
+    const s = document.getElementsByTagName('script')[0];
+    if (s && s.parentNode) s.parentNode.insertBefore(t, s);
+    else document.head.appendChild(t);
+  }
+
+  if (!window.__tbMetaPixelInitialized) {
     window.fbq('init', TB_META_PIXEL_ID);
     window.fbq('track', 'PageView');
-    window.fbq.__tbPixelInitialized = true;
-    const pixelScript = document.createElement('script');
-    pixelScript.async = true;
-    pixelScript.src = 'https://connect.facebook.net/en_US/fbevents.js';
-    pixelScript.onerror = () => { window.__tbMetaPixelLoadFailed = true; };
-    const firstScript = document.getElementsByTagName('script')[0];
-    if (firstScript) firstScript.parentNode.insertBefore(pixelScript, firstScript);
-    else document.head.appendChild(pixelScript);
-  } else {
-    initMetaPixel();
+    window.__tbMetaPixelInitialized = true;
   }
+
   const BASE='https://www.talhabilalstore.com/';
   const LOGO='/assets/TalhaBilalStore%20Logo.png';
   const links=[['Home','index.html'],['All Products','/products'],['Blog','/blog.html']];
@@ -46,7 +39,7 @@
   ];
   function ensureRootBase(){if(document.querySelector('base[href]'))return;const base=document.createElement('base');base.href='/';document.head.prepend(base)}
   function loadShellStyles(){if(document.querySelector('link[data-store-shell]'))return;const link=document.createElement('link');link.id='storeShellStyles';link.dataset.storeShell='true';link.rel='stylesheet';link.href='/store-shell.css?v=20261003-1';document.head.appendChild(link)}
-  function loadMetaEvents(){if(document.querySelector('script[data-meta-events]'))return;const script=document.createElement('script');script.src='/meta-events.js?v=20261005-2';script.dataset.metaEvents='true';document.head.appendChild(script)}
+  function loadMetaEvents(){if(document.querySelector('script[data-meta-events]'))return;const script=document.createElement('script');script.src='/meta-events.js?v=20261005-5';script.dataset.metaEvents='true';document.head.appendChild(script)}
   function productIdFromPath(){const m=location.pathname.match(/^\/product\/([^/]+)\/?$/i);return m?decodeURIComponent(m[1]):null}
   function addCanonical(){const existing=document.querySelector('link[rel="canonical"]');if(existing){if(productIdFromPath())existing.href=`${BASE}product/${encodeURIComponent(productIdFromPath())}`;return}const path=location.pathname;const productId=productIdFromPath();let canonical=path.replace(/\.html$/i,'');if(productId)canonical=`/product/${encodeURIComponent(productId)}`;canonical=canonical==='/'?BASE:BASE+canonical.replace(/^\//,'');const link=document.createElement('link');link.rel='canonical';link.href=canonical;document.head.appendChild(link)}
   function setOpenGraph(){let image=`${BASE}assets/here-banner.webp`;const id=productIdFromPath();const p=id&&Array.isArray(window.PRODUCTS)?window.PRODUCTS.find(x=>x.id===id):null;if(p?.image)image=new URL(p.image,BASE).href;let meta=document.querySelector('meta[property="og:image"]');if(!meta){meta=document.createElement('meta');meta.setAttribute('property','og:image');document.head.appendChild(meta)}meta.content=image}
