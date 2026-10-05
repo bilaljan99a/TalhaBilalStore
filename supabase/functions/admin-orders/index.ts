@@ -30,25 +30,36 @@ Deno.serve(async(req)=>{
         if(!updates.length) return out({error:"No supported courier status rows found in the import file."},400);
         if(updates.length>10000) return out({error:"Import file is too large. Please import up to 10,000 courier rows at a time."},400);
 
-        // IMPORTANT: Courier Tracking is the only matching key.
-        // externalOrderId/order ID and Original Tracking No are deliberately ignored.
+        // IMPORTANT: Courier tracking IDs are the only matching keys.
+        // A courier row can contain both Tracking No and Original Tracking No.
+        // Match the order when either ID matches the order's saved tracking_number.
+        // externalOrderId/order ID is deliberately ignored.
         const {data:orders,error:lookupError}=await db.from("orders").select("id,order_number,status,tracking_number");
         if(lookupError) return out({error:lookupError.message},500);
 
         const byTracking=new Map<string,any>();
         for(const o of (orders||[])){
-          const t=String(o.tracking_number||"").trim();
-          if(t) byTracking.set(t,o);
+          const t=String(o.tracking_number||"").trim().toLowerCase();
+          if(t&&!byTracking.has(t)) byTracking.set(t,o);
         }
 
         const matched=new Map<string,any>();
         const missing:string[]=[];
         for(const x of updates){
           const trackingNo=String(x?.trackingNo||"").trim();
-          if(!trackingNo){missing.push("");continue;}
-          const o=byTracking.get(trackingNo);
+          const originalTrackingNo=String(x?.originalTrackingNo||"").trim();
+          const candidates=[trackingNo,originalTrackingNo]
+            .filter(Boolean)
+            .map((v:string)=>v.toLowerCase())
+            .filter((v:string,i:number,a:string[])=>a.indexOf(v)===i);
+
+          if(!candidates.length){missing.push("");continue;}
+
+          // Prefer the current courier Tracking No; fall back to Original Tracking No.
+          // If both IDs point to the same order, it is still only one match.
+          const o=byTracking.get(candidates[0])||byTracking.get(candidates[1]);
           if(o) matched.set(String(o.id),{order:o,status:String(x?.status||"").trim()});
-          else missing.push(trackingNo);
+          else missing.push(trackingNo||originalTrackingNo);
         }
 
         const changed:any[]=[];
