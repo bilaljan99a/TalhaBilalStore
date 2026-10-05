@@ -1,6 +1,16 @@
 (() => {
   // Meta Pixel — Talha Bilal Store
   // Pixel ID: 2937138116646692
+  const TB_META_PIXEL_ID = '2937138116646692';
+  function initMetaPixel(){
+    if (typeof window.fbq !== 'function') return false;
+    if (window.fbq.__tbPixelInitialized) return true;
+    window.fbq('set', 'autoConfig', false, TB_META_PIXEL_ID);
+    window.fbq('init', TB_META_PIXEL_ID);
+    window.fbq('track', 'PageView');
+    window.fbq.__tbPixelInitialized = true;
+    return true;
+  }
   if (!window.fbq) {
     window.fbq = function(){ window.fbq.callMethod ? window.fbq.callMethod.apply(window.fbq, arguments) : window.fbq.queue.push(arguments); };
     window._fbq = window.fbq;
@@ -11,13 +21,14 @@
     const pixelScript = document.createElement('script');
     pixelScript.async = true;
     pixelScript.src = 'https://connect.facebook.net/en_US/fbevents.js';
+    pixelScript.onload = initMetaPixel;
+    pixelScript.onerror = () => { window.__tbMetaPixelLoadFailed = true; };
     const firstScript = document.getElementsByTagName('script')[0];
     if (firstScript) firstScript.parentNode.insertBefore(pixelScript, firstScript);
     else document.head.appendChild(pixelScript);
   }
-  window.fbq('set', 'autoConfig', false, '2937138116646692');
-  window.fbq('init', '2937138116646692');
-  window.fbq('track', 'PageView');
+  initMetaPixel();
+  window.addEventListener('load', initMetaPixel, {once:true});
 
   const BASE='https://www.talhabilalstore.com/';
   const LOGO='/assets/TalhaBilalStore%20Logo.png';
