@@ -1,0 +1,7 @@
+{
+  "name": "Talha Bilal Store | Mango Pulp Drink Premix",
+  "description": "Shop Mango Pulp Drink Premix from Talha Bilal Store. Choose from 1kg to 10kg packs with clear pricing, weight-based delivery and Cash on Delivery across Pakistan.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
