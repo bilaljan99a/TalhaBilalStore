@@ -1,15 +1,20 @@
 (() => {
   // Meta Pixel — Talha Bilal Store
   // Pixel ID: 2937138116646692
+  // Initialize using Meta's standard queue pattern so PageView is queued
+  // immediately, even if fbevents.js takes time to load.
   const TB_META_PIXEL_ID = '2937138116646692';
   function initMetaPixel(){
     if (typeof window.fbq !== 'function') return false;
     if (window.fbq.__tbPixelInitialized) return true;
-    window.fbq('set', 'autoConfig', false, TB_META_PIXEL_ID);
-    window.fbq('init', TB_META_PIXEL_ID);
-    window.fbq('track', 'PageView');
-    window.fbq.__tbPixelInitialized = true;
-    return true;
+    try {
+      window.fbq('init', TB_META_PIXEL_ID);
+      window.fbq('track', 'PageView');
+      window.fbq.__tbPixelInitialized = true;
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
   if (!window.fbq) {
     window.fbq = function(){ window.fbq.callMethod ? window.fbq.callMethod.apply(window.fbq, arguments) : window.fbq.queue.push(arguments); };
@@ -18,18 +23,20 @@
     window.fbq.loaded = true;
     window.fbq.version = '2.0';
     window.fbq.queue = [];
+    // Queue init + PageView immediately. This is important for Meta Test Events.
+    window.fbq('init', TB_META_PIXEL_ID);
+    window.fbq('track', 'PageView');
+    window.fbq.__tbPixelInitialized = true;
     const pixelScript = document.createElement('script');
     pixelScript.async = true;
     pixelScript.src = 'https://connect.facebook.net/en_US/fbevents.js';
-    pixelScript.onload = initMetaPixel;
     pixelScript.onerror = () => { window.__tbMetaPixelLoadFailed = true; };
     const firstScript = document.getElementsByTagName('script')[0];
     if (firstScript) firstScript.parentNode.insertBefore(pixelScript, firstScript);
     else document.head.appendChild(pixelScript);
+  } else {
+    initMetaPixel();
   }
-  initMetaPixel();
-  window.addEventListener('load', initMetaPixel, {once:true});
-
   const BASE='https://www.talhabilalstore.com/';
   const LOGO='/assets/TalhaBilalStore%20Logo.png';
   const links=[['Home','index.html'],['All Products','/products'],['Blog','/blog.html']];
