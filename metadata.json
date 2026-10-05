@@ -1,0 +1,8 @@
+{
+  "name": "Talha Bilal Store",
+  "description": "Talha Bilal Store — Mango Pulp Drink Premix with Cash on Delivery across Pakistan.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ],
+  "permissions": []
+}

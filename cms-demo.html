@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Talha Bilal Store — CMS Demo</title>
+<style>
+:root{--bg:#f5f6f8;--panel:#fff;--text:#17191d;--muted:#70757d;--line:#e5e7eb;--accent:#ff6a00;--nav:#15171b;--success:#18864b}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input,textarea,select{font:inherit}button{cursor:pointer}
+.layout{min-height:100vh;display:grid;grid-template-columns:245px 1fr}.sidebar{background:var(--nav);color:#fff;padding:24px 16px;position:sticky;top:0;height:100vh}.brand{font-size:18px;font-weight:800;padding:0 10px 26px}.brand small{display:block;color:#969ba4;font-size:11px;font-weight:500;margin-top:4px}.nav button{display:block;width:100%;border:0;background:transparent;color:#c9ccd1;text-align:left;padding:11px 12px;border-radius:9px;margin:3px 0}.nav button:hover,.nav button.active{background:#282b31;color:#fff}.main{min-width:0}.topbar{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px}.demo-badge{font-size:12px;font-weight:700;color:#9a4d00;background:#fff1e7;padding:7px 10px;border-radius:999px}.content{padding:28px;max-width:1400px}.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}.page-head h1{font-size:25px;margin:0 0 5px}.page-head p{margin:0;color:var(--muted);font-size:14px}.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:10px 14px;font-weight:650}.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px}.card{padding:18px}.card span{display:block;color:var(--muted);font-size:12px}.card strong{font-size:23px;display:block;margin-top:8px}.panel{padding:20px;margin-top:18px}.panel h2{font-size:17px;margin:0 0 15px}.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);font-size:13px}.table th{color:var(--muted);font-size:11px;text-transform:uppercase}.status{display:inline-block;padding:5px 8px;border-radius:999px;background:#eef8f1;color:var(--success);font-size:11px;font-weight:700}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.field.full{grid-column:1/-1}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}.field input,.field textarea,.field select{width:100%;border:1px solid #d9dce1;border-radius:8px;padding:10px 11px;background:#fff}.field textarea{min-height:105px;resize:vertical}.section-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.hint{font-size:12px;color:var(--muted);margin-top:6px}.item-list{display:grid;gap:10px}.item{display:flex;align-items:center;justify-content:space-between;gap:15px;border:1px solid var(--line);padding:14px;border-radius:9px}.item strong{font-size:14px}.item small{display:block;color:var(--muted);margin-top:3px}.item-actions{display:flex;gap:7px}.danger{color:#b42318}.hidden{display:none!important}@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:relative;height:auto;padding:12px}.brand{padding:8px 10px}.nav{display:flex;overflow:auto;gap:4px}.nav button{white-space:nowrap;width:auto}.cards{grid-template-columns:1fr 1fr}}@media(max-width:600px){.content{padding:18px}.topbar{padding:0 18px}.cards,.form-grid{grid-template-columns:1fr}.page-head{flex-direction:column}}
+ .live-extra{padding:10px 12px;border-radius:9px;background:#eef5ff;color:#174ea6;font-size:12px;font-weight:700}.login-card{max-width:430px;margin:60px auto}.live-error{color:#b42318;font-size:13px;margin-top:10px}.live-table td,.live-table th{white-space:nowrap}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.toolbar input,.toolbar select{border:1px solid #d9dce1;border-radius:8px;padding:9px;background:#fff}</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+<div class="brand">Talha Bilal Store<small>Custom CMS • SAFE PREVIEW</small></div>
+<nav class="nav" id="nav">
+<button data-page="dashboard" class="active">Dashboard</button>
+<button data-page="products">Products</button>
+<button data-page="pages">Website Content</button>
+<button data-page="blog">Blog</button>
+<button data-page="reviews">Reviews</button>
+<button data-page="faqs">FAQs</button>
+<button data-page="seo">SEO</button>
+<button data-page="settings">Settings</button><button data-page="orders">Orders</button><button data-page="finance">Finance</button><button data-page="promotions">Deals & Promotions</button><button data-page="meta">Meta Ads</button><button data-page="media">Media Library</button><button data-page="homepage">Homepage Builder</button><button data-page="banners">Banners / Slider</button><button data-page="categories">Categories</button><button data-page="attributes">Product Attributes</button><button data-page="audit">Change History</button>
+</nav>
+</aside>
+<main class="main">
+<header class="topbar"><strong id="crumb">Dashboard</strong><span class="live-extra" id="liveState">Checking secure CMS access…</span></header>
+<div class="content" id="app"></div>
+</main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\n<script>
+const seed={
+products:[{name:'Mango Premix Drink — 1kg',price:'450',status:'Active'},{name:'Mango Premix Drink — 2kg',price:'800',status:'Active'},{name:'Mango Premix Drink — 5kg',price:'1850',status:'Active'}],
+pages:[{name:'Homepage',sections:'Hero • Featured Products • Reviews • FAQ • CTA'},{name:'Why Us',sections:'Quality • 60% Mango Pulp • Easy Ordering'},{name:'How to Order',sections:'Order Steps • COD • Delivery'}],
+blog:[{title:'How to Make Mango Drink from Mango Pulp Premix',status:'Published'},{title:'Where to Buy Mango Pulp in Pakistan',status:'Published'}],
+reviews:[{name:'Sample Customer',rating:'5',text:'Excellent taste and quality.'}],
+faqs:[{q:'How do I place an order?',a:'Choose a product and complete the COD form.'},{q:'Do you deliver across Pakistan?',a:'Yes, delivery is available across Pakistan.'}],
+seo:{homeTitle:'Talha Bilal Store | Mango Pulp Drink Premix',homeMeta:'Shop Mango Pulp Drink Premix in 1kg to 10kg packs with Cash on Delivery across Pakistan.'},
+settings:{store:'Talha Bilal Store',whatsapp:'0311 9167630',announcement:'Cash on Delivery — All Over Pakistan'}
+};
+function load(){try{return JSON.parse(localStorage.getItem('tbsCmsDemo'))||structuredClone(seed)}catch(e){return structuredClone(seed)}}
+let db=load();function save(){localStorage.setItem('tbsCmsDemo',JSON.stringify(db))}
+const app=document.getElementById('app'),crumb=document.getElementById('crumb');
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function head(title,sub,action=''){return '<div class="page-head"><div><h1>'+title+'</h1><p>'+sub+'</p></div>'+action+'</div>'}
+function render(page='dashboard'){
+document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));crumb.textContent=page==='dashboard'?'Dashboard':page.replace(/^./,x=>x.toUpperCase());
+if(page==='dashboard')return dashboard();
+if(page==='products')return products();
+if(page==='pages')return pages();
+if(page==='blog')return blog();
+if(page==='reviews')return reviews();
+if(page==='faqs')return faqs();
+if(page==='seo')return seo();
+if(page==='settings')return settings();
+if(page==='orders')return orders();
+if(page==='finance')return finance();
+if(page==='promotions')return promotions();
+if(page==='meta')return meta();
+if(page==='media')return media();
+if(page==='homepage')return homepage();
+if(page==='banners')return banners();
+if(page==='categories')return categories();
+if(page==='attributes')return attributes();
+if(page==='audit')return audit();
+}
+
+async function orders(){app.innerHTML=head('Orders','Read-only preview of the existing order system. No order editing is enabled here.')+demoRows('Recent Orders',['Order','Customer','Weight','Sales','Status'],[
+['TB-10482','Muhammad Ali','2kg','Rs. 900','Shipped'],
+['TB-10481','Ayesha Khan','1kg','Rs. 450','Delivered'],
+['TB-10480','Hassan Raza','5kg','Rs. 2,150','In Transit'],
+['TB-10479','Sana Malik','1kg','Rs. 450','Delivery Failed']
+])+'<div class="panel"><h2>Safety</h2><p class="hint">The production Orders/Finance admin remains untouched. The final CMS can mirror these records through secured read access and later add approved workflows.</p></div><div class="panel"><div class="table-wrap"><table class="table"><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr><tr><td>Live data connection planned</td><td>Existing orders</td><td>Read-only</td><td>Protected</td></tr></table></div></div>'}
+async function finance(){app.innerHTML=head('Finance','Read-only preview of the existing finance system.')+demoRows('Monthly Finance Sample',['Metric','September'],[
+['Total Sales','Rs. 48,650'],
+['Product Cost','Rs. 21,875'],
+['Delivery Cost','Rs. 6,742'],
+['Ads Cost','Rs. 9,368'],
+['Packaging','Rs. 2,756'],
+['Return / Failed Loss','Rs. 1,040'],
+['Realized Profit / Loss','Rs. 6,869'],
+['ROI','31.4%']
+])+'<div class="cards"><div class="card"><span>Product Cost</span><strong>Existing Formula</strong></div><div class="card"><span>Delivery Cost</span><strong>Existing Formula</strong></div><div class="card"><span>Ads Cost / Share</span><strong>Existing Formula</strong></div><div class="card"><span>ROI / P&L</span><strong>Existing Formula</strong></div></div><div class="panel"><p class="hint">All current finance formulas, pagination, monthly P/L, failed-return loss, ROI and ads allocation stay in the current admin until the CMS replacement is fully tested.</p></div>'}
+function promotions(){app.innerHTML=head('Deals & Promotions','Conversion tools with real start/end dates and customer-facing countdowns.','<button class="btn primary" onclick="alert(\'Demo: promotion editor\')">+ New Promotion</button>')+demoRows('Active Deals',['Promotion','Type','Value','Ends'],[
+['Mango Weekend','Percentage','10%','04 Oct 2026 23:59'],
+['8kg Family Bundle','Bundle','Save Rs. 250','06 Oct 2026 23:59'],
+['Free Shipping','Free shipping','Above Rs. 2,500','30 Oct 2026']
+])+'<div class="cards"><div class="card"><span>Percentage / Fixed</span><strong>Ready</strong></div><div class="card"><span>Bundles</span><strong>Ready</strong></div><div class="card"><span>Free Shipping</span><strong>Ready</strong></div><div class="card"><span>Countdown</span><strong>Real expiry</strong></div></div><div class="panel"><h2>Conversion toolkit</h2><p>Limited-time offers, bundles, quantity discounts, free-shipping thresholds, best-seller/new badges, honest low-stock messaging, social proof, sticky mobile CTA, WhatsApp CTA, delivery estimates and related products.</p></div>'}
+function meta(){app.innerHTML=head('Meta Ads','Secure server-side API integration area.')+demoRows('Campaign Performance Sample',['Campaign','Spend','Purchases','Revenue','ROAS'],[
+['Mango Sales - Lahore','Rs. 4,820','7','Rs. 12,950','2.69x'],
+['8kg Bundle Test','Rs. 2,110','4','Rs. 8,400','3.98x'],
+['Retargeting','Rs. 1,740','3','Rs. 5,850','3.36x']
+])+'<div class="cards"><div class="card"><span>Ad Accounts</span><strong>Planned</strong></div><div class="card"><span>Campaigns</span><strong>Planned</strong></div><div class="card"><span>Spend</span><strong>Planned</strong></div><div class="card"><span>ROAS</span><strong>Planned</strong></div></div><div class="panel"><h2>Important</h2><p class="hint">Meta access tokens must never be stored in browser code. The final integration will use a server-side function and then connect spend → orders → sales → profit/ROI.</p></div>'}
+function media(){app.innerHTML=head('Media Library','Reusable product images, banners, blog media, logos and video assets.','<button class="btn primary" onclick="alert(\'Demo media uploader\')">+ Add Media</button>')+'<div class="panel"><div class="item-list"><div class="item"><div><strong>Product Images</strong><small>Upload, replace, reorder, alt text and reuse.</small></div><span class="status">Ready</span></div><div class="item"><div><strong>Homepage Creative</strong><small>Desktop + mobile banner assets.</small></div><span class="status">Ready</span></div><div class="item"><div><strong>Blog / SEO Media</strong><small>Featured images and social/OG assets.</small></div><span class="status">Ready</span></div></div></div>'}
+function homepage(){app.innerHTML=head('Homepage Builder','Visual section management without editing HTML.','<button class="btn primary" onclick="alert(\'Demo section editor\')">+ Add Section</button>')+'<div class="panel"><div class="item-list">'+['Announcement Bar','Hero / Slider','Featured Products','Best Sellers','Promotion Banner','Why Choose Us','Reviews / Social Proof','FAQ','Blog','Trust / COD','CTA / WhatsApp','Footer'].map((x,i)=>'<div class="item"><div><strong>'+x+'</strong><small>Show / hide • reorder • duplicate • desktop/mobile settings</small></div><span class="status">'+(i<3?'Active':'Ready')+'</span></div>').join('')+'</div></div>'}
+function banners(){app.innerHTML=head('Banners / Slider','Schedule creative with desktop/mobile images, CTA and start/end dates.','<button class="btn primary" onclick="alert(\'Demo banner editor\')">+ Add Banner</button>')+'<div class="panel"><p class="hint">Supports homepage hero, promotional banners, slider ordering, mobile-specific creative and real campaign scheduling.</p></div>'}
+function categories(){app.innerHTML=head('Categories','Create parent categories and subcategories with images, SEO and sorting.','<button class="btn primary" onclick="alert(\'Demo category editor\')">+ Add Category</button>')+'<div class="panel"><div class="item-list"><div class="item"><div><strong>Parent / Subcategory</strong><small>Drag/sort • active/inactive • SEO</small></div><span class="status">Ready</span></div></div></div>'}
+function attributes(){app.innerHTML=head('Product Attributes','Optional attributes can be enabled only when relevant.')+'<div class="cards"><div class="card"><span>Mango</span><strong>Weight</strong></div><div class="card"><span>Clothing</span><strong>Size + Color</strong></div><div class="card"><span>Electronics</span><strong>Storage + Color</strong></div><div class="card"><span>Custom</span><strong>Any Attribute</strong></div></div><div class="panel"><p class="hint">No irrelevant fields are forced on products. Attribute definitions are stored per product/variant.</p></div>'}
+function audit(){app.innerHTML=head('Change History','Future CMS writes will record user, time, action and before/after values.')+'<div class="panel"><p class="hint">Audit log foundation is included in the new CMS database. Existing admin history is not modified.</p></div>'}
+
+function demoRows(title,cols,rows){return '<div class="panel"><h2>'+title+'</h2><div class="table-wrap"><table class="table"><tr>'+cols.map(x=>'<th>'+x+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</table></div></div>'}
+function dashboard(){app.innerHTML=head('CMS Dashboard','A safe demo of the future content management system.')+'<div class="cards"><div class="card"><span>Products</span><strong>'+db.products.length+'</strong></div><div class="card"><span>Website Pages</span><strong>'+db.pages.length+'</strong></div><div class="card"><span>Blog Posts</span><strong>'+db.blog.length+'</strong></div><div class="card"><span>Reviews</span><strong>'+db.reviews.length+'</strong></div></div><div class="panel"><h2>What this demo proves</h2><p class="hint">This separate CMS can eventually control website content without touching the existing Orders / Finance admin. Right now all demo edits stay inside this browser using local storage. No production Supabase data is changed.</p></div>'}
+function products(){app.innerHTML=head('Products','Manage names, prices, descriptions, images, pack sizes and SEO in the future.','<button class="btn primary" onclick="addProduct()">+ Add Product</button>')+'<div class="panel"><div class="item-list">'+db.products.map((p,i)=>'<div class="item"><div><strong>'+esc(p.name)+'</strong><small>Rs. '+esc(p.price)+' • '+esc(p.status)+'</small></div><div class="item-actions"><button class="btn" onclick="editProduct('+i+')">Edit</button><button class="btn danger" onclick="removeItem(\'products\','+i+')">Delete</button></div></div>').join('')+'</div></div>'}
+function addProduct(){db.products.push({name:'New Product',price:'0',status:'Active'});save();render('products');editProduct(db.products.length-1)}
+function editProduct(i){const p=db.products[i];app.innerHTML=head('Edit Product','Demo editor — changes are local to this demo.')+'<div class="panel"><div class="form-grid"><div class="field full"><label>Product Name</label><input id="pn" value="'+esc(p.name)+'"></div><div class="field"><label>Price</label><input id="pp" value="'+esc(p.price)+'"></div><div class="field"><label>Status</label><select id="ps"><option '+(p.status==='Active'?'selected':'')+'>Active</option><option '+(p.status==='Draft'?'selected':'')+'>Draft</option></select></div></div><div class="section-actions"><button class="btn" onclick="render(\'products\')">Cancel</button><button class="btn primary" onclick="saveProduct('+i+')">Save Product</button></div></div>'}
+function saveProduct(i){db.products[i].name=document.getElementById('pn').value;db.products[i].price=document.getElementById('pp').value;db.products[i].status=document.getElementById('ps').value;save();render('products')}
+function pages(){app.innerHTML=head('Website Content','Control homepage and static-page sections from one place.','<button class="btn primary" onclick="addPage()">+ Add Page</button>')+'<div class="panel"><div class="item-list">'+db.pages.map((p,i)=>'<div class="item"><div><strong>'+esc(p.name)+'</strong><small>'+esc(p.sections)+'</small></div><div class="item-actions"><button class="btn" onclick="editPage('+i+')">Edit</button><button class="btn danger" onclick="removeItem(\'pages\','+i+')">Delete</button></div></div>').join('')+'</div></div>'}
+function addPage(){db.pages.push({name:'New Page',sections:'New Section'});save();render('pages')}
+function editPage(i){const p=db.pages[i];app.innerHTML=head('Edit Page','In the final CMS this becomes a section editor with show/hide and reorder controls.')+'<div class="panel"><div class="form-grid"><div class="field"><label>Page Name</label><input id="pg" value="'+esc(p.name)+'"></div><div class="field"><label>Sections</label><input id="psx" value="'+esc(p.sections)+'"></div></div><div class="section-actions"><button class="btn" onclick="render(\'pages\')">Cancel</button><button class="btn primary" onclick="db.pages['+i+'].name=document.getElementById(\'pg\').value;db.pages['+i+'].sections=document.getElementById(\'psx\').value;save();render(\'pages\')">Save Page</button></div></div>'}
+function blog(){app.innerHTML=head('Blog','Create, edit, draft and publish articles with SEO fields.','<button class="btn primary" onclick="addBlog()">+ New Post</button>')+'<div class="panel"><div class="item-list">'+db.blog.map((p,i)=>'<div class="item"><div><strong>'+esc(p.title)+'</strong><small>'+esc(p.status)+'</small></div><div class="item-actions"><button class="btn" onclick="editBlog('+i+')">Edit</button><button class="btn danger" onclick="removeItem(\'blog\','+i+')">Delete</button></div></div>').join('')+'</div></div>'}
+function addBlog(){db.blog.push({title:'New Blog Post',status:'Draft'});save();render('blog')}
+function editBlog(i){const p=db.blog[i];app.innerHTML=head('Edit Blog Post','Final version will include editor, featured image, slug and SEO.')+'<div class="panel"><div class="form-grid"><div class="field full"><label>Title</label><input id="bt" value="'+esc(p.title)+'"></div><div class="field"><label>Status</label><select id="bs"><option '+(p.status==='Published'?'selected':'')+'>Published</option><option '+(p.status==='Draft'?'selected':'')+'>Draft</option></select></div></div><div class="section-actions"><button class="btn" onclick="render(\'blog\')">Cancel</button><button class="btn primary" onclick="db.blog['+i+'].title=document.getElementById(\'bt\').value;db.blog['+i+'].status=document.getElementById(\'bs\').value;save();render(\'blog\')">Save Post</button></div></div>'}
+function reviews(){app.innerHTML=head('Reviews','Manage customer reviews and approval status.','<button class="btn primary" onclick="addReview()">+ Add Review</button>')+'<div class="panel"><div class="item-list">'+db.reviews.map((r,i)=>'<div class="item"><div><strong>'+esc(r.name)+' • '+esc(r.rating)+'/5</strong><small>'+esc(r.text)+'</small></div><button class="btn danger" onclick="removeItem(\'reviews\','+i+')">Delete</button></div>').join('')+'</div></div>'}
+function addReview(){db.reviews.push({name:'Customer',rating:'5',text:'New review'});save();render('reviews')}
+function faqs(){app.innerHTML=head('FAQs','Manage questions and answers shown across the website.','<button class="btn primary" onclick="addFaq()">+ Add FAQ</button>')+'<div class="panel"><div class="item-list">'+db.faqs.map((f,i)=>'<div class="item"><div><strong>'+esc(f.q)+'</strong><small>'+esc(f.a)+'</small></div><button class="btn danger" onclick="removeItem(\'faqs\','+i+')">Delete</button></div>').join('')+'</div></div>'}
+function addFaq(){db.faqs.push({q:'New Question',a:'New Answer'});save();render('faqs')}
+function seo(){app.innerHTML=head('SEO Manager','Central place for page titles, meta descriptions and indexing controls.')+'<div class="panel"><div class="form-grid"><div class="field full"><label>Homepage SEO Title</label><input id="st" value="'+esc(db.seo.homeTitle)+'"></div><div class="field full"><label>Homepage Meta Description</label><textarea id="sm">'+esc(db.seo.homeMeta)+'</textarea></div><div class="field"><label>Indexing</label><select><option>Index, Follow</option><option>Noindex, Follow</option></select></div><div class="field"><label>Canonical</label><input placeholder="https://www.talhabilalstore.com/"></div></div><div class="section-actions"><button class="btn primary" onclick="db.seo.homeTitle=document.getElementById(\'st\').value;db.seo.homeMeta=document.getElementById(\'sm\').value;save();alert(\'Demo SEO settings saved.\')">Save SEO</button></div></div>'}
+function settings(){app.innerHTML=head('Website Settings','Store-wide information used by the website.')+'<div class="panel"><div class="form-grid"><div class="field"><label>Store Name</label><input id="sn" value="'+esc(db.settings.store)+'"></div><div class="field"><label>WhatsApp</label><input id="sw" value="'+esc(db.settings.whatsapp)+'"></div><div class="field full"><label>Announcement Bar</label><input id="sa" value="'+esc(db.settings.announcement)+'"></div></div><div class="section-actions"><button class="btn primary" onclick="db.settings.store=document.getElementById(\'sn\').value;db.settings.whatsapp=document.getElementById(\'sw\').value;db.settings.announcement=document.getElementById(\'sa\').value;save();alert(\'Demo settings saved.\')">Save Settings</button></div></div>'}
+function removeItem(type,i){if(confirm('Delete this demo item?')){db[type].splice(i,1);save();render(type==='products'?'products':type)}}
+document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-page]');if(b)render(b.dataset.page)});
+
+const SUPABASE_URL="https://dxdjqeqlmyawqrzphzdb.supabase.co";
+const SUPABASE_KEY="sb_publishable__VZebPfljfwPNTxcWbDD7Q_pzIJvn_K";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let liveData=null;
+function money(v){return "Rs. "+Number(v||0).toLocaleString("en-PK",{maximumFractionDigits:2})}
+function liveLogin(){
+ app.innerHTML=head("Secure CMS Login","Sign in with the same Supabase admin account used by the existing admin panel.")+
+ '<div class="panel login-card"><div class="field"><label>Email</label><input id="loginEmail" type="email" autocomplete="username"></div>'+
+ '<div class="field" style="margin-top:12px"><label>Password</label><input id="loginPassword" type="password" autocomplete="current-password"></div>'+
+ '<div id="loginError" class="live-error"></div><div class="section-actions"><button class="btn primary" onclick="doLogin()">Sign In</button></div>'+
+ '<p class="hint">Read-only mirror of real Orders and Finance. Existing admin and website are not modified.</p></div>';
+}
+async function doLogin(){
+ const email=document.getElementById("loginEmail").value.trim(),password=document.getElementById("loginPassword").value;
+ const {error}=await supabaseClient.auth.signInWithPassword({email,password});
+ if(error){document.getElementById("loginError").textContent=error.message;return}
+ await loadLiveData();
+}
+async function logoutCMS(){await supabaseClient.auth.signOut();liveData=null;document.getElementById("liveState").textContent="Signed out";liveLogin()}
+async function loadLiveData(){
+ document.getElementById("liveState").textContent="Loading real admin data…";
+ const {data:{session}}=await supabaseClient.auth.getSession();
+ if(!session){document.getElementById("liveState").textContent="Login required";liveLogin();return}
+ const {data,error}=await supabaseClient.functions.invoke("cms-data");
+ if(error){document.getElementById("liveState").textContent="Connection error";app.innerHTML=head("CMS Connection Error","Secure live-data service could not be reached.")+'<div class="panel"><p class="live-error">'+esc(error.message)+'</p><button class="btn" onclick="loadLiveData()">Retry</button></div>';return}
+ liveData=data;document.getElementById("liveState").textContent="LIVE • Real Admin Data";render("dashboard");
+}
+async function orders(){
+ if(!liveData)return liveLogin();
+ const rows=liveData.orders||[];
+ app.innerHTML=head("Orders","LIVE read-only mirror of the real Orders data.","<button class='btn' onclick='loadLiveData()'>Refresh</button>")+
+ '<div class="toolbar"><input id="orderSearch" placeholder="Search order, customer, phone, city…" oninput="filterLiveOrders()">'+
+ '<select id="orderStatusFilter" onchange="filterLiveOrders()"><option value="">All statuses</option>'+
+ [...new Set(rows.map(o=>o.status).filter(Boolean))].sort().map(s=>"<option>"+esc(s)+"</option>").join("")+
+ '</select><button class="btn" onclick="logoutCMS()">Sign Out</button></div>'+
+ '<div class="panel"><div class="table-wrap"><table class="table live-table"><thead><tr><th>Order</th><th>Customer</th><th>Phone</th><th>City</th><th>Items</th><th>Sales</th><th>Status</th><th>Tracking</th><th>Date</th></tr></thead><tbody id="liveOrdersBody"></tbody></table></div></div>'+
+ '<div class="panel"><p class="hint">'+rows.length+' real orders loaded. No order data is written by this CMS.</p></div>';
+ renderLiveOrders(rows);
+}
+function renderLiveOrders(rows){
+ const body=document.getElementById("liveOrdersBody");if(!body)return;
+ body.innerHTML=rows.map(o=>{
+  const items=Array.isArray(o.items)?o.items.map(i=>i.name||i.product_name||i.title||"Item").join(", "):(o.items||"—");
+  return "<tr><td><strong>"+esc(o.order_number)+"</strong></td><td>"+esc(o.full_name)+"</td><td>"+esc(o.phone)+"</td><td>"+esc(o.city)+"</td><td>"+esc(typeof items==="object"?JSON.stringify(items):items)+"</td><td>"+money(o.total)+"</td><td>"+esc(o.status)+"</td><td>"+esc(o.tracking_number||"—")+"</td><td>"+esc(new Date(o.created_at).toLocaleString("en-PK"))+"</td></tr>";
+ }).join("")||'<tr><td colspan="9">No matching orders.</td></tr>';
+}
+function filterLiveOrders(){
+ const q=(document.getElementById("orderSearch")?.value||"").toLowerCase(),s=document.getElementById("orderStatusFilter")?.value||"";
+ renderLiveOrders((liveData.orders||[]).filter(o=>(!s||o.status===s)&&(!q||[o.order_number,o.full_name,o.phone,o.city,o.address].join(" ").toLowerCase().includes(q))));
+}
+async function finance(){
+ if(!liveData)return liveLogin();
+ const o=liveData.orders||[],d=liveData.daily_finance||[];
+ const eligible=o.filter(x=>!/^cancelled$/i.test(x.status||""));
+ const sales=eligible.filter(x=>!/^delivery failed$/i.test(x.status||"")).reduce((a,x)=>a+Number(x.total||0),0);
+ const sum=k=>eligible.reduce((a,x)=>a+Number(x[k]||0),0);
+ const product=sum("product_cost"),shipping=sum("shipping_cost"),ads=sum("ads_cost"),packaging=sum("packaging_cost"),returns=sum("return_shipping_cost"),other=sum("other_cost");
+ const profit=sales-product-shipping-ads-packaging-returns-other;
+ app.innerHTML=head("Finance","LIVE read-only mirror using real order finance fields and daily finance records.","<button class='btn' onclick='loadLiveData()'>Refresh</button>")+
+ '<div class="cards"><div class="card"><span>Total Sales</span><strong>'+money(sales)+'</strong></div><div class="card"><span>Product Cost</span><strong>'+money(product)+'</strong></div><div class="card"><span>Delivery Cost</span><strong>'+money(shipping)+'</strong></div><div class="card"><span>Ads Cost</span><strong>'+money(ads)+'</strong></div><div class="card"><span>Packaging</span><strong>'+money(packaging)+'</strong></div><div class="card"><span>Return Shipping</span><strong>'+money(returns)+'</strong></div><div class="card"><span>Other Cost</span><strong>'+money(other)+'</strong></div><div class="card"><span>Live P/L</span><strong>'+money(profit)+'</strong></div></div>'+
+ demoRows("Daily Finance — Real Data",["Date","Ads Cost"],d.map(x=>[x.finance_date,money(x.ads_cost)]))+
+ '<div class="panel"><h2>Real Order Finance</h2><div class="table-wrap"><table class="table live-table"><tr><th>Order</th><th>Status</th><th>Sales</th><th>Product</th><th>Delivery</th><th>Ads</th><th>Packaging</th><th>Return</th><th>Other</th><th>P/L</th></tr>'+
+ eligible.map(x=>{const p=Number(x.total||0)-Number(x.product_cost||0)-Number(x.shipping_cost||0)-Number(x.ads_cost||0)-Number(x.packaging_cost||0)-Number(x.return_shipping_cost||0)-Number(x.other_cost||0);return "<tr><td>"+esc(x.order_number)+"</td><td>"+esc(x.status)+"</td><td>"+money(x.total)+"</td><td>"+money(x.product_cost)+"</td><td>"+money(x.shipping_cost)+"</td><td>"+money(x.ads_cost)+"</td><td>"+money(x.packaging_cost)+"</td><td>"+money(x.return_shipping_cost)+"</td><td>"+money(x.other_cost)+"</td><td>"+money(p)+"</td></tr>"}).join("")+
+ '</table></div></div><div class="panel"><p class="hint">Real data is read through a separate secured CMS service. Existing Orders/Finance logic is untouched.</p></div>';
+}
+function dashboard(){
+ if(!liveData)return liveLogin();
+ const rows=liveData.orders||[],active=rows.filter(o=>!/cancelled|delivery failed/i.test(o.status||"")),delivered=rows.filter(o=>/delivered/i.test(o.status||""));
+ const sales=active.reduce((a,o)=>a+Number(o.total||0),0);
+ app.innerHTML=head("CMS Dashboard","Real-time overview from the existing admin database.","<button class='btn' onclick='loadLiveData()'>Refresh</button>")+
+ '<div class="cards"><div class="card"><span>Real Orders</span><strong>'+rows.length+'</strong></div><div class="card"><span>Total Sales</span><strong>'+money(sales)+'</strong></div><div class="card"><span>Delivered</span><strong>'+delivered.length+'</strong></div><div class="card"><span>Daily Finance Rows</span><strong>'+(liveData.daily_finance||[]).length+'</strong></div></div>'+
+ '<div class="panel"><h2>Live Data</h2><p class="hint">Orders, daily finance, finance settings and existing admin records are loaded live. This CMS does not write to those tables.</p></div>'+
+ '<div class="panel"><h2>CMS Content Modules</h2><p class="hint">Products, categories, homepage, banners, blog, SEO, promotions, media, FAQs and settings remain isolated demo modules until we connect their actual website content.</p></div>';
+}
+supabaseClient.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){liveData=null;liveLogin()}});
+
+loadLiveData();
+</script>
+</body>
+</html>
