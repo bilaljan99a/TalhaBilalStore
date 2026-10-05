@@ -103,12 +103,32 @@
     };
   }
 
-  function trackThankYouPurchase() {
+  async function fetchPurchaseFallback(orderId) {
+    try {
+      const url = `/functions/v1/purchase-data?order=${encodeURIComponent(orderId)}`;
+      const response = await fetch(url, { method: 'GET', cache: 'no-store' });
+      if (!response.ok) return null;
+      const result = await response.json();
+      if (!result?.success) return null;
+      const total = Number(result.order?.total);
+      if (!Number.isFinite(total) || total <= 0) return null;
+      const items = Array.isArray(result.order?.items) ? result.order.items : [];
+      return {
+        content_ids: items.map(i => i?.id).filter(Boolean),
+        content_type: 'product',
+        value: total,
+        currency,
+        num_items: items.reduce((sum, i) => sum + Number(i?.quantity || 0), 0)
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  async function trackThankYouPurchase() {
     const orderId = new URLSearchParams(location.search).get('order');
     if (!orderId) return;
 
-    // Page-level guard: protects against more than one Purchase trigger/script
-    // trying to send the same order during the same page load.
     const pageKey = `tbPurchaseSent_${orderId}`;
     if (window[pageKey]) return;
     window[pageKey] = true;
@@ -126,14 +146,24 @@
       data = JSON.parse(raw || '{}');
     } catch {}
 
-    const purchaseValue = Number(data.value);
+    let purchaseValue = Number(data.value);
+
+    // Robust fallback: if the checkout-page handoff was lost, retrieve only
+    // the minimum purchase data needed for Meta from the dedicated read-only
+    // Edge Function. This avoids exposing the orders table through RLS.
     if (!Number.isFinite(purchaseValue) || purchaseValue <= 0) {
-      console.warn('Meta Purchase skipped: valid order value was not available in session/local handoff.');
+      const fallback = await fetchPurchaseFallback(orderId);
+      if (fallback) {
+        data = fallback;
+        purchaseValue = fallback.value;
+      }
+    }
+
+    if (!Number.isFinite(purchaseValue) || purchaseValue <= 0) {
+      console.warn('Meta Purchase skipped: valid order value was not available.');
       return;
     }
 
-    // Mark before sending so another synchronous/near-simultaneous callback
-    // cannot send the same order twice.
     localStorage.setItem(key, '1');
     sessionStorage.setItem(key, '1');
 
@@ -143,7 +173,8 @@
       value: purchaseValue,
       currency: data.currency || currency
     });
-    sessionStorage.removeItem(`tb_pending_purchase_${orderId}`);localStorage.removeItem(`tb_pending_purchase_${orderId}`);
+    sessionStorage.removeItem(`tb_pending_purchase_${orderId}`);
+    localStorage.removeItem(`tb_pending_purchase_${orderId}`);
   }
 
   function init() {
