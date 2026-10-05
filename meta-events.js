@@ -121,12 +121,14 @@
 
     let data = {};
     try {
-      data = JSON.parse(sessionStorage.getItem(`tb_pending_purchase_${orderId}`) || '{}');
+      const pendingKey = `tb_pending_purchase_${orderId}`;
+      const raw = sessionStorage.getItem(pendingKey) || localStorage.getItem(pendingKey) || '';
+      data = JSON.parse(raw || '{}');
     } catch {}
 
     const purchaseValue = Number(data.value);
     if (!Number.isFinite(purchaseValue) || purchaseValue <= 0) {
-      console.warn('Meta Purchase skipped: valid order value was not available.');
+      console.warn('Meta Purchase skipped: valid order value was not available in session/local handoff.');
       return;
     }
 
@@ -141,7 +143,7 @@
       value: purchaseValue,
       currency: data.currency || currency
     });
-    sessionStorage.removeItem(`tb_pending_purchase_${orderId}`);
+    sessionStorage.removeItem(`tb_pending_purchase_${orderId}`);localStorage.removeItem(`tb_pending_purchase_${orderId}`);
   }
 
   function init() {
