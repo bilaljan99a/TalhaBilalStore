@@ -1,60 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Thank You | Talha Bilal Store</title><link rel="icon" href="assets/logo.svg"><link rel="stylesheet" href="styles.css?v=20260901-3"><link rel="stylesheet" href="store-fixes.css?v=20260909-1">
 <!-- Meta Pixel Code -->
 <script>
-(function installNetworkInterceptor() {
-  function isBadBeacon(s) {
-    if (!s) return false;
-    var str = '';
-    try {
-      if (typeof s === 'string') str = s;
-      else if (window.FormData && s instanceof FormData) { for (var pair of s.entries()) str += pair[0] + '=' + pair[1] + '&'; }
-      else if (window.URLSearchParams && s instanceof URLSearchParams) { str = s.toString(); }
-      else if (typeof s === 'object') { str = JSON.stringify(s); }
-    } catch (e) {}
-    return str.indexOf('cs_est') !== -1 || str.indexOf('ob3_plugin-set') !== -1 || str.indexOf('SubscribedButtonClick') !== -1;
-  }
-  if (navigator && navigator.sendBeacon) {
-    var origBeacon = navigator.sendBeacon.bind(navigator);
-    navigator.sendBeacon = function(u, d) {
-      if (isBadBeacon(u) || isBadBeacon(d)) return true;
-      return origBeacon(u, d);
-    };
-  }
-  var origOpen = XMLHttpRequest.prototype.open;
-  var origSend = XMLHttpRequest.prototype.send;
-  XMLHttpRequest.prototype.open = function(m, u) {
-    this._tbUrl = u;
-    return origOpen.apply(this, arguments);
-  };
-  XMLHttpRequest.prototype.send = function(b) {
-    if (isBadBeacon(this._tbUrl) || isBadBeacon(b)) return;
-    return origSend.apply(this, arguments);
-  };
-  var imgDesc = Object.getOwnPropertyDescriptor(Image.prototype, 'src');
-  if (imgDesc && imgDesc.set) {
-    var origImgSet = imgDesc.set;
-    Object.defineProperty(Image.prototype, 'src', {
-      configurable: true,
-      enumerable: true,
-      get: function() { return imgDesc.get.call(this); },
-      set: function(v) {
-        if (isBadBeacon(v)) return;
-        return origImgSet.call(this, v);
-      }
-    });
-  }
-  var origFetch = window.fetch;
-  if (origFetch) {
-    window.fetch = function(input, init) {
-      var u = typeof input === 'string' ? input : (input && input.url) || '';
-      var b = init && init.body ? init.body : '';
-      if (isBadBeacon(u) || isBadBeacon(b)) {
-        return Promise.resolve(new Response(''));
-      }
-      return origFetch.apply(this, arguments);
-    };
-  }
-})();
 !function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -63,7 +9,6 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-fbq('set', 'autoConfig', false, '2937138116646692');
 fbq('init', '2937138116646692');
 fbq('track', 'PageView');
 </script>

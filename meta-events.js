@@ -1,45 +1,6 @@
 (() => {
   const currency = 'PKR';
 
-  // Network-level interceptor: block any duplicate beacons from Meta Event Setup Tool (cs_est / ob3_plugin-set)
-  (function installNetworkInterceptor() {
-    function isBadBeacon(s) {
-      if (!s) return false;
-      const str = typeof s === 'string' ? s : (s.url || '');
-      return str.includes('cs_est') || str.includes('ob3_plugin-set') || str.includes('SubscribedButtonClick');
-    }
-    if (navigator && navigator.sendBeacon) {
-      const origBeacon = navigator.sendBeacon.bind(navigator);
-      navigator.sendBeacon = function(u, d) {
-        if (isBadBeacon(u) || (typeof d === 'string' && isBadBeacon(d))) return true;
-        return origBeacon(u, d);
-      };
-    }
-    const origOpen = XMLHttpRequest.prototype.open;
-    const origSend = XMLHttpRequest.prototype.send;
-    XMLHttpRequest.prototype.open = function(m, u) {
-      this._tbUrl = u;
-      return origOpen.apply(this, arguments);
-    };
-    XMLHttpRequest.prototype.send = function(b) {
-      if (isBadBeacon(this._tbUrl) || (typeof b === 'string' && isBadBeacon(b))) return;
-      return origSend.apply(this, arguments);
-    };
-    const imgDesc = Object.getOwnPropertyDescriptor(Image.prototype, 'src');
-    if (imgDesc && imgDesc.set) {
-      const origImgSet = imgDesc.set;
-      Object.defineProperty(Image.prototype, 'src', {
-        configurable: true,
-        enumerable: true,
-        get() { return imgDesc.get.call(this); },
-        set(v) {
-          if (isBadBeacon(v)) return;
-          return origImgSet.call(this, v);
-        }
-      });
-    }
-  })();
-
   const FALLBACK_PRODUCTS = {
     'mango-1kg': { id: 'mango-1kg', name: 'Mango Pulp Drink Premix 1kg', price: 450, weight: 1 },
     'mango-2kg': { id: 'mango-2kg', name: 'Mango Pulp Drink Premix 2kg', price: 795, weight: 2 },
@@ -99,8 +60,11 @@
   }
 
   document.addEventListener('click', event => {
-    const addButton = event.target.closest?.('[data-add]');
-    if (addButton) trackAddToCart(addButton.dataset.add, 1);
+    const addButton = event.target.closest?.('[data-add], .add-btn, #detailAdd, .detail-cart');
+    if (addButton) {
+      const id = addButton.dataset.add || (new URLSearchParams(location.search).get('id')) || (location.pathname.match(/\/product\/([^/]+)/i)?.[1]) || 'mango-1kg';
+      trackAddToCart(decodeURIComponent(id), 1);
+    }
   }, true);
 
   function trackInitiateCheckout() {

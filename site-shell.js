@@ -2,76 +2,10 @@
   // Meta Pixel — Talha Bilal Store
   // Pixel ID: 2937138116646692
   const TB_META_PIXEL_ID = '2937138116646692';
-
-  // Network-level interceptor: block any duplicate beacons from Meta Event Setup Tool (cs_est / ob3_plugin-set)
-  (function installNetworkInterceptor() {
-    function isBadBeacon(s) {
-      if (!s) return false;
-      const str = typeof s === 'string' ? s : (s.url || '');
-      return str.includes('cs_est') || str.includes('ob3_plugin-set') || str.includes('SubscribedButtonClick');
-    }
-    if (navigator && navigator.sendBeacon) {
-      const origBeacon = navigator.sendBeacon.bind(navigator);
-      navigator.sendBeacon = function(u, d) {
-        if (isBadBeacon(u) || (typeof d === 'string' && isBadBeacon(d))) return true;
-        return origBeacon(u, d);
-      };
-    }
-    const origOpen = XMLHttpRequest.prototype.open;
-    const origSend = XMLHttpRequest.prototype.send;
-    XMLHttpRequest.prototype.open = function(m, u) {
-      this._tbUrl = u;
-      return origOpen.apply(this, arguments);
-    };
-    XMLHttpRequest.prototype.send = function(b) {
-      if (isBadBeacon(this._tbUrl) || (typeof b === 'string' && isBadBeacon(b))) return;
-      return origSend.apply(this, arguments);
-    };
-    const imgDesc = Object.getOwnPropertyDescriptor(Image.prototype, 'src');
-    if (imgDesc && imgDesc.set) {
-      const origImgSet = imgDesc.set;
-      Object.defineProperty(Image.prototype, 'src', {
-        configurable: true,
-        enumerable: true,
-        get() { return imgDesc.get.call(this); },
-        set(v) {
-          if (isBadBeacon(v)) return;
-          return origImgSet.call(this, v);
-        }
-      });
-    }
-  })();
-
-  function filterMetaEvent(args) {
-    if (!args || !args.length) return false;
-    const action = args[0];
-    const eventName = args[1];
-    const data = args[2];
-    const options = args[3];
-    // Drop automatically logged generic button clicks
-    if (eventName === 'SubscribedButtonClick') return true;
-    // Drop codeless Meta Event Setup Tool duplicates (cs_est = client-side event setup tool)
-    if (data && (data.cs_est === true || data.cs_est === 'true' || ('custom_param_1' in data && !data.value))) return true;
-    // Drop codeless generated event IDs
-    if (options && options.eventID && typeof options.eventID === 'string' && options.eventID.startsWith('ob3_plugin-set_')) return true;
-    return false;
-  }
-
-  function wrapFbqCall(target) {
-    if (!target || target.__tbFiltered) return target;
-    const fn = function(...args) {
-      if (filterMetaEvent(args)) return;
-      return target.apply(this, args);
-    };
-    fn.__tbFiltered = true;
-    return fn;
-  }
-
   function initMetaPixel(){
     if (typeof window.fbq !== 'function') return false;
     if (window.fbq.__tbPixelInitialized) return true;
     try {
-      window.fbq('set', 'autoConfig', false, TB_META_PIXEL_ID);
       window.fbq('init', TB_META_PIXEL_ID);
       window.fbq('track', 'PageView');
       window.fbq.__tbPixelInitialized = true;
@@ -81,25 +15,12 @@
     }
   }
   if (!window.fbq) {
-    const rawFbq = function(){
-      if (filterMetaEvent(arguments)) return;
-      rawFbq.callMethod ? rawFbq.callMethod.apply(rawFbq, arguments) : rawFbq.queue.push(arguments);
-    };
-    window.fbq = rawFbq;
+    window.fbq = function(){ window.fbq.callMethod ? window.fbq.callMethod.apply(window.fbq, arguments) : window.fbq.queue.push(arguments); };
     window._fbq = window.fbq;
     window.fbq.push = window.fbq;
     window.fbq.loaded = true;
     window.fbq.version = '2.0';
     window.fbq.queue = [];
-    let _callMethod = null;
-    Object.defineProperty(rawFbq, 'callMethod', {
-      configurable: true,
-      enumerable: true,
-      get() { return _callMethod; },
-      set(val) { _callMethod = wrapFbqCall(val); }
-    });
-    // Disable Meta's codeless auto-configuration & queue init + PageView
-    window.fbq('set', 'autoConfig', false, TB_META_PIXEL_ID);
     window.fbq('init', TB_META_PIXEL_ID);
     window.fbq('track', 'PageView');
     window.fbq.__tbPixelInitialized = true;
@@ -111,15 +32,6 @@
     if (firstScript) firstScript.parentNode.insertBefore(pixelScript, firstScript);
     else document.head.appendChild(pixelScript);
   } else {
-    try {
-      window.fbq('set', 'autoConfig', false, TB_META_PIXEL_ID);
-      const prevFbq = window.fbq;
-      window.fbq = wrapFbqCall(prevFbq);
-      Object.assign(window.fbq, prevFbq);
-      if (prevFbq.callMethod) {
-        prevFbq.callMethod = wrapFbqCall(prevFbq.callMethod);
-      }
-    } catch {}
     window.fbq.__tbPixelInitialized = true;
   }
   const BASE='https://www.talhabilalstore.com/';
