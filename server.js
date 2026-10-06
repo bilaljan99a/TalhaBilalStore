@@ -121,8 +121,8 @@ app.use((req, res, next) => {
 });
 
 const META_CONFIG = {
-  adAccountId: process.env.META_AD_ACCOUNT_ID || '1783909009396122',
-  accessToken: process.env.META_ACCESS_TOKEN || 'EAATJw1ZANghQBSqNI6b78E4Ku0Pthwhx6LzEQFWgjptn5ZByXtPIgcIsbWast3ZBbTEygzVqmXdqMrzVbcxPIZBYbhbnIz6ncNI5quVSlofDZAtcL0sGjY7a08F1bDfnEFDHBzmbcZCe2XaQYZBbObhYX3QxZA1qPaArnbwkr3nZAENuDqORbHjLmhyigKIPQEtKjOfrWX85FAiHOIniBYYR8f9DZCQSRoXrDvAffztpaHZBsQqyQxJZBeQD6eFLeGZBxipNsgW2juin2iZBHVrZAMZD'
+  adAccountId: '1783909009396122',
+  accessToken: 'EAATJw1ZANghQBSmqGlkoYVm9hvneLWlu5MtZAnAVfIERqGxroxvoVgmrAEeuBeUbULoL1ZCg54j1JioEHdRxxWlrIfXB4BW79n25VGEjC9ilJzRuL2SxJJF6ZCXagHJjsINrTqTxMpYKUJYLHswZB63fKtZAoG5kvVxhVjFC82waVxatLyMnxuvk9E81f2NRiIEQZDZD'
 };
 
 app.get('/api/meta-insights', async (req, res) => {

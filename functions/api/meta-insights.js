@@ -1,6 +1,6 @@
 const META_CONFIG = {
   adAccountId: '1783909009396122',
-  accessToken: 'EAATJw1ZANghQBSqNI6b78E4Ku0Pthwhx6LzEQFWgjptn5ZByXtPIgcIsbWast3ZBbTEygzVqmXdqMrzVbcxPIZBYbhbnIz6ncNI5quVSlofDZAtcL0sGjY7a08F1bDfnEFDHBzmbcZCe2XaQYZBbObhYX3QxZA1qPaArnbwkr3nZAENuDqORbHjLmhyigKIPQEtKjOfrWX85FAiHOIniBYYR8f9DZCQSRoXrDvAffztpaHZBsQqyQxJZBeQD6eFLeGZBxipNsgW2juin2iZBHVrZAMZD'
+  accessToken: 'EAATJw1ZANghQBSmqGlkoYVm9hvneLWlu5MtZAnAVfIERqGxroxvoVgmrAEeuBeUbULoL1ZCg54j1JioEHdRxxWlrIfXB4BW79n25VGEjC9ilJzRuL2SxJJF6ZCXagHJjsINrTqTxMpYKUJYLHswZB63fKtZAoG5kvVxhVjFC82waVxatLyMnxuvk9E81f2NRiIEQZDZD'
 };
 
 export async function onRequestGet(context) {
@@ -11,8 +11,8 @@ export async function onRequestGet(context) {
     const toDate = url.searchParams.get('to');
     const range = url.searchParams.get('range') || 'yesterday';
 
-    const accountId = 'act_' + (context.env?.META_AD_ACCOUNT_ID || META_CONFIG.adAccountId).replace(/^act_/, '');
-    const token = context.env?.META_ACCESS_TOKEN || META_CONFIG.accessToken;
+    const accountId = 'act_' + META_CONFIG.adAccountId.replace(/^act_/, '');
+    const token = META_CONFIG.accessToken;
 
     let timeParam = '';
     let label = range;
