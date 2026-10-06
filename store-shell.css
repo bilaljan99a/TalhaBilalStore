@@ -29,7 +29,7 @@
 .footer-logo{width:220px;height:68px;object-fit:contain;object-position:left center;display:block}
 
 .footer-socials{display:flex;align-items:center;gap:8px;margin-top:14px}
-.footer-socials>span{color:var(--muted);font-size:12px;font-weight:700;margin-right:4px}
+.footer-socials>span,.footer-socials-label{color:var(--ink);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-right:6px}
 .footer-socials a{display:grid!important;place-items:center;width:34px;height:34px;margin:0!important;border:1px solid #ddd;border-radius:50%;background:#fff;color:var(--ink);transition:.2s}
 .footer-socials a:hover{color:var(--orange);border-color:var(--orange);transform:translateY(-2px)}
 .footer-socials svg{width:17px;height:17px;display:block}
