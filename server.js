@@ -120,6 +120,120 @@ app.use((req, res, next) => {
   next();
 });
 
+const META_CONFIG = {
+  adAccountId: process.env.META_AD_ACCOUNT_ID || '1783909009396122',
+  accessToken: process.env.META_ACCESS_TOKEN || 'EAATJw1ZANghQBSqNI6b78E4Ku0Pthwhx6LzEQFWgjptn5ZByXtPIgcIsbWast3ZBbTEygzVqmXdqMrzVbcxPIZBYbhbnIz6ncNI5quVSlofDZAtcL0sGjY7a08F1bDfnEFDHBzmbcZCe2XaQYZBbObhYX3QxZA1qPaArnbwkr3nZAENuDqORbHjLmhyigKIPQEtKjOfrWX85FAiHOIniBYYR8f9DZCQSRoXrDvAffztpaHZBsQqyQxJZBeQD6eFLeGZBxipNsgW2juin2iZBHVrZAMZD'
+};
+
+app.get('/api/meta-insights', async (req, res) => {
+  try {
+    const singleDate = req.query.date;
+    const fromDate = req.query.from;
+    const toDate = req.query.to;
+    const range = req.query.range || 'yesterday';
+    const accountId = 'act_' + META_CONFIG.adAccountId.replace(/^act_/, '');
+    const token = META_CONFIG.accessToken;
+
+    let timeParam = '';
+    let label = range;
+    if (singleDate) {
+      timeParam = `time_range=${encodeURIComponent(JSON.stringify({ since: singleDate, until: singleDate }))}`;
+      label = singleDate;
+    } else if (fromDate && toDate) {
+      timeParam = `time_range=${encodeURIComponent(JSON.stringify({ since: fromDate, until: toDate }))}`;
+      label = `${fromDate} to ${toDate}`;
+    } else {
+      timeParam = `date_preset=${encodeURIComponent(range)}`;
+    }
+
+    const accountUrl = `https://graph.facebook.com/v19.0/${accountId}/insights?${timeParam}&fields=spend,impressions,reach,clicks,cpc,cpm,ctr,actions,cost_per_action_type&access_token=${token}`;
+    const accountRes = await fetch(accountUrl);
+    const accountData = await accountRes.json();
+
+    if (accountData.error) {
+      return res.status(400).json({ success: false, error: accountData.error.message || 'Meta API error' });
+    }
+
+    const campaignsUrl = `https://graph.facebook.com/v19.0/${accountId}/insights?level=campaign&${timeParam}&fields=campaign_id,campaign_name,spend,impressions,reach,clicks,cpc,ctr,actions,cost_per_action_type&access_token=${token}`;
+    const campaignsRes = await fetch(campaignsUrl);
+    const campaignsData = await campaignsRes.json();
+
+    const statusUrl = `https://graph.facebook.com/v19.0/${accountId}/campaigns?fields=id,name,status,objective,daily_budget&access_token=${token}`;
+    const statusRes = await fetch(statusUrl);
+    const statusData = await statusRes.json();
+
+    const statusMap = {};
+    if (statusData && Array.isArray(statusData.data)) {
+      statusData.data.forEach(c => { statusMap[c.id] = c; });
+    }
+
+    const campaigns = (campaignsData.data || []).map(c => {
+      const extra = statusMap[c.campaign_id] || {};
+      const actions = c.actions || [];
+      const costPerAction = c.cost_per_action_type || [];
+      const purchaseAction = actions.find(a => a.action_type === 'purchase' || a.action_type === 'omni_purchase');
+      const costPerPurchase = costPerAction.find(a => a.action_type === 'purchase' || a.action_type === 'omni_purchase');
+      const checkoutAction = actions.find(a => a.action_type === 'initiate_checkout' || a.action_type === 'omni_initiated_checkout');
+      const linkClickAction = actions.find(a => a.action_type === 'link_click');
+      return {
+        id: c.campaign_id,
+        name: c.campaign_name,
+        status: extra.status || 'ACTIVE',
+        daily_budget: extra.daily_budget ? Number(extra.daily_budget) : null,
+        spend: Number(c.spend || 0),
+        impressions: Number(c.impressions || 0),
+        reach: Number(c.reach || 0),
+        clicks: Number(c.clicks || 0),
+        link_clicks: linkClickAction ? Number(linkClickAction.value) : Number(c.clicks || 0),
+        cpc: Number(c.cpc || 0),
+        ctr: Number(c.ctr || 0),
+        purchases: purchaseAction ? Number(purchaseAction.value) : 0,
+        cost_per_purchase: costPerPurchase ? Number(costPerPurchase.value) : 0,
+        checkouts: checkoutAction ? Number(checkoutAction.value) : 0
+      };
+    });
+
+    const summary = accountData.data && accountData.data[0] ? accountData.data[0] : null;
+    let totalPurchases = 0;
+    let costPerPurchase = 0;
+    let totalCheckouts = 0;
+    let linkClicks = 0;
+    if (summary && summary.actions) {
+      const pAct = summary.actions.find(a => a.action_type === 'purchase' || a.action_type === 'omni_purchase');
+      totalPurchases = pAct ? Number(pAct.value) : 0;
+      const cppAct = summary.cost_per_action_type?.find(a => a.action_type === 'purchase' || a.action_type === 'omni_purchase');
+      costPerPurchase = cppAct ? Number(cppAct.value) : 0;
+      const chkAct = summary.actions.find(a => a.action_type === 'initiate_checkout' || a.action_type === 'omni_initiated_checkout');
+      totalCheckouts = chkAct ? Number(chkAct.value) : 0;
+      const linkAct = summary.actions.find(a => a.action_type === 'link_click');
+      linkClicks = linkAct ? Number(linkAct.value) : Number(summary.clicks || 0);
+    }
+
+    return res.json({
+      success: true,
+      range: label,
+      account_id: META_CONFIG.adAccountId,
+      summary: summary ? {
+        spend: Number(summary.spend || 0),
+        impressions: Number(summary.impressions || 0),
+        reach: Number(summary.reach || 0),
+        clicks: Number(summary.clicks || 0),
+        link_clicks: linkClicks,
+        cpc: Number(summary.cpc || 0),
+        cpm: Number(summary.cpm || 0),
+        ctr: Number(summary.ctr || 0),
+        purchases: totalPurchases,
+        cost_per_purchase: costPerPurchase,
+        checkouts: totalCheckouts
+      } : { spend: 0, impressions: 0, reach: 0, clicks: 0, link_clicks: 0, cpc: 0, cpm: 0, ctr: 0, purchases: 0, cost_per_purchase: 0, checkouts: 0 },
+      campaigns
+    });
+  } catch (err) {
+    console.error('Meta Insights API error:', err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Serve all static assets from root directory
 app.use(express.static(__dirname, {
   extensions: ['html', 'htm']
