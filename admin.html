@@ -21,23 +21,32 @@ const META_DASHBOARD_CONFIG = {
   accessToken: localStorage.getItem('tb_meta_access_token') || 'EAATJw1ZANghQBSqNI6b78E4Ku0Pthwhx6LzEQFWgjptn5ZByXtPIgcIsbWast3ZBbTEygzVqmXdqMrzVbcxPIZBYbhbnIz6ncNI5quVSlofDZAtcL0sGjY7a08F1bDfnEFDHBzmbcZCe2XaQYZBbObhYX3QxZA1qPaArnbwkr3nZAENuDqORbHjLmhyigKIPQEtKjOfrWX85FAiHOIniBYYR8f9DZCQSRoXrDvAffztpaHZBsQqyQxJZBeQD6eFLeGZBxipNsgW2juin2iZBHVrZAMZD'
 };
 
+async function safeJsonFetch(url, options = {}) {
+  const r = await fetch(url, options);
+  const text = await r.text();
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    return null;
+  }
+}
+
 async function queryMetaInsights({ date, range = 'yesterday' } = {}) {
-  // 1. Try local server endpoint first
+  // 1. Try local server / Cloudflare Pages function (/api/meta-insights)
   try {
     const url = date 
-      ? '/api/meta-insights?date=' + encodeURIComponent(date)
-      : '/api/meta-insights?range=' + encodeURIComponent(range);
-    const r = await fetch(url);
-    const ct = (r.headers.get('content-type') || '').toLowerCase();
-    if (r.ok && ct.includes('application/json')) {
-      const j = await r.json();
-      if (j && j.success) return j;
-    }
+      ? '/api/meta-insights?date=' + encodeURIComponent(date) + '&_t=' + Date.now()
+      : '/api/meta-insights?range=' + encodeURIComponent(range) + '&_t=' + Date.now();
+    const data = await safeJsonFetch(url, { cache: 'no-store' });
+    if (data && data.success) return data;
+    if (data && data.error) throw new Error(data.error);
   } catch (proxyErr) {
-    // Fall through to direct Graph API call
+    if (proxyErr.message && !proxyErr.message.includes('Server returned HTML') && !proxyErr.message.includes('Failed to fetch')) {
+      throw proxyErr;
+    }
   }
 
-  // 2. Direct client-side Meta Graph API call (works everywhere with CORS on live static deployments!)
+  // 2. Direct client-side Meta Graph API call
   const actId = 'act_' + String(META_DASHBOARD_CONFIG.adAccountId).replace(/^act_/, '');
   const token = META_DASHBOARD_CONFIG.accessToken;
   const timeParam = date
@@ -45,11 +54,12 @@ async function queryMetaInsights({ date, range = 'yesterday' } = {}) {
     : 'date_preset=' + encodeURIComponent(range);
 
   const [accRes, campRes, statRes] = await Promise.all([
-    fetch('https://graph.facebook.com/v19.0/' + actId + '/insights?' + timeParam + '&fields=spend,impressions,reach,clicks,cpc,cpm,ctr,actions,cost_per_action_type&access_token=' + token).then(r => r.json()),
-    fetch('https://graph.facebook.com/v19.0/' + actId + '/insights?level=campaign&' + timeParam + '&fields=campaign_id,campaign_name,spend,impressions,reach,clicks,cpc,ctr,actions,cost_per_action_type&access_token=' + token).then(r => r.json()),
-    fetch('https://graph.facebook.com/v19.0/' + actId + '/campaigns?fields=id,name,status,objective,daily_budget&access_token=' + token).then(r => r.json())
+    safeJsonFetch('https://graph.facebook.com/v19.0/' + actId + '/insights?' + timeParam + '&fields=spend,impressions,reach,clicks,cpc,cpm,ctr,actions,cost_per_action_type&access_token=' + token),
+    safeJsonFetch('https://graph.facebook.com/v19.0/' + actId + '/insights?level=campaign&' + timeParam + '&fields=campaign_id,campaign_name,spend,impressions,reach,clicks,cpc,ctr,actions,cost_per_action_type&access_token=' + token),
+    safeJsonFetch('https://graph.facebook.com/v19.0/' + actId + '/campaigns?fields=id,name,status,objective,daily_budget&access_token=' + token)
   ]);
 
+  if (!accRes) throw new Error('Could not reach Meta API. Check network or adblocker.');
   if (accRes.error) throw new Error(accRes.error.message || 'Meta API error');
 
   const statusMap = {};
@@ -57,7 +67,7 @@ async function queryMetaInsights({ date, range = 'yesterday' } = {}) {
     statRes.data.forEach(c => { statusMap[c.id] = c; });
   }
 
-  const campaigns = (campRes.data || []).map(c => {
+  const campaigns = ((campRes && campRes.data) || []).map(c => {
     const extra = statusMap[c.campaign_id] || {};
     const actions = c.actions || [];
     const costPerAction = c.cost_per_action_type || [];
@@ -116,7 +126,6 @@ async function queryMetaInsights({ date, range = 'yesterday' } = {}) {
     campaigns
   };
 }
-
 async function fetchMetaSpend(date) {
   const note = document.getElementById('adsSaveNote'), btn = document.getElementById('fetchMetaSpendBtn');
   if (!date) { note.textContent = 'Please select an Ads Date first.'; return; }
