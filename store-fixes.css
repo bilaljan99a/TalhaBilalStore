@@ -13,4 +13,14 @@
 .brand img[src$="logo.svg"],.brand img[src$="TalhaBilalStore%20Logo.jpg"],.brand img[src$="TalhaBilalStore Logo.jpg"],.footer-logo[src$="logo.svg"],.footer-logo[src$="TalhaBilalStore%20Logo.jpg"],.footer-logo[src$="TalhaBilalStore Logo.jpg"]{visibility:hidden}
 
 .announcement svg,.announcement-whatsapp-icon{width:15px!important;height:15px!important;max-width:15px!important;max-height:15px!important;display:inline-block!important;vertical-align:-3px!important}
-.footer-socials svg{width:17px!important;height:17px!important;max-width:17px!important;max-height:17px!important}
+.footer-socials svg{width:20px!important;height:20px!important;max-width:20px!important;max-height:20px!important;display:block!important;margin:auto!important;fill:#fff!important;color:#fff!important}
+.footer-socials{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:10px!important;margin-top:14px!important}
+.footer-socials-label{display:inline-block!important;font-size:11px!important;font-weight:800!important;letter-spacing:.08em!important;text-transform:uppercase!important;margin:0 4px 0 0!important;color:var(--ink)!important;line-height:1!important}
+.footer-socials a.social-btn,.footer-grid .footer-socials a,.footer .footer-socials a,.footer-socials a{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;max-width:38px!important;max-height:38px!important;border-radius:50%!important;margin:0!important;padding:0!important;border:none!important;text-decoration:none!important;color:#fff!important;transition:transform .2s ease,box-shadow .2s ease,filter .2s ease!important}
+.footer-socials a.social-facebook,.footer-socials a[aria-label="Facebook"]{background:#1877F2!important;box-shadow:0 2px 8px rgba(24,119,242,.35)!important}
+.footer-socials a.social-facebook:hover,.footer-socials a[aria-label="Facebook"]:hover{background:#166fe5!important;transform:translateY(-2px) scale(1.06)!important;box-shadow:0 4px 12px rgba(24,119,242,.5)!important}
+.footer-socials a.social-instagram,.footer-socials a[aria-label="Instagram"]{background:linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)!important;box-shadow:0 2px 8px rgba(220,39,67,.35)!important}
+.footer-socials a.social-instagram:hover,.footer-socials a[aria-label="Instagram"]:hover{transform:translateY(-2px) scale(1.06)!important;box-shadow:0 4px 14px rgba(220,39,67,.55)!important;filter:brightness(1.08)!important}
+.footer-socials a.social-whatsapp,.footer-socials a[aria-label*="WhatsApp"]{background:#25D366!important;box-shadow:0 2px 8px rgba(37,211,102,.35)!important}
+.footer-socials a.social-whatsapp:hover,.footer-socials a[aria-label*="WhatsApp"]:hover{background:#20bd5a!important;transform:translateY(-2px) scale(1.06)!important;box-shadow:0 4px 12px rgba(37,211,102,.5)!important}
+
