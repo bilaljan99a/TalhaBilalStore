@@ -28,11 +28,28 @@
 .footer .footer-brand p{color:var(--muted);font-size:13px;line-height:1.6;margin:12px 0 16px}
 .footer-logo{width:220px;height:68px;object-fit:contain;object-position:left center;display:block}
 
-.footer-socials{display:flex;align-items:center;gap:8px;margin-top:14px}
-.footer-socials>span,.footer-socials-label{color:var(--ink);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-right:6px}
-.footer-socials a{display:grid!important;place-items:center;width:34px;height:34px;margin:0!important;border:1px solid #ddd;border-radius:50%;background:#fff;color:var(--ink);transition:.2s}
-.footer-socials a:hover{color:var(--orange);border-color:var(--orange);transform:translateY(-2px)}
-.footer-socials svg{width:17px;height:17px;display:block}
+.footer-socials{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:14px}
+.footer-socials>span,.footer-socials-label{color:var(--ink);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-right:4px}
+.footer .footer-brand .footer-socials a,
+.footer-socials a{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;margin:0!important;padding:0!important;border:none!important;border-radius:50%!important;color:#fff!important;text-decoration:none!important;transition:transform .2s ease,box-shadow .2s ease,filter .2s ease!important}
+.footer-socials a:hover{transform:translateY(-2px) scale(1.08)!important}
+.footer-socials svg{width:18px!important;height:18px!important;max-width:18px!important;max-height:18px!important;display:block!important;color:#fff!important;fill:currentColor!important;margin:auto!important}
+
+/* Authentic Original Brand Colors: Facebook, Instagram, WhatsApp */
+.footer-socials a.social-facebook,
+.footer-socials a[aria-label="Facebook"]{background:#1877F2!important;box-shadow:0 2px 8px rgba(24,119,242,.35)!important}
+.footer-socials a.social-facebook:hover,
+.footer-socials a[aria-label="Facebook"]:hover{background:#166fe5!important;box-shadow:0 4px 12px rgba(24,119,242,.5)!important}
+
+.footer-socials a.social-instagram,
+.footer-socials a[aria-label="Instagram"]{background:linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)!important;box-shadow:0 2px 8px rgba(220,39,67,.35)!important}
+.footer-socials a.social-instagram:hover,
+.footer-socials a[aria-label="Instagram"]:hover{box-shadow:0 4px 14px rgba(220,39,67,.55)!important;filter:brightness(1.08)!important}
+
+.footer-socials a.social-whatsapp,
+.footer-socials a[aria-label*="WhatsApp"]{background:#25D366!important;box-shadow:0 2px 8px rgba(37,211,102,.35)!important}
+.footer-socials a.social-whatsapp:hover,
+.footer-socials a[aria-label*="WhatsApp"]:hover{background:#20bd5a!important;box-shadow:0 4px 12px rgba(37,211,102,.5)!important}
 
 .footer .footer-grid{display:grid;grid-template-columns:1.8fr 1fr 1fr 1.1fr;gap:36px;align-items:start}
 .footer .footer-brand{max-width:320px}
@@ -95,9 +112,12 @@
   }
   .footer .footer-brand p{font-size:12px!important;line-height:1.6!important;margin:8px 0 12px!important;max-width:100%!important}
   .footer .footer-logo{width:180px!important;height:54px!important;object-fit:contain!important;object-position:left center!important}
-  .footer-socials{margin-top:10px!important}
-  .footer-socials a{width:32px!important;height:32px!important}
-  .footer-socials svg{width:16px!important;height:16px!important}
+  .footer-socials{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:10px!important;margin-top:12px!important}
+  .footer-socials-label{display:inline-block!important;font-size:11px!important;font-weight:800!important;letter-spacing:.08em!important;text-transform:uppercase!important;margin-right:4px!important;color:var(--ink)!important}
+  .footer .footer-brand .footer-socials a,
+  .footer .footer-grid .footer-socials a,
+  .footer-socials a{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;margin:0!important;padding:0!important;border:none!important;border-radius:50%!important;color:#fff!important}
+  .footer-socials svg{width:18px!important;height:18px!important;fill:currentColor!important;color:#fff!important;display:block!important;margin:auto!important}
   .footer .footer-grid>div:not(.footer-brand){display:flex!important;flex-direction:column!important;gap:0!important}
   .footer .footer-grid .footer-info{
     grid-column:1/-1!important;
@@ -111,8 +131,8 @@
     row-gap:6px!important;
   }
   .footer .footer-grid h4{font-size:12px!important;font-weight:800!important;letter-spacing:.05em!important;text-transform:uppercase!important;margin:0 0 10px!important;color:var(--ink)!important}
-  .footer .footer-grid a{display:block!important;color:var(--muted)!important;font-size:12px!important;line-height:1.45!important;margin:4px 0!important}
-  .footer .footer-grid a:hover{color:var(--orange)!important}
+  .footer .footer-grid>div:not(.footer-brand) a{display:block!important;color:var(--muted)!important;font-size:12px!important;line-height:1.45!important;margin:4px 0!important}
+  .footer .footer-grid>div:not(.footer-brand) a:hover{color:var(--orange)!important}
   .footer .footer-bottom{
     display:flex!important;
     flex-direction:column!important;
