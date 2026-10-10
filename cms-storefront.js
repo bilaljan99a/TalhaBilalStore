@@ -45,6 +45,7 @@
       ".cms-home-banner-copy p{margin:0 0 12px;line-height:1.55;color:#555}",
       ".cms-home-banner-copy .cms-banner-cta{display:inline-block;background:#ff6a00;color:#fff;padding:10px 15px;border-radius:8px;font-weight:750}",
       ".cms-home-banner img{display:block;width:100%;max-height:220px;object-fit:contain;border-radius:10px}",
+      ".cms-home-banner picture{display:block;width:100%;min-width:0}",
       ".cms-blog-card-image{width:100%;height:100%;min-height:270px;object-fit:cover}",
       "#cmsHomepageBanners[hidden]{display:none!important}",
       "@media(max-width:700px){.cms-home-banner{grid-template-columns:1fr;padding:15px;gap:12px}.cms-home-banner img{max-height:210px;grid-row:1}.cms-blog-card-image{height:240px;min-height:0}}"
@@ -60,21 +61,40 @@
     box.innerHTML = ['<a class="cms-category-filter" href="/products" aria-current="'+(!selected)+'">All products</a>',
       ...cats.map(c => '<a class="cms-category-filter" href="/products?category='+encodeURIComponent(c.slug)+'" aria-current="'+(selected===c.slug)+'">'+esc(c.name)+'</a>')].join("");
   }
+  function bannerMarkup(b) {
+    const dest = /^javascript:/i.test(b.button_url || "") ? "/products" : (b.button_url || "/products");
+    const external = /^https?:\/\//i.test(dest) ? ' target="_blank" rel="noopener"' : "";
+    const desktop = b.image_url || b.mobile_image_url || "";
+    const mobile = b.mobile_image_url || "";
+    const pic = desktop
+      ? '<picture>' + (mobile && mobile !== desktop ? '<source media="(max-width: 700px)" srcset="' + esc(mobile) + '">' : "") +
+        '<img src="' + esc(desktop) + '" alt="' + esc(b.title || "Store promotion") + '" loading="lazy"></picture>'
+      : "";
+    return '<a class="cms-home-banner" href="' + esc(dest) + '"' + external + '>' +
+      '<span class="cms-home-banner-copy"><h2>' + esc(b.title || "") + '</h2><p>' + esc(b.subtitle || "") + '</p>' +
+      (b.button_text ? '<span class="cms-banner-cta">' + esc(b.button_text) + '</span>' : "") +
+      '</span>' + pic + '</a>';
+  }
   function renderBanners(data) {
-    const slot = document.getElementById("cmsHomepageBanners"); if (!slot) return;
-    const banners = (data.banners || []).filter(b => ["homepage","sitewide"].includes(String(b.placement || "").toLowerCase()));
-    const legacyHero=document.querySelector(".store-banner");
-    if (!banners.length) { slot.hidden = true; slot.innerHTML = ""; legacyHero?.classList.remove("cms-banner-replaced"); return; }
-    injectStyles(); slot.hidden = false; legacyHero?.classList.add("cms-banner-replaced");
-    slot.innerHTML = banners.map(b => {
-      const dest = /^javascript:/i.test(b.button_url || "") ? "/products" : (b.button_url || "/products");
-      const image = b.mobile_image_url || b.image_url;
-      const external = /^https?:\/\//i.test(dest) ? ' target="_blank" rel="noopener"' : "";
-      return '<a class="cms-home-banner" href="'+esc(dest)+'"'+external+'>'+
-        '<span class="cms-home-banner-copy"><h2>'+esc(b.title || "")+'</h2><p>'+esc(b.subtitle || "")+'</p>'+
-        (b.button_text?'<span class="cms-banner-cta">'+esc(b.button_text)+'</span>':"")+'</span>'+
-        (image?'<img src="'+esc(image)+'" alt="'+esc(b.title || "Store promotion")+'" loading="lazy">':"")+'</a>';
-    }).join("");
+    const active = data.banners || [];
+    const slots = [
+      { id:"cmsHomepageBanners", placements:["homepage","sitewide"] },
+      { id:"cmsCatalogBanners", placements:["category","campaign","sitewide"] },
+      { id:"cmsProductBanners", placements:["product","sitewide"] },
+      { id:"cmsBlogBanners", placements:["blog","sitewide"] }
+    ];
+    const homeBanners = active.filter(b => slots[0].placements.includes(String(b.placement || "").toLowerCase()));
+    const legacyHero = document.querySelector(".store-banner");
+    if (legacyHero) legacyHero.classList.toggle("cms-banner-replaced", homeBanners.length > 0);
+    for (const slotInfo of slots) {
+      const slot = document.getElementById(slotInfo.id);
+      if (!slot) continue;
+      const banners = active.filter(b => slotInfo.placements.includes(String(b.placement || "").toLowerCase()));
+      if (!banners.length) { slot.hidden = true; slot.innerHTML = ""; continue; }
+      injectStyles();
+      slot.hidden = false;
+      slot.innerHTML = banners.map(bannerMarkup).join("");
+    }
   }
   function renderBlogListing(data) {
     const grid = document.querySelector(".blog-grid");
