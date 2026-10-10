@@ -4,7 +4,7 @@ const TEMPLATE_PATH='/blog/how-to-make-mango-drink-from-mango-pulp-premix.html';
 function htmlEscape(value){
   return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
-function safeArticleHtml(value,title,excerpt){
+function safeArticleHtml(value,title,excerpt,heroImage){
   const raw=String(value||'').trim();
   if(!raw){
     return '<a class="back-link" href="/blog.html">← Back to Blog</a><header class="article-header"><h1>'+htmlEscape(title)+'</h1><p>'+htmlEscape(excerpt||'')+'</p></header><div class="article-body"></div>';
@@ -15,7 +15,7 @@ function safeArticleHtml(value,title,excerpt){
     let blocks=raw.split(/\n\s*\n+/).map(x=>x.trim()).filter(Boolean);
     if(blocks.length){const first=blocks[0].replace(/\s+/g,' ').trim().toLowerCase(),heading=String(title||'').replace(/\s+/g,' ').trim().toLowerCase();if(first===heading||first.startsWith(heading+':'))blocks.shift();}
     const body=blocks.map(x=>'<p>'+htmlEscape(x).replace(/\n/g,'<br>')+'</p>').join('');
-    content='<a class="back-link" href="/blog.html">← Back to Blog</a><header class="article-header"><div class="article-meta">Talha Bilal Store • Article</div><h1>'+htmlEscape(title)+'</h1><p>'+htmlEscape(excerpt||'')+'</p></header><div class="article-body">'+body+'</div>';
+    content='<a class="back-link" href="/blog.html">← Back to Blog</a><header class="article-header"><div class="article-meta">Talha Bilal Store • Article</div><h1>'+htmlEscape(title)+'</h1><p>'+htmlEscape(excerpt||'')+'</p></header>'+(heroImage?'<img class="article-hero" src="'+htmlEscape(heroImage)+'" alt="'+htmlEscape(title)+'" loading="eager">':'')+'<div class="article-body">'+body+'</div>';
   }
   return content
     .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi,'')
@@ -64,7 +64,7 @@ export async function onRequestGet(context){
   const metaTitle=(post.seo&&(post.seo.meta_title||post.seo.title))||post.title;
   const metaDescription=(post.seo&&(post.seo.meta_description||post.seo.description))||post.excerpt||'Helpful guides and tips from Talha Bilal Store.';
   const image=post.featured_image_url||'https://www.talhabilalstore.com/assets/here-banner.webp';
-  const content=safeArticleHtml(post.content,post.title,post.excerpt);
+  const content=safeArticleHtml(post.content,post.title,post.excerpt,image);
   const schema=JSON.stringify(blogSchema(post,canonical,image)).replace(/</g,'\\u003c');
 
   return new HTMLRewriter()
