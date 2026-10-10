@@ -459,7 +459,8 @@ async function cmsEditProduct(r,id){
  const pages=await cmsRequest("cms_pages");cmsCache.pages=pages;
  const imgs=Array.isArray(r.images)?r.images.map(x=>typeof x==="string"?x:(x?.url||x?.src||"")).filter(Boolean):[];
  const assigned=(pages||[]).filter(p=>cmsPageProductIds(p).includes(Number(id)));
- const customPages=(pages||[]).filter(p=>!["home","homepage","products"].includes(String(p.slug||""))&&!(Array.isArray(p.sections)&&p.sections.some(s=>s&&s.key==="cms-product-assignments"&&String(p.slug)===String(cats.find(x=>Number(x.id)===Number(r.category_id))?.slug))));
+ const categoryPageSlugs=new Set(cats.flatMap(x=>[String(x.slug||""),"category-"+String(x.slug||"")]));
+ const customPages=(pages||[]).filter(p=>!["home","homepage","products"].includes(String(p.slug||""))&&!categoryPageSlugs.has(String(p.slug||"")));
  const checkedIds=new Set(assigned.map(p=>Number(p.id)));
  const pageAssignment=customPages.map(p=>'<label class="assignment-item"><input type="checkbox" data-product-page value="'+Number(p.id)+'" '+(checkedIds.has(Number(p.id))?"checked":"")+'><span class="assignment-copy"><strong>'+esc(p.title)+'</strong><small>/page/'+esc(p.slug)+' • '+esc(p.status)+'</small></span></label>').join("");
  const fields=cmsField("Product name","pName",r.name,"text")+
