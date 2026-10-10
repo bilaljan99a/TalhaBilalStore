@@ -45,8 +45,10 @@ function normalizeBlogPath(href){
   return value;
 }
 
-async function getBlogPages(){
-  const pages=new Set();
+async function getDynamicCmsPaths(){
+  const paths=new Set();
+
+  // Preserve blog links currently listed in the public blog landing page.
   try{
     const response=await fetch(SITE+'/blog.html',{
       headers:{'Accept':'text/html'},
@@ -58,12 +60,12 @@ async function getBlogPages(){
       let match;
       while((match=hrefPattern.exec(html))!==null){
         const path=normalizeBlogPath(match[1]);
-        if(path) pages.add(path);
+        if(path)paths.add(path);
       }
     }
   }catch{}
 
-  // Include newly published CMS posts without requiring a separate sitemap edit.
+  // Published CMS posts and custom pages are included automatically.
   try{
     const response=await fetch('https://dxdjqeqlmyawqrzphzdb.supabase.co/functions/v1/cms-public',{
       headers:{'Accept':'application/json'},
@@ -73,16 +75,21 @@ async function getBlogPages(){
       const data=await response.json();
       for(const post of (Array.isArray(data.blog_posts)?data.blog_posts:[])){
         const slug=String(post.slug||'');
-        if(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) pages.add('/blog/'+slug+'.html');
+        if(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))paths.add('/blog/'+slug+'.html');
+      }
+      for(const page of (Array.isArray(data.pages)?data.pages:[])){
+        const slug=String(page.slug||'');
+        if(!slugOkForSitemap(slug)||['home','homepage','products'].includes(slug))continue;
+        paths.add('/page/'+slug);
       }
     }
   }catch{}
-  return [...pages];
+  return [...paths];
 }
-
+function slugOkForSitemap(slug){return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(slug||''))}
 export async function onRequestGet(){
-  const blogPages=await getBlogPages();
-  const pages=[...new Set([...STATIC_PAGES,...blogPages])];
+  const dynamicPages=await getDynamicCmsPaths();
+  const pages=[...new Set([...STATIC_PAGES,...dynamicPages])];
 
   const body=`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
