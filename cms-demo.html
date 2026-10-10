@@ -484,7 +484,7 @@ async function cmsEditProduct(r,id){
  cmsField("SEO title","pSeoTitle",cmsFormSeo.title||"","text")+
  cmsField("SEO meta description","pSeoDesc",cmsFormSeo.description||"","textarea")+
  cmsField("SEO keywords","pSeoKeywords",Array.isArray(cmsFormSeo.keywords)?cmsFormSeo.keywords.join(", "):"","text")+
- '<div class="field full"><label>Homepage visibility</label>'+cmsCheck("Show on homepage (Featured)","pFeatured",!!r.featured)+cmsCheck("Best seller","pBestSeller",!!r.best_seller)+cmsCheck("New product","pNew",!!r.is_new)+'</div>';
+ '<div class="field full"><label>Product listing flags</label><p class="field-help">New products are not added to the homepage from this panel; current homepage products remain unchanged.</p>'+cmsCheck("Featured flag (homepage unchanged)","pFeatured",!!r.featured)+cmsCheck("Best seller","pBestSeller",!!r.best_seller)+cmsCheck("New product","pNew",!!r.is_new)+'</div>';
  cmsEditorShell(id===null?"Add Product":"Edit Product","Add a product, choose its category from the searchable list, upload photos, and save it as Active when ready to publish.",fields,"cmsSaveProduct("+(id===null?"null":Number(id))+")","products");
  const img=document.getElementById("pImages");if(img)img.addEventListener("input",()=>cmsPreviewImage("pImages","pPreview"));
 }
@@ -503,8 +503,8 @@ async function cmsSyncProductAssignments(productId,categoryId,featured,customPag
   const section=sections.find(x=>x&&x.key==="cms-product-assignments");
   const current=Array.isArray(section?.product_ids)?section.product_ids.map(Number):[];
   let manage=false,include=false;
-  if(isAllProducts){manage=true;include=true}
-  else if(isHome){manage=true;include=!!featured}
+  if(isHome){continue;}
+  else if(isAllProducts){manage=true;include=true}
   else if(isCategoryPage){manage=true;include=true}
   else if(selected.has(Number(page.id))||current.includes(Number(productId))){manage=true;include=selected.has(Number(page.id))}
   if(!manage)continue;
