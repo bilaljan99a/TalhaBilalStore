@@ -631,6 +631,7 @@ async function cmsEditBlog(r,id){
  const fields=cmsField("Post title","blTitle",r.title,"text")+cmsField("URL slug","blSlug",r.slug,"text","Keep the current slug to preserve the public URL.")+
  cmsField("Excerpt / meta summary","blExcerpt",r.excerpt,"textarea")+
  cmsField("Featured image URL","blImage",r.featured_image_url,"text")+cmsUploadField("Upload featured image","blImage","blog/featured",false,"set")+
+ '<div class="field full"><label>Featured image preview</label><div class="preview-frame" id="blImagePreview">'+(r.featured_image_url?'<img src="'+esc(r.featured_image_url)+'" alt="Blog featured image">':'<span class="hint">Upload or paste an image URL.</span>')+'</div></div>'+
  cmsSelect("CMS status","blStatus",[{value:"draft",label:"Draft"},{value:"published",label:"Published in CMS"},{value:"scheduled",label:"Scheduled"}],r.status||"draft")+
  cmsField("Publish date (optional)","blDate",cmsLocalDatetime(r.published_at),"datetime-local")+cmsField("Author","blAuthor",r.author_name||"Talha Bilal Store","text")+
  cmsField("Tags (comma separated)","blTags",Array.isArray(r.tags)?r.tags.join(", "):"","text")+editor+
@@ -639,6 +640,7 @@ async function cmsEditBlog(r,id){
  cmsField("SEO title","blSeoTitle",seo.meta_title||seo.title||r.title||"","text")+cmsField("SEO meta description","blSeoDesc",seo.meta_description||seo.description||r.excerpt||"","textarea");
  const live=seo.live_url?'<div class="module-note">Current public article: <a href="'+esc(seo.live_url)+'" target="_blank" rel="noopener">'+esc(seo.live_url)+'</a></div>':"";
  cmsEditorShell(id===null?"Add Blog Post":"Edit Blog Post","Format your article with headings, bold text, lists, links and inserted images. Set status to Published to publish it.",live+fields,"cmsSaveBlog("+(id===null?"null":Number(id))+")","blog");
+ const imageInput=document.getElementById("blImage");if(imageInput)imageInput.addEventListener("input",()=>cmsPreviewImage("blImage","blImagePreview"));
 }
 async function cmsSaveBlog(id){
  const g=x=>document.getElementById(x);try{
