@@ -296,10 +296,11 @@ async function cmsRequest(table, method="GET", id=null, data=null){
 function cmsValueText(v){if(v===null||v===undefined)return "—";if(typeof v==="object")return JSON.stringify(v);return String(v)}
 async function cmsManage(page){
  const cfg=CMS_SCHEMAS[page];if(!cfg)return;
+ cmsEditorBackModule=null;cmsUpdateBackButton();
  const labels={products:"Add Product",categories:"Add Category",pages:"Add Page",banners:"Add Banner",blog:"Add Blog Post",seo:"Add SEO Record"};
- const subs={products:"Manage product details, images, price, category and SEO.",categories:"Organise products into main and subcategories.",pages:"Create page drafts and select the products assigned to each page.",banners:"Prepare responsive banners, CTA links, order and schedule.",blog:"Manage blog content. Existing public articles are copied into this list.",seo:"Manage title, description, canonical, indexing, Open Graph and structured data."};
+ const subs={products:"Add or update products, images, price, shipping weight, categories and SEO. Active products publish automatically.",categories:"Create and organise categories. Active categories and product filters sync to the website.",pages:"Create page drafts, assign products, and publish them to a page URL when status is Published.",banners:"Upload desktop/mobile images, set CTA links, placement, ordering and schedule. Active banners sync automatically.",blog:"Edit articles and upload images. Published posts update their public blog URL.",seo:"Manage titles, descriptions, canonical URLs, indexing, Open Graph and structured data. SEO settings sync to public pages."};
  app.innerHTML=head(cfg.title,subs[page]||"Website content management.","<button class='btn primary' onclick='cmsEdit(&quot;"+page+"&quot;,null)'>+ "+labels[page]+"</button>")+
- (page==="blog"?'<div class="module-note"><strong>Existing blog posts included:</strong> These are copies of public articles. Saving here does not overwrite public HTML automatically.</div>':'<div class="module-note"><strong>Safe workspace:</strong> Content is saved in CMS tables. The live storefront, checkout, orders and finance are not changed automatically.</div>')+
+ (page==="blog"?'<div class="module-note"><strong>Publishing:</strong> Published CMS posts update their public blog URL automatically. Imported article slugs are retained.</div>':'<div class="module-note"><strong>Automatic publishing:</strong> Active products/categories, published pages/blogs, active banners and SEO records sync to the public website after save. Checkout, orders and finance remain in the existing admin.</div>')+
  '<div class="panel"><div id="cmsRecords">Loading website content…</div></div>';
  try{
   const rows=await cmsRequest(cfg.table);cmsCache[page]=rows;
@@ -321,8 +322,8 @@ function cmsRowsMarkup(page,rows){
   return '<div class="table-wrap"><table class="table"><thead><tr><th>Category</th><th>Slug</th><th>Parent</th><th>Status</th><th>Sort</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">Assign products to a category from the Products screen.</p>';
  }
  if(page==="pages"){
-  body=rows.map(r=>{const n=cmsPageProductIds(r).length,slug=r.slug&&r.slug!=="home"?"/"+String(r.slug).replace(/^\/+/, ""):"/";return '<tr><td><div class="record-title">'+esc(r.title)+'</div></td><td><code>'+esc(slug)+'</code></td><td>'+esc(r.status)+'</td><td>'+n+' products</td><td>'+actions(r.id)+'</td></tr>'}).join("");
-  return '<div class="table-wrap"><table class="table"><thead><tr><th>Page</th><th>Draft path</th><th>Status</th><th>Products assigned</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">Assignments are stored in CMS; public pages will not change until publishing is connected.</p>';
+  body=rows.map(r=>{const n=cmsPageProductIds(r).length,slug=(r.slug==="home"||r.slug==="homepage")?"/":(r.slug==="products"?"/products":"/page/"+String(r.slug).replace(/^\/+/, ""));return '<tr><td><div class="record-title">'+esc(r.title)+'</div></td><td><code>'+esc(slug)+'</code></td><td>'+esc(r.status)+'</td><td>'+n+' products</td><td>'+actions(r.id)+'</td></tr>'}).join("");
+  return '<div class="table-wrap"><table class="table"><thead><tr><th>Page</th><th>Draft path</th><th>Status</th><th>Products assigned</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">Published pages are available at the path shown above. Page content and assigned product grids update automatically when status is Published.</p>';
  }
  if(page==="banners"){
   body=rows.map(r=>'<tr><td>'+(r.image_url?'<img class="record-thumb" src="'+esc(r.image_url)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.title||"Untitled banner")+'</div><div class="record-meta">'+esc(r.subtitle||"")+'</div></td><td>'+esc(r.placement)+'</td><td>'+esc(r.is_active?"Active":"Off")+'</td><td>'+Number(r.sort_order||0)+'</td><td>'+actions(r.id)+'</td></tr>').join("");
@@ -439,11 +440,11 @@ async function cmsSaveCategory(id){const g=x=>document.getElementById(x);try{
 async function cmsEditPage(r,id){
  const products=await cmsRequest("cms_products");cmsCache.products=products;const sections=Array.isArray(r.sections)?r.sections:[],content=sections.find(x=>x&&x.key==="cms-page-content")?.content||"",selected=cmsPageProductIds(r);
  const list=products.map(p=>'<label class="assignment-item"><input type="checkbox" data-page-product value="'+Number(p.id)+'" '+(selected.includes(Number(p.id))?"checked":"")+'><span class="assignment-copy"><strong>'+esc(p.name)+'</strong><small>'+esc(p.status||"draft")+' • '+esc(p.slug||"")+'</small></span></label>').join("");
- const fields=cmsField("Page title","pgTitle",r.title,"text")+cmsField("URL slug","pgSlug",r.slug,"text","Use home for homepage draft; otherwise a path such as kids-care.")+
+ const fields=cmsField("Page title","pgTitle",r.title,"text")+cmsField("URL slug","pgSlug",r.slug,"text","Use home for the homepage assignment, products for the catalogue, or a custom slug such as kids-care (published at /page/kids-care).")+
  cmsSelect("CMS status","pgStatus",[{value:"draft",label:"Draft"},{value:"published",label:"Prepared in CMS"}],r.status||"draft")+cmsField("Page content / intro","pgContent",content,"textarea","Plain text or HTML for this draft.")+
  '<div class="field full"><label>Assign products to this page</label><p class="field-help">A product can belong to more than one page.</p><div class="assignment-list">'+(list||'<p class="hint">Add products first, then return here.</p>')+'</div></div>'+
  cmsField("SEO title","pgSeoTitle",cmsFormSeo.title||r.seo?.title||"","text")+cmsField("SEO meta description","pgSeoDesc",cmsFormSeo.description||r.seo?.description||"","textarea");
- cmsEditorShell(id===null?"Add Website Page":"Edit Website Page","Assign products and content to this CMS page draft; it does not overwrite the public page.",fields,"cmsSavePage("+(id===null?"null":Number(id))+")","pages");
+ cmsEditorShell(id===null?"Add Website Page":"Edit Website Page","Select products for this page. Save with Published status to make the page available at its URL.",fields,"cmsSavePage("+(id===null?"null":Number(id))+")","pages");
 }
 async function cmsSavePage(id){const g=x=>document.getElementById(x);try{
  const title=g("pgTitle").value.trim();if(!title)throw new Error("Page title is required.");const slug=g("pgSlug").value.trim()||cmsSlugify(title);if(!slug)throw new Error("Page slug is required.");
@@ -577,7 +578,7 @@ async function dashboard(){
  '<div class="card"><span>Banners / Sliders</span><strong>'+n.banners+'</strong><button class="btn" onclick="render(&quot;banners&quot;)">Manage Banners</button></div>'+
  '<div class="card"><span>SEO Records</span><strong>'+n.seo+'</strong><button class="btn" onclick="render(&quot;seo&quot;)">Manage SEO</button></div></div>'+
  '<div class="panel"><h2>Two-admin setup</h2><p class="hint">Use this panel for website content only. Orders, delivery statuses, finance calculations and Meta Ads stay in your existing admin.</p></div>'+
- '<div class="module-note"><strong>Publishing boundary:</strong> CMS content and product assignments are saved separately. They do not automatically overwrite live storefront pages or public blog HTML, keeping current checkout safe.</div>';
+ '<div class="module-note"><strong>Automatic publishing:</strong> Active catalog products and categories, homepage product assignments, active banners, published blog posts, custom CMS pages and SEO records are served through the CMS sync. Existing checkout/order code remains separate.</div>';
 }
 supabaseClient.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){liveData=null;liveLogin()}});
 
