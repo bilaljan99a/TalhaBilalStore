@@ -273,6 +273,34 @@ render=function(page="dashboard"){
  return oldRenderForCms(page);
 };
 
+
+async function homepage(){
+ app.innerHTML=head("Homepage Content","Manage CMS pages and banners separately. No changes are pushed to the live homepage yet.")+
+ '<div class="cards"><div class="card"><span>Page Content</span><strong>CMS Drafts</strong><button class="btn" onclick="render(\'pages\')">Manage Pages</button></div><div class="card"><span>Banners / Sliders</span><strong>CMS Drafts</strong><button class="btn" onclick="render(\'banners\')">Manage Banners</button></div></div>'+
+ '<div class="panel"><p class="hint">The live storefront is intentionally not connected to CMS publishing until a separate review confirms the product, banner, and SEO data mapping. Existing homepage design stays untouched.</p></div>';
+}
+async function attributes(){
+ let products=[];try{products=await cmsRequest("cms_products")}catch(e){app.innerHTML=head("Product Attributes","Unable to load CMS products.")+'<div class="panel"><p class="live-error">'+esc(e.message)+'</p></div>';return}
+ app.innerHTML=head("Product Attributes","Attributes are stored per CMS product so only relevant fields are used.","<button class='btn primary' onclick='render(\"products\")'>Manage Products</button>")+
+ '<div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Product</th><th>Attributes JSON</th></tr></thead><tbody>'+
+ products.map(p=>'<tr><td>'+esc(p.name)+'</td><td><code>'+esc(JSON.stringify(p.attributes||{}))+'</code></td></tr>').join("")+
+ (products.length?"":'<tr><td colspan="2">No CMS products yet.</td></tr>')+'</tbody></table></div><p class="hint">Edit a product to manage attributes. These CMS records remain separate from live storefront products until approved.</p></div>';
+}
+async function meta(){
+ app.innerHTML=head("Meta Ads","Live Meta Ads metrics are not connected in this CMS yet.")+
+ '<div class="panel"><h2>Integration status</h2><p class="hint">No campaign, spend, purchase, revenue, or ROAS figures are shown here because a verified server-side Meta Marketing API connection has not been configured for this module.</p><p class="hint">Do not enter access tokens in this page. Any future connection must use secured server-side secrets and be tested without changing the existing Pixel or Conversions API implementation.</p></div>';
+}
+async function audit(){
+ app.innerHTML=head("Change History","Audit records created by the separate CMS management API.")+'<div class="panel"><div id="auditRows">Loading audit history…</div></div>';
+ try{
+  const rows=await cmsRequest("cms_audit_log");
+  const target=document.getElementById("auditRows");if(!target)return;
+  target.innerHTML='<div class="table-wrap"><table class="table"><thead><tr><th>Time</th><th>User</th><th>Module</th><th>Record</th><th>Action</th></tr></thead><tbody>'+
+  rows.map(x=>'<tr><td>'+esc(x.created_at||"—")+'</td><td>'+esc(x.user_id||"—")+'</td><td>'+esc(x.entity_type||"—")+'</td><td>'+esc(x.entity_id||"—")+'</td><td>'+esc(x.action||"—")+'</td></tr>').join("")+
+  (rows.length?"":'<tr><td colspan="5">No CMS changes have been recorded yet.</td></tr>')+'</tbody></table></div><p class="hint">Read-only history. Existing admin/order logs are not modified.</p>';
+ }catch(e){const target=document.getElementById("auditRows");if(target)target.innerHTML='<p class="live-error">'+esc(e.message)+'</p>'}
+}
+
 supabaseClient.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){liveData=null;liveLogin()}});
 
 loadLiveData();
