@@ -610,7 +610,8 @@ function cmsRichLink(){
  cmsRichCommand("createLink",url.trim());
 }
 function cmsRichButton(label,command,value,title){
- return '<button type="button" title="'+esc(title||label)+'" aria-label="'+esc(title||label)+'" onmousedown="event.preventDefault()" onclick="cmsRichCommand(&quot;'+command+'&quot;'+(value?',"'+value+'"':"")+')">'+label+'</button>';
+ const call=value?"cmsRichCommand('"+command+"','"+value+"')":"cmsRichCommand('"+command+"')";
+ return '<button type="button" title="'+esc(title||label)+'" aria-label="'+esc(title||label)+'" onmousedown="event.preventDefault()" onclick="'+call+'" >'+label+'</button>';
 }
 async function cmsEditBlog(r,id){
  const products=await cmsRequest("cms_products");cmsCache.products=products;
