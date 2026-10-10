@@ -36,6 +36,22 @@ body.cms-back-visible #backBtn{display:inline-block}
 .cms-upload-field input[type=file]{display:block;width:100%;max-width:100%;margin-top:7px;padding:10px;background:#fafafa;border:1px dashed #cbd0d8;border-radius:8px}
 .cms-upload-status{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.45}
 
+
+.cms-rich-toolbar{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0;background:#f4f6f8}
+.cms-rich-toolbar button{min-width:38px;padding:7px 10px;background:#fff;color:#17191d;border:1px solid #d4d8de;border-radius:6px;font-size:13px;cursor:pointer}
+.cms-rich-toolbar button:hover{background:#e9edf2}
+.cms-rich-editor{min-height:360px;max-height:65vh;overflow:auto;padding:16px;border:1px solid var(--line);border-radius:0 0 10px 10px;background:#fff;color:#20242a;font-size:15px;line-height:1.7;outline:none}
+.cms-rich-editor:focus{border-color:#7b9fe3;box-shadow:0 0 0 2px #dbeafe}
+.cms-rich-editor h2{font-size:26px;line-height:1.25;margin:24px 0 10px}
+.cms-rich-editor h3{font-size:21px;line-height:1.3;margin:20px 0 8px}
+.cms-rich-editor p{margin:0 0 14px}
+.cms-rich-editor ul,.cms-rich-editor ol{padding-left:24px;margin:10px 0 16px}
+.cms-rich-editor blockquote{margin:15px 0;padding:10px 16px;border-left:4px solid #f97316;background:#f8fafc;color:#4b5563}
+.cms-rich-editor img{max-width:100%;height:auto;border-radius:8px}
+.cms-rich-editor a{color:#1d4ed8;text-decoration:underline}
+.category-search-wrap{display:block;margin:5px 0 8px}
+.category-search-wrap input{width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid var(--line);border-radius:8px}
+
 </style>
 </head>
 <body>
@@ -155,6 +171,8 @@ const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let liveData=null;
 let cmsFormSeo={};
 let cmsCache={products:[],categories:[],pages:[],blog:[],banners:[],seo:[]};
+let cmsOptionSets={};
+let cmsSavedRichRange=null;
 let cmsNavHistory=[];
 let cmsCurrentModule="dashboard";
 let cmsEditorBackModule=null;
@@ -351,6 +369,20 @@ function cmsField(label,id,v,type,help){
  return '<div class="field"><label for="'+id+'">'+esc(label)+'</label><input id="'+id+'" type="'+(type||"text")+'" value="'+esc(v)+'" '+(type==="number"?'step="any"':'')+'>'+(help?'<p class="field-help">'+esc(help)+'</p>':'')+'</div>';
 }
 function cmsSelect(label,id,opts,sel,help){return '<div class="field"><label for="'+id+'">'+esc(label)+'</label><select id="'+id+'">'+opts.map(x=>'<option value="'+esc(x.value)+'" '+(String(sel??"")===String(x.value)?"selected":"")+'>'+esc(x.label)+'</option>').join("")+'</select>'+(help?'<p class="field-help">'+esc(help)+'</p>':'')+'</div>'}
+function cmsSearchSelect(label,id,opts,selected,help){
+ cmsOptionSets[id]=opts.map(x=>({value:String(x.value??""),label:String(x.label??"")}));
+ const rendered=opts.map(x=>'<option value="'+esc(x.value)+'" '+(String(selected??"")===String(x.value)?"selected":"")+'>'+esc(x.label)+'</option>').join("");
+ return '<div class="field"><label for="'+id+'">'+esc(label)+'</label><div class="category-search-wrap"><input id="'+id+'Search" type="search" placeholder="Search '+esc(label.toLowerCase())+'…" autocomplete="off" oninput="cmsFilterSelectOptions(&quot;'+id+'&quot;)" aria-label="Search '+esc(label)+'"></div><select id="'+id+'">'+rendered+'</select>'+(help?'<p class="field-help">'+esc(help)+'</p>':'')+'</div>';
+}
+function cmsFilterSelectOptions(id){
+ const search=document.getElementById(id+"Search"),select=document.getElementById(id),opts=cmsOptionSets[id]||[];
+ if(!search||!select)return;
+ const query=search.value.trim().toLowerCase(),selected=select.value;
+ const filtered=opts.filter(o=>!query||!o.value||o.value===selected||o.label.toLowerCase().includes(query)||o.value.toLowerCase().includes(query));
+ select.innerHTML=filtered.map(o=>'<option value="'+esc(o.value)+'" '+(o.value===selected?"selected":"")+'>'+esc(o.label)+'</option>').join("");
+ if(filtered.some(o=>o.value===selected))select.value=selected;
+}
+
 function cmsCheck(label,id,on){return '<label class="assignment-item"><input id="'+id+'" type="checkbox" '+(on?"checked":"")+'><span class="assignment-copy"><strong>'+esc(label)+'</strong></span></label>'}
 function cmsEditorShell(title,sub,fields,save,back){cmsEditorBackModule=back;cmsUpdateBackButton();app.innerHTML=head(title,sub)+'<div class="panel cms-editor"><div class="form-grid">'+fields+'</div><div class="section-actions"><button class="btn" onclick="cmsGoBack()">← Back</button><button class="btn primary" onclick="'+save+'">Save Changes</button></div><div id="cmsFormError" class="live-error" role="alert"></div></div>'}
 function cmsSlugify(v){return String(v||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")}
@@ -359,8 +391,15 @@ function cmsPageProductIds(p){const a=Array.isArray(p?.sections)?p.sections:[],s
 function cmsSeoTargetLabel(r){const t=String(r.entity_type||"site"),id=Number(r.entity_id||0);if(t==="site"||!id)return "Site-wide";const m={product:cmsCache.products||[],category:cmsCache.categories||[],page:cmsCache.pages||[],blog:cmsCache.blog||[],banner:cmsCache.banners||[]},x=(m[t]||[]).find(y=>Number(y.id)===id);return x?(x.title||x.name||x.slug||("ID "+id)):"ID "+id}
 function cmsUploadField(label,targetId,folder,multiple,mode,help){
  const many=multiple?' multiple':"";
- return '<div class="field full cms-upload-field"><label>'+esc(label)+'</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"'+many+' onchange="cmsUploadFiles(this,&quot;'+targetId+'&quot;,&quot;'+folder+'&quot;,&quot;'+mode+'&quot;)">'+
+ const saveRange=mode==="inline"?' onmousedown="cmsRememberRichSelection(&quot;'+targetId+'&quot;)"':"";
+ return '<div class="field full cms-upload-field"><label>'+esc(label)+'</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"'+many+saveRange+' onchange="cmsUploadFiles(this,&quot;'+targetId+'&quot;,&quot;'+folder+'&quot;,&quot;'+mode+'&quot;)">'+
  (help?'<p class="field-help">'+esc(help)+'</p>':"")+'<div class="cms-upload-status" id="upload-status-'+targetId+'">JPG, PNG, WEBP, GIF or AVIF • Up to 8 MB per image.</div></div>';
+}
+function cmsRememberRichSelection(targetId){
+ const target=document.getElementById(targetId),selection=window.getSelection();
+ if(!target||!selection||!selection.rangeCount)return;
+ const range=selection.getRangeAt(0);
+ if(target.contains(range.commonAncestorContainer))cmsSavedRichRange=range.cloneRange();
 }
 async function cmsUploadFiles(input,targetId,folder,mode){
  const status=document.getElementById("upload-status-"+targetId),target=document.getElementById(targetId);
@@ -384,8 +423,22 @@ async function cmsUploadFiles(input,targetId,folder,mode){
    if(!publicUrl)throw new Error("Could not create a public image URL.");
    urls.push(publicUrl);
    try{await cmsRequest("cms_media","POST",null,{name:file.name,url:publicUrl,type:"image",alt_text:null,folder})}catch(e){console.warn("Media library index did not save",e)}
-   if(mode==="inline"){
-    const alt=file.name.replace(/\.[^.]+$/,"").replace(/[-_]+/g," ").trim().replace(/["<>]/g,"");
+   const alt=file.name.replace(/\.[^.]+$/,"").replace(/[-_]+/g," ").trim().replace(/["<>]/g,"");
+   if(mode==="inline"&&target.isContentEditable){
+    target.focus();
+    const selection=window.getSelection();
+    if(selection&&cmsSavedRichRange&&target.contains(cmsSavedRichRange.commonAncestorContainer)){
+     selection.removeAllRanges();selection.addRange(cmsSavedRichRange);
+    }
+    const figure=document.createElement("figure");
+    const img=document.createElement("img");img.src=publicUrl;img.alt=alt;img.loading="lazy";
+    figure.appendChild(img);
+    if(selection&&selection.rangeCount&&target.contains(selection.getRangeAt(0).commonAncestorContainer)){
+     const range=selection.getRangeAt(0);range.deleteContents();range.insertNode(figure);
+     range.setStartAfter(figure);range.collapse(true);selection.removeAllRanges();selection.addRange(range);
+     cmsSavedRichRange=range.cloneRange();
+    }else{target.appendChild(figure)}
+   }else if(mode==="inline"){
     const markup='\n<figure><img src="'+publicUrl+'" alt="'+alt+'"></figure>\n';
     const start=Number.isInteger(target.selectionStart)?target.selectionStart:target.value.length;
     const end=Number.isInteger(target.selectionEnd)?target.selectionEnd:start;
@@ -395,32 +448,89 @@ async function cmsUploadFiles(input,targetId,folder,mode){
    }else{target.value=publicUrl}
    target.dispatchEvent(new Event("input",{bubbles:true}));
   }
-  if(status)status.textContent="Upload complete: "+urls.length+" image"+(urls.length===1?"":"s")+". Press Save Changes to save the URL.";
+  if(status)status.textContent="Upload complete: "+urls.length+" image"+(urls.length===1?"":"s")+". Press Save Changes to save the image.";
  }catch(e){if(status)status.textContent=e instanceof Error?e.message:"Image upload failed. Check the file and try again."}
  finally{input.disabled=false;input.value=""}
 }
+
 function cmsPreviewImage(input,boxId){const x=document.getElementById(input),box=document.getElementById(boxId);if(!x||!box)return;const value=x.value.trim().split(/\r?\n/).map(v=>v.trim()).filter(Boolean)[0]||"";box.innerHTML=value?'<img src="'+esc(value)+'" alt="Preview">':'<span class="hint">Image preview appears here.</span>'}
 async function cmsEditProduct(r,id){
- const cats=await cmsRequest("cms_categories");cmsCache.categories=cats;const imgs=Array.isArray(r.images)?r.images.map(x=>typeof x==="string"?x:(x?.url||x?.src||"")).filter(Boolean):[];
- const fields=cmsField("Product name","pName",r.name,"text")+cmsField("URL slug","pSlug",r.slug,"text","Blank = generate from name.")+cmsField("SKU (optional)","pSku",r.sku,"text")+
- cmsSelect("Category","pCat",[{value:"",label:"Unassigned"},...cats.map(x=>({value:x.id,label:x.name}))],r.category_id??"","Create a category first if empty.")+
- cmsField("Price (PKR)","pPrice",r.price??0,"number")+cmsField("Old price (optional)","pOldPrice",r.old_price,"number")+cmsField("Sale price (optional)","pSale",r.sale_price,"number")+cmsField("Weight (kg)","pWeight",r.weight_kg??1,"number","Delivery charges depend on total product weight.")+cmsField("Product badge / tag","pTag",r.tag||"","text")+cmsField("Cost (optional)","pCost",r.cost,"number")+cmsField("Stock (optional)","pStock",r.stock,"number")+
- cmsSelect("CMS status","pStatus",[{value:"draft",label:"Draft"},{value:"active",label:"Active in CMS"},{value:"archived",label:"Archived"}],r.status||"draft")+
- cmsField("Short description","pShort",r.short_description,"textarea")+cmsField("Full description","pDescription",r.description,"textarea")+
- cmsField("Image URL(s), one per line","pImages",imgs.join("\n"),"textarea","Paste image URLs or upload files below.")+cmsUploadField("Upload product image(s)","pImages","products",true,"append-lines","Select multiple images. First image is the main product photo.")+
+ const cats=await cmsRequest("cms_categories");cmsCache.categories=cats;
+ const pages=await cmsRequest("cms_pages");cmsCache.pages=pages;
+ const imgs=Array.isArray(r.images)?r.images.map(x=>typeof x==="string"?x:(x?.url||x?.src||"")).filter(Boolean):[];
+ const assigned=(pages||[]).filter(p=>cmsPageProductIds(p).includes(Number(id)));
+ const customPages=(pages||[]).filter(p=>!["home","homepage","products"].includes(String(p.slug||""))&&!(Array.isArray(p.sections)&&p.sections.some(s=>s&&s.key==="cms-product-assignments"&&String(p.slug)===String(cats.find(x=>Number(x.id)===Number(r.category_id))?.slug))));
+ const checkedIds=new Set(assigned.map(p=>Number(p.id)));
+ const pageAssignment=customPages.map(p=>'<label class="assignment-item"><input type="checkbox" data-product-page value="'+Number(p.id)+'" '+(checkedIds.has(Number(p.id))?"checked":"")+'><span class="assignment-copy"><strong>'+esc(p.title)+'</strong><small>/page/'+esc(p.slug)+' • '+esc(p.status)+'</small></span></label>').join("");
+ const fields=cmsField("Product name","pName",r.name,"text")+
+ cmsField("URL slug","pSlug",r.slug,"text","Blank = generate from name.")+
+ cmsField("SKU (optional)","pSku",r.sku,"text")+
+ cmsSearchSelect("Category","pCat",[{value:"",label:"Unassigned"},...cats.map(x=>({value:x.id,label:x.name+" ("+x.slug+")"}))],r.category_id??"","Search and select a category. Save automatically assigns the product to the category and All Products page.")+
+ cmsField("Price (PKR)","pPrice",r.price??0,"number")+
+ cmsField("Old price (optional)","pOldPrice",r.old_price,"number")+
+ cmsField("Sale price (optional)","pSale",r.sale_price,"number")+
+ cmsField("Weight (kg)","pWeight",r.weight_kg??1,"number","This value is used by delivery-weight calculations.")+
+ cmsField("Product badge / tag","pTag",r.tag||"","text")+
+ cmsField("Cost (optional)","pCost",r.cost,"number")+
+ cmsField("Stock (optional)","pStock",r.stock,"number")+
+ cmsSelect("Publish status","pStatus",[{value:"draft",label:"Draft — not shown on website"},{value:"active",label:"Active — publish to website"},{value:"archived",label:"Archived — hidden"}],r.status||"draft")+
+ cmsField("Short description","pShort",r.short_description,"textarea")+
+ cmsField("Full description","pDescription",r.description,"textarea")+
+ cmsField("Image URL(s), one per line","pImages",imgs.join("\n"),"textarea","Paste existing image URLs or upload files below.")+
+ cmsUploadField("Upload product image(s)","pImages","products",true,"append-lines","Select multiple images. First image is the main photo.")+
  '<div class="field full"><label>Image preview</label><div class="preview-frame" id="pPreview">'+(imgs[0]?'<img src="'+esc(imgs[0])+'" alt="Product preview">':'<span class="hint">Add an image URL above.</span>')+'</div></div>'+
- cmsField("SEO title","pSeoTitle",cmsFormSeo.title||"","text")+cmsField("SEO meta description","pSeoDesc",cmsFormSeo.description||"","textarea")+cmsField("SEO keywords","pSeoKeywords",Array.isArray(cmsFormSeo.keywords)?cmsFormSeo.keywords.join(", "):"","text")+
- '<div class="field"><label>Product badges</label>'+cmsCheck("Featured","pFeatured",!!r.featured)+cmsCheck("Best seller","pBestSeller",!!r.best_seller)+cmsCheck("New product","pNew",!!r.is_new)+'</div>';
- cmsEditorShell(id===null?"Add Product":"Edit Product","Manage product details, image, category and SEO. Assign it to pages from Website Pages.",fields,"cmsSaveProduct("+(id===null?"null":Number(id))+")","products");
- const im=document.getElementById("pImages");if(im)im.addEventListener("input",()=>cmsPreviewImage("pImages","pPreview"));
+ '<div class="field full"><label>Website page assignment</label><p class="field-help">The selected category drives the category filter page automatically. Every saved product is added to All Products; tick extra CMS pages below. Featured controls homepage placement.</p><div class="assignment-list">'+(pageAssignment||'<p class="hint">No extra CMS pages yet. Products will still appear in All Products and their selected category.</p>')+'</div></div>'+
+ cmsField("SEO title","pSeoTitle",cmsFormSeo.title||"","text")+
+ cmsField("SEO meta description","pSeoDesc",cmsFormSeo.description||"","textarea")+
+ cmsField("SEO keywords","pSeoKeywords",Array.isArray(cmsFormSeo.keywords)?cmsFormSeo.keywords.join(", "):"","text")+
+ '<div class="field full"><label>Homepage visibility</label>'+cmsCheck("Show on homepage (Featured)","pFeatured",!!r.featured)+cmsCheck("Best seller","pBestSeller",!!r.best_seller)+cmsCheck("New product","pNew",!!r.is_new)+'</div>';
+ cmsEditorShell(id===null?"Add Product":"Edit Product","Add a product, choose its category from the searchable list, upload photos, and save it as Active when ready to publish.",fields,"cmsSaveProduct("+(id===null?"null":Number(id))+")","products");
+ const img=document.getElementById("pImages");if(img)img.addEventListener("input",()=>cmsPreviewImage("pImages","pPreview"));
 }
-async function cmsSaveProduct(id){const g=x=>document.getElementById(x);try{
- const name=g("pName").value.trim();if(!name)throw new Error("Product name is required.");const slug=g("pSlug").value.trim()||cmsSlugify(name);if(!slug)throw new Error("URL slug is required.");
- const num=x=>{const v=g(x).value.trim();if(!v)return null;const n=Number(v);if(!Number.isFinite(n))throw new Error("Enter a valid number.");return n};
- const images=g("pImages").value.split(/\n+/).map(x=>x.trim()).filter(Boolean),seo=Object.assign({},cmsFormSeo,{title:g("pSeoTitle").value.trim()||null,description:g("pSeoDesc").value.trim()||null,keywords:g("pSeoKeywords").value.split(",").map(x=>x.trim()).filter(Boolean)});
- const data={name,slug,sku:g("pSku").value.trim()||null,category_id:g("pCat").value?Number(g("pCat").value):null,price:num("pPrice")??0,old_price:num("pOldPrice"),sale_price:num("pSale"),weight_kg:num("pWeight")??1,tag:g("pTag").value.trim()||null,cost:num("pCost"),stock:num("pStock"),status:g("pStatus").value,short_description:g("pShort").value.trim()||null,description:g("pDescription").value.trim()||null,images,seo,featured:g("pFeatured").checked,best_seller:g("pBestSeller").checked,is_new:g("pNew").checked};
- await cmsRequest("cms_products",id===null?"POST":"PATCH",id,data);await cmsManage("products");
-}catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
+async function cmsSyncProductAssignments(productId,categoryId,featured,customPageIds){
+ const pages=await cmsRequest("cms_pages");
+ const cats=await cmsRequest("cms_categories");
+ const category=cats.find(x=>Number(x.id)===Number(categoryId));
+ const selected=new Set((customPageIds||[]).map(Number));
+ const categorySlugs=category?[category.slug,"category-"+category.slug]:[];
+ for(const page of pages){
+  const slug=String(page.slug||"");
+  const isHome=["home","homepage"].includes(slug);
+  const isAllProducts=slug==="products";
+  const isCategoryPage=categorySlugs.includes(slug);
+  const sections=Array.isArray(page.sections)?page.sections:[];
+  const section=sections.find(x=>x&&x.key==="cms-product-assignments");
+  const current=Array.isArray(section?.product_ids)?section.product_ids.map(Number):[];
+  let manage=false,include=false;
+  if(isAllProducts){manage=true;include=true}
+  else if(isHome){manage=true;include=!!featured}
+  else if(isCategoryPage){manage=true;include=true}
+  else if(selected.has(Number(page.id))||current.includes(Number(productId))){manage=true;include=selected.has(Number(page.id))}
+  if(!manage)continue;
+  const next=include?[...new Set([...current,Number(productId)])]:current.filter(id=>id!==Number(productId));
+  if(next.length===current.length&&next.every((x,i)=>x===current[i]))continue;
+  const newSections=sections.filter(x=>!(x&&x.key==="cms-product-assignments"));
+  if(next.length)newSections.push({type:"product-grid",key:"cms-product-assignments",title:isHome?"Featured Products":"Assigned Products",product_ids:next});
+  await cmsRequest("cms_pages","PATCH",page.id,{sections:newSections});
+ }
+}
+async function cmsSaveProduct(id){
+ const g=x=>document.getElementById(x);try{
+  const name=g("pName").value.trim();if(!name)throw new Error("Product name is required.");
+  const slug=g("pSlug").value.trim()||cmsSlugify(name);if(!slug)throw new Error("URL slug is required.");
+  if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))throw new Error("Use a slug with lowercase letters, numbers and hyphens only.");
+  const num=x=>{const v=g(x).value.trim();if(!v)return null;const n=Number(v);if(!Number.isFinite(n))throw new Error("Enter a valid number.");return n};
+  const weight=num("pWeight")??1;if(weight<=0||weight>1000)throw new Error("Weight must be greater than 0 and no more than 1000 kg.");
+  const images=g("pImages").value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  const seo=Object.assign({},cmsFormSeo,{title:g("pSeoTitle").value.trim()||null,description:g("pSeoDesc").value.trim()||null,keywords:g("pSeoKeywords").value.split(",").map(x=>x.trim()).filter(Boolean)});
+  const selectedPageIds=[...document.querySelectorAll("[data-product-page]:checked")].map(x=>Number(x.value)).filter(Number.isFinite);
+  const data={name,slug,sku:g("pSku").value.trim()||null,category_id:g("pCat").value?Number(g("pCat").value):null,price:num("pPrice")??0,old_price:num("pOldPrice"),sale_price:num("pSale"),weight_kg:weight,tag:g("pTag").value.trim()||null,cost:num("pCost"),stock:num("pStock"),status:g("pStatus").value,short_description:g("pShort").value.trim()||null,description:g("pDescription").value.trim()||null,images,seo,featured:g("pFeatured").checked,best_seller:g("pBestSeller").checked,is_new:g("pNew").checked};
+  const saved=await cmsRequest("cms_products",id===null?"POST":"PATCH",id,data);
+  if(saved?.id)await cmsSyncProductAssignments(Number(saved.id),data.category_id,data.featured,selectedPageIds);
+  await cmsManage("products");
+ }catch(e){const b=g("cmsFormError");if(b)b.textContent="Save failed: "+e.message;else alert("Save failed: "+e.message)}
+}
+
 async function cmsEditCategory(r,id){
  const all=await cmsRequest("cms_categories");cmsCache.categories=all;const opts=[{value:"",label:"Main category — no parent"},...all.filter(x=>Number(x.id)!==Number(id)).map(x=>({value:x.id,label:x.name}))];
  const fields=cmsField("Category name","cName",r.name,"text")+cmsField("URL slug","cSlug",r.slug,"text","Blank = generate from name.")+cmsField("Image URL","cImage",r.image_url,"text")+cmsUploadField("Upload category image","cImage","categories",false,"set","Or paste an image URL.")+cmsSelect("Parent category","cParent",opts,r.parent_id??"")+
@@ -469,25 +579,81 @@ async function cmsSaveBanner(id){const g=x=>document.getElementById(x);try{
  const data={title:g("bTitle").value.trim()||null,subtitle:g("bSubtitle").value.trim()||null,image_url:g("bImage").value.trim()||null,mobile_image_url:g("bMobileImage").value.trim()||null,placement:g("bPlacement").value,button_text:g("bButtonText").value.trim()||null,button_url:g("bButtonUrl").value.trim()||null,sort_order:Number(g("bSort").value||0),starts_at:start,ends_at:end,is_active:g("bActive").value==="true"};
  await cmsRequest("cms_banners",id===null?"POST":"PATCH",id,data);await cmsManage("banners");
 }catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
+function cmsEditorSafeHtml(value){
+ const raw=String(value||"").trim();
+ if(!raw)return "";
+ const hasMarkup=/<(?:h[1-6]|p|div|img|ul|ol|li|section|header|figure|table|blockquote|a|hr|br|strong|em)\b/i.test(raw);
+ const initial=hasMarkup?raw:raw.split(/\n\s*\n+/).map(x=>x.trim()).filter(Boolean).map(x=>"<p>"+esc(x).replace(/\n/g,"<br>")+"</p>").join("");
+ const template=document.createElement("template");template.innerHTML=initial;
+ template.content.querySelectorAll("script,iframe,object,embed,form").forEach(x=>x.remove());
+ template.content.querySelectorAll("*").forEach(el=>{
+  [...el.attributes].forEach(attr=>{
+   if(/^on/i.test(attr.name))el.removeAttribute(attr.name);
+   if(["href","src","xlink:href"].includes(attr.name.toLowerCase())&&/^\s*javascript:/i.test(attr.value))el.removeAttribute(attr.name);
+  });
+ });
+ return template.innerHTML;
+}
+function cmsRichCommand(command,value){
+ const editor=document.getElementById("blogContent");if(!editor)return;
+ editor.focus();
+ try{
+  if(command==="formatBlock")document.execCommand("formatBlock",false,value);
+  else document.execCommand(command,false,value||null);
+ }catch(e){console.warn("Rich text command could not be applied",e)}
+ cmsRememberRichSelection("blogContent");
+}
+function cmsRichLink(){
+ const url=window.prompt("Enter a web link (https://...) or a relative page URL:");
+ if(!url)return;
+ if(/^\s*javascript:/i.test(url)){alert("JavaScript links are not allowed.");return}
+ cmsRichCommand("createLink",url.trim());
+}
+function cmsRichButton(label,command,value,title){
+ return '<button type="button" title="'+esc(title||label)+'" aria-label="'+esc(title||label)+'" onmousedown="event.preventDefault()" onclick="cmsRichCommand(&quot;'+command+'&quot;'+(value?',"'+value+'"':"")+')">'+label+'</button>';
+}
 async function cmsEditBlog(r,id){
- const products=await cmsRequest("cms_products");cmsCache.products=products;const selected=Array.isArray(r.related_product_ids)?r.related_product_ids.map(Number):[],seo=Object.assign({},cmsFormSeo);
+ const products=await cmsRequest("cms_products");cmsCache.products=products;
+ const selected=Array.isArray(r.related_product_ids)?r.related_product_ids.map(Number):[],seo=Object.assign({},cmsFormSeo);
  const list=products.map(p=>'<label class="assignment-item"><input type="checkbox" data-blog-product value="'+Number(p.id)+'" '+(selected.includes(Number(p.id))?"checked":"")+'><span class="assignment-copy"><strong>'+esc(p.name)+'</strong><small>'+esc(p.slug||"")+'</small></span></label>').join("");
- const fields=cmsField("Post title","blTitle",r.title,"text")+cmsField("URL slug","blSlug",r.slug,"text")+cmsField("Excerpt / meta summary","blExcerpt",r.excerpt,"textarea")+
- cmsField("Featured image URL","blImage",r.featured_image_url,"text")+cmsUploadField("Upload featured image","blImage","blog/featured",false,"set")+cmsSelect("CMS status","blStatus",[{value:"draft",label:"Draft"},{value:"published",label:"Published in CMS"},{value:"scheduled",label:"Scheduled"}],r.status||"draft")+
- cmsField("Publish date (optional)","blDate",cmsLocalDatetime(r.published_at),"datetime-local")+cmsField("Author","blAuthor",r.author_name||"Talha Bilal Store","text")+cmsField("Tags (comma separated)","blTags",Array.isArray(r.tags)?r.tags.join(", "):"","text")+
- '<div class="field full"><label>Article HTML content</label><textarea id="blogContent" spellcheck="false">'+esc(r.content||"")+'</textarea><p class="field-help">Published posts and edits appear at the public blog URL automatically.</p></div>'+cmsUploadField("Upload image inside article","blogContent","blog/content",false,"inline","Upload and insert the image at the cursor position.")+
+ const toolbar='<div class="cms-rich-toolbar" role="toolbar" aria-label="Article formatting">'+
+ cmsRichButton('<strong>B</strong>','bold',null,'Bold')+cmsRichButton('<em>I</em>','italic',null,'Italic')+cmsRichButton('<u>U</u>','underline',null,'Underline')+
+ cmsRichButton('H2','formatBlock','H2','Heading 2')+cmsRichButton('H3','formatBlock','H3','Heading 3')+cmsRichButton('¶','formatBlock','P','Paragraph')+
+ cmsRichButton('• List','insertUnorderedList',null,'Bulleted list')+cmsRichButton('1. List','insertOrderedList',null,'Numbered list')+
+ cmsRichButton('Quote','formatBlock','BLOCKQUOTE','Block quote')+
+ '<button type="button" onmousedown="event.preventDefault()" onclick="cmsRichLink()">Link</button>'+
+ cmsRichButton('Undo','undo',null,'Undo')+cmsRichButton('Redo','redo',null,'Redo')+'</div>';
+ const editor='<div class="field full"><label for="blogContent">Article content</label>'+toolbar+
+ '<div id="blogContent" class="cms-rich-editor" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="true" onmouseup="cmsRememberRichSelection(&quot;blogContent&quot;)" onkeyup="cmsRememberRichSelection(&quot;blogContent&quot;)">'+cmsEditorSafeHtml(r.content||"")+'</div>'+
+ '<p class="field-help">Select text and use the toolbar for headings, bold/italic, lists, quotes and links. Insert images with the upload control below.</p></div>';
+ const fields=cmsField("Post title","blTitle",r.title,"text")+cmsField("URL slug","blSlug",r.slug,"text","Keep the current slug to preserve the public URL.")+
+ cmsField("Excerpt / meta summary","blExcerpt",r.excerpt,"textarea")+
+ cmsField("Featured image URL","blImage",r.featured_image_url,"text")+cmsUploadField("Upload featured image","blImage","blog/featured",false,"set")+
+ cmsSelect("CMS status","blStatus",[{value:"draft",label:"Draft"},{value:"published",label:"Published in CMS"},{value:"scheduled",label:"Scheduled"}],r.status||"draft")+
+ cmsField("Publish date (optional)","blDate",cmsLocalDatetime(r.published_at),"datetime-local")+cmsField("Author","blAuthor",r.author_name||"Talha Bilal Store","text")+
+ cmsField("Tags (comma separated)","blTags",Array.isArray(r.tags)?r.tags.join(", "):"","text")+editor+
+ cmsUploadField("Upload image inside article","blogContent","blog/content",false,"inline","Upload and insert the image at your cursor position.")+
  '<div class="field full"><label>Related products</label><div class="assignment-list">'+(list||'<p class="hint">Add products before linking them.</p>')+'</div></div>'+
  cmsField("SEO title","blSeoTitle",seo.meta_title||seo.title||r.title||"","text")+cmsField("SEO meta description","blSeoDesc",seo.meta_description||seo.description||r.excerpt||"","textarea");
  const live=seo.live_url?'<div class="module-note">Current public article: <a href="'+esc(seo.live_url)+'" target="_blank" rel="noopener">'+esc(seo.live_url)+'</a></div>':"";
- cmsEditorShell(id===null?"Add Blog Post":"Edit Blog Post","Manage article content, SEO and related products. Edits save to the CMS copy.",live+fields,"cmsSaveBlog("+(id===null?"null":Number(id))+")","blog");
+ cmsEditorShell(id===null?"Add Blog Post":"Edit Blog Post","Format your article with headings, bold text, lists, links and inserted images. Set status to Published to publish it.",live+fields,"cmsSaveBlog("+(id===null?"null":Number(id))+")","blog");
 }
-async function cmsSaveBlog(id){const g=x=>document.getElementById(x);try{
- const title=g("blTitle").value.trim();if(!title)throw new Error("Post title is required.");const slug=g("blSlug").value.trim()||cmsSlugify(title);if(!slug)throw new Error("Post slug is required.");
- const related=[...document.querySelectorAll("[data-blog-product]:checked")].map(x=>Number(x.value)).filter(Number.isFinite),date=g("blDate").value?new Date(g("blDate").value).toISOString():null;
- const seo=Object.assign({},cmsFormSeo,{meta_title:g("blSeoTitle").value.trim()||null,meta_description:g("blSeoDesc").value.trim()||null});
- const data={title,slug,excerpt:g("blExcerpt").value.trim()||null,content:g("blogContent").value||null,featured_image_url:g("blImage").value.trim()||null,status:g("blStatus").value,published_at:date,author_name:g("blAuthor").value.trim()||null,tags:g("blTags").value.split(",").map(x=>x.trim()).filter(Boolean),related_product_ids:related,seo};
- await cmsRequest("cms_blog_posts",id===null?"POST":"PATCH",id,data);await cmsManage("blog");
-}catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
+async function cmsSaveBlog(id){
+ const g=x=>document.getElementById(x);try{
+  const title=g("blTitle").value.trim();if(!title)throw new Error("Post title is required.");
+  const slug=g("blSlug").value.trim()||cmsSlugify(title);if(!slug)throw new Error("Post slug is required.");
+  if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))throw new Error("Use a URL slug with lowercase letters, numbers and hyphens only.");
+  const content=cmsEditorSafeHtml(g("blogContent").innerHTML);
+  const related=[...document.querySelectorAll("[data-blog-product]:checked")].map(x=>Number(x.value)).filter(Number.isFinite);
+  const date=g("blDate").value?new Date(g("blDate").value).toISOString():null;
+  const seo=Object.assign({},cmsFormSeo,{meta_title:g("blSeoTitle").value.trim()||null,meta_description:g("blSeoDesc").value.trim()||null});
+  const data={title,slug,excerpt:g("blExcerpt").value.trim()||null,content,featured_image_url:g("blImage").value.trim()||null,status:g("blStatus").value,published_at:date,author_name:g("blAuthor").value.trim()||null,tags:g("blTags").value.split(",").map(x=>x.trim()).filter(Boolean),related_product_ids:related,seo};
+  if(data.status==="published"&&!data.published_at)data.published_at=new Date().toISOString();
+  await cmsRequest("cms_blog_posts",id===null?"POST":"PATCH",id,data);
+  await cmsManage("blog");
+ }catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}
+}
+
 async function cmsEditSeo(r,id){
  const fields=cmsSelect("SEO applies to","sType",[{value:"site",label:"Site-wide / Homepage"},{value:"product",label:"Product"},{value:"category",label:"Category"},{value:"page",label:"Website page"},{value:"blog",label:"Blog post"},{value:"banner",label:"Banner"}],r.entity_type||"site")+
  '<div class="field"><label for="sTarget">Choose item</label><select id="sTarget" onchange="cmsSeoTargetChanged()"><option value="">Site-wide default</option></select><p class="field-help">Leave blank for site-wide metadata, or select an item.</p></div>'+
