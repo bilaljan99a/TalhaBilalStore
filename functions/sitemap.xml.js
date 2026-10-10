@@ -46,30 +46,38 @@ function normalizeBlogPath(href){
 }
 
 async function getBlogPages(){
+  const pages=new Set();
   try{
     const response=await fetch(SITE+'/blog.html',{
       headers:{'Accept':'text/html'},
-      cf:{cacheTtl:300,cacheEverything:true}
+      cf:{cacheTtl:60,cacheEverything:true}
     });
-
-    if(!response.ok) return [];
-
-    const html=await response.text();
-    const pages=new Set();
-
-    // Discover future blog posts automatically from blog.html.
-    const hrefPattern=/href\s*=\s*["']([^"']+)["']/gi;
-    let match;
-
-    while((match=hrefPattern.exec(html))!==null){
-      const path=normalizeBlogPath(match[1]);
-      if(path) pages.add(path);
+    if(response.ok){
+      const html=await response.text();
+      const hrefPattern=/href\s*=\s*["']([^"']+)["']/gi;
+      let match;
+      while((match=hrefPattern.exec(html))!==null){
+        const path=normalizeBlogPath(match[1]);
+        if(path) pages.add(path);
+      }
     }
+  }catch{}
 
-    return [...pages];
-  }catch{
-    return [];
-  }
+  // Include newly published CMS posts without requiring a separate sitemap edit.
+  try{
+    const response=await fetch('https://dxdjqeqlmyawqrzphzdb.supabase.co/functions/v1/cms-public',{
+      headers:{'Accept':'application/json'},
+      cf:{cacheTtl:0}
+    });
+    if(response.ok){
+      const data=await response.json();
+      for(const post of (Array.isArray(data.blog_posts)?data.blog_posts:[])){
+        const slug=String(post.slug||'');
+        if(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) pages.add('/blog/'+slug+'.html');
+      }
+    }
+  }catch{}
+  return [...pages];
 }
 
 export async function onRequestGet(){
