@@ -13,7 +13,7 @@ function safeArticleHtml(value,title,excerpt){
   const looksLikeHtml=/<(?:h[1-6]|p|div|img|ul|ol|li|section|header|figure|table|blockquote|a|hr|br|strong|em)\b/i.test(raw);
   if(!looksLikeHtml){
     let blocks=raw.split(/\n\s*\n+/).map(x=>x.trim()).filter(Boolean);
-    if(blocks.length&&blocks[0].replace(/\s+/g,' ').trim().toLowerCase()===String(title||'').replace(/\s+/g,' ').trim().toLowerCase())blocks.shift();
+    if(blocks.length){const first=blocks[0].replace(/\s+/g,' ').trim().toLowerCase(),heading=String(title||'').replace(/\s+/g,' ').trim().toLowerCase();if(first===heading||first.startsWith(heading+':'))blocks.shift();}
     const body=blocks.map(x=>'<p>'+htmlEscape(x).replace(/\n/g,'<br>')+'</p>').join('');
     content='<a class="back-link" href="/blog.html">← Back to Blog</a><header class="article-header"><div class="article-meta">Talha Bilal Store • Article</div><h1>'+htmlEscape(title)+'</h1><p>'+htmlEscape(excerpt||'')+'</p></header><div class="article-body">'+body+'</div>';
   }
