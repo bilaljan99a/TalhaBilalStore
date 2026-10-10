@@ -77,6 +77,10 @@ async function getDynamicCmsPaths(){
         const slug=String(post.slug||'');
         if(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))paths.add('/blog/'+slug+'.html');
       }
+      for(const product of (Array.isArray(data.products)?data.products:[])){
+        const slug=String(product.slug||'');
+        if(slugOkForSitemap(slug))paths.add('/product/'+slug);
+      }
       for(const page of (Array.isArray(data.pages)?data.pages:[])){
         const slug=String(page.slug||'');
         if(!slugOkForSitemap(slug)||['home','homepage','products'].includes(slug))continue;
