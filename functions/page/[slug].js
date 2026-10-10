@@ -26,17 +26,22 @@ export async function onRequestGet(context){
  if(!page)return new Response('Page not found or not published.',{status:404,headers:{'Content-Type':'text/plain; charset=UTF-8'}});
  const template=await context.env.ASSETS.fetch(new URL(TEMPLATE_PATH,context.request.url));
  if(!template.ok)return new Response('Website template unavailable.',{status:500});
+ const seoRow=(Array.isArray(data.seo)?data.seo:[]).find(item=>item.entity_type==='page'&&Number(item.entity_id)===Number(page.id))||{};
+ const seo=Object.assign({},page.seo||{},seoRow);
  const sections=Array.isArray(page.sections)?page.sections:[];
  const contentSection=sections.find(s=>s&&s.key==='cms-page-content');
  const content=cleanCmsHtml(contentSection?.content||'');
- const title=String(page.seo?.meta_title||page.seo?.title||page.title||'Talha Bilal Store');
- const description=String(page.seo?.meta_description||page.seo?.description||page.title||'');
- const canonical=String(page.seo?.canonical||('https://www.talhabilalstore.com/page/'+encodeURIComponent(slug)));
- const robots=String(page.seo?.robots||'index,follow');
+ const title=String(seo.meta_title||seo.title||page.title||'Talha Bilal Store');
+ const description=String(seo.meta_description||seo.description||page.title||'');
+ const canonical=String(seo.canonical||('https://www.talhabilalstore.com/page/'+encodeURIComponent(slug)));
+ const robots=String(seo.robots||'index,follow');
  const mainHtml='<main class="cms-managed-page"><section class="catalog-hero"><div class="container"><span class="eyebrow">TALHA BILAL STORE</span><h1>'+esc(page.title)+'</h1></div></section>'+
   (content?'<section class="container cms-page-content"><article class="article-body">'+content+'</article></section>':'')+
   '<section class="home-products products-section"><div class="container"><div class="section-heading"><div><span class="eyebrow">SHOP COLLECTION</span><h2>Products on this page</h2></div><p>Cash on Delivery across Pakistan</p></div><div class="product-grid" id="homeProductGrid"></div></div></section></main>';
- const schema=JSON.stringify({'@context':'https://schema.org','@type':'WebPage','name':title,'description':description,'url':canonical,'isPartOf':{'@type':'WebSite','name':'Talha Bilal Store','url':'https://www.talhabilalstore.com/'}}).replace(/</g,'\\u003c');
+ let schemaValue=seo.schema_json;
+ if(typeof schemaValue==='string'){try{schemaValue=JSON.parse(schemaValue)}catch{schemaValue=null}}
+ if(!schemaValue||typeof schemaValue!=='object'||!Object.keys(schemaValue).length)schemaValue={'@context':'https://schema.org','@type':'WebPage','name':title,'description':description,'url':canonical,'isPartOf':{'@type':'WebSite','name':'Talha Bilal Store','url':'https://www.talhabilalstore.com/'}};
+ const schema=JSON.stringify(schemaValue).replace(/</g,'\\u003c');
  return new HTMLRewriter()
   .on('title',{element(el){el.setInnerContent(title)}})
   .on('meta[name="description"]',{element(el){el.setAttribute('content',description)}})
@@ -46,7 +51,7 @@ export async function onRequestGet(context){
   .on('meta[property="og:image"]',{element(el){if(page.seo?.og_image)el.setAttribute('content',page.seo.og_image)}})
   .on('meta[name="robots"]',{element(el){el.setAttribute('content',robots)}})
   .on('link[rel="canonical"]',{element(el){el.setAttribute('href',canonical)}})
-  .on('head',{element(el){el.append('<script type="application/ld+json">'+schema+'</script>',{html:true})}})
+  .on('head',{element(el){el.append('<meta name="robots" content="'+esc(robots)+'"><script type="application/ld+json">'+schema+'</script>',{html:true})}})
   .on('#cmsHomepageBanners',{element(el){el.remove()}})
   .on('main',{element(el){el.replace(mainHtml,{html:true})}})
   .transform(template);
