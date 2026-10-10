@@ -14,9 +14,9 @@ function seoForProduct(p,id){
   const isMango=!!p.isMangoPremix||/^mango-/.test(id);
   const yieldInfo=isMango?((String(p.description||'').match(/makes\s+(?:approximately\s+)?([^\.]+?)(?:\.|$)/i)||[])[1]||String(Number(p.weight||1)*9.8)+' liters'):'';
   const defaultTitle=isMango?p.name+' – Rs. '+Number(p.price).toLocaleString('en-PK')+' | Makes '+yieldInfo+' | Talha Bilal Store':p.name+' – Rs. '+Number(p.price).toLocaleString('en-PK')+' | Talha Bilal Store';
-  const title=(p.seo?.meta_title||p.seo?.title)||defaultTitle;
+  const title=(p.seo?.meta_title||p.seo?.title)||p.siteSeo?.title||defaultTitle;
   const defaultDesc=isMango?p.name+' for Rs. '+Number(p.price).toLocaleString('en-PK')+'. This '+p.weight+'kg Mango Pulp Drink Premix makes '+yieldInfo+'. Cash on Delivery across Pakistan.':p.name+'. '+(p.description||'')+' Cash on Delivery available across Pakistan.';
-  const description=(p.seo?.meta_description||p.seo?.description)||defaultDesc;
+  const description=(p.seo?.meta_description||p.seo?.description)||p.siteSeo?.description||defaultDesc;
   let schema=p.seo?.schema_json;
   if(typeof schema==='string'){try{schema=JSON.parse(schema)}catch{schema=null}}
   if(!schema||typeof schema!=='object'||!Object.keys(schema).length)schema={'@context':'https://schema.org','@type':'Product','name':p.name,'description':p.description||'','image':[image],'sku':p.sku||id,'brand':{'@type':'Brand','name':'Talha Bilal Store'},'offers':{'@type':'Offer','url':cleanUrl,'priceCurrency':'PKR','price':Number(p.price),'availability':'https://schema.org/InStock','itemCondition':'https://schema.org/NewCondition'}};
@@ -39,7 +39,8 @@ async function getPublishedCmsProduct(id){
     const isMango=cat?.slug==='mango-pulp-premix'||/^mango-/.test(String(row.slug));
     const price=row.sale_price!=null?Number(row.sale_price):Number(row.price||0);
     const seoRow=(data.seo||[]).find(x=>x.entity_type==='product'&&Number(x.entity_id)===Number(row.id))||{};
-    return {name:row.name,description:row.description||row.short_description||'',price,oldPrice:row.sale_price!=null?Number(row.price||0):Number(row.old_price||0),image,images,weight:Number(row.weight_kg)||1,sku:row.sku,seo:Object.assign({},row.seo||{},seoRow),isCmsProduct:true,isMangoPremix:isMango};
+    const siteSeo=(data.seo||[]).find(x=>x.entity_type==='site'&&(x.entity_id==null||x.entity_id===''))||{};
+    return {name:row.name,description:row.description||row.short_description||'',price,oldPrice:row.sale_price!=null?Number(row.price||0):Number(row.old_price||0),image,images,weight:Number(row.weight_kg)||1,sku:row.sku,seo:Object.assign({},row.seo||{},seoRow),siteSeo,isCmsProduct:true,isMangoPremix:isMango};
   }catch{return null}
 }
 export async function onRequestGet(context){
@@ -49,7 +50,7 @@ export async function onRequestGet(context){
   if(cms?.disabled)return new Response('Not Found',{status:404,headers:{'Content-Type':'text/plain; charset=UTF-8'}});
   let p=legacy&&cms?{...legacy,...cms}:legacy||cms;
   if(!p)return new Response('Not Found',{status:404,headers:{'Content-Type':'text/plain; charset=UTF-8'}});
-  const robots=p.seo?.robots||'index,follow';
+  const robots=p.seo?.robots||p.siteSeo?.robots||'index,follow';
   const schemaJson=JSON.stringify(seoForProduct(p,id).schema).replace(/</g,'\\u003c');
   const response=await context.env.ASSETS.fetch(new URL('/product.html',context.request.url));
   const seo=seoForProduct(p,id);
