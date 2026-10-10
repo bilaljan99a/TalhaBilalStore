@@ -45,7 +45,8 @@ async function fetchCmsPost(slug){
   const post=data.blog_posts.find(item=>item.slug===slug)||null;
   if(!post)return null;
   const seoRow=(data.seo||[]).find(item=>item.entity_type==='blog'&&Number(item.entity_id)===Number(post.id))||{};
-  return {...post,seo:{...(post.seo||{}),...seoRow}};
+  const siteSeo=(data.seo||[]).find(item=>item.entity_type==='site'&&(item.entity_id==null||item.entity_id===''))||{};
+  return {...post,seo:{...(post.seo||{}),...seoRow},siteSeo};
 }
 export async function onRequestGet(context){
   const requestUrl=new URL(context.request.url);
@@ -65,14 +66,14 @@ export async function onRequestGet(context){
   if(!template.ok)return new Response('Blog template unavailable.',{status:500});
   const canonical=(post.seo&&post.seo.canonical)||post.url||('https://www.talhabilalstore.com/blog/'+post.slug+'.html');
   const metaTitle=(post.seo&&(post.seo.meta_title||post.seo.title))||post.title;
-  const metaDescription=(post.seo&&(post.seo.meta_description||post.seo.description))||post.excerpt||'Helpful guides and tips from Talha Bilal Store.';
+  const metaDescription=(post.seo&&(post.seo.meta_description||post.seo.description))||post.excerpt||post.siteSeo?.description||'Helpful guides and tips from Talha Bilal Store.';
   const image=post.featured_image_url||'https://www.talhabilalstore.com/assets/here-banner.webp';
   const content=safeArticleHtml(post.content,post.title,post.excerpt,image);
   let schemaValue=post.seo?.schema_json;
   if(typeof schemaValue==='string'){try{schemaValue=JSON.parse(schemaValue)}catch{schemaValue=null}}
   if(!schemaValue||typeof schemaValue!=='object'||!Object.keys(schemaValue).length)schemaValue=blogSchema(post,canonical,image);
   const schema=JSON.stringify(schemaValue).replace(/</g,'\\u003c');
-  const robots=post.seo?.robots||'index,follow';
+  const robots=post.seo?.robots||post.siteSeo?.robots||'index,follow';
 
   return new HTMLRewriter()
     .on('title',{element(el){el.setInnerContent(metaTitle)}})
