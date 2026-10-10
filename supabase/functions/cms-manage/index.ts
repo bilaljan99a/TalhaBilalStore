@@ -22,7 +22,8 @@ const TABLES: Record<string, { fields: string[]; order: string }> = {
   cms_promotions: { fields: ["name","type","value","min_order_value","code","starts_at","ends_at","rules","is_active"], order: "updated_at" },
   cms_seo: { fields: ["entity_type","entity_id","title","description","canonical","robots","og_image","schema_json"], order: "updated_at" },
   cms_redirects: { fields: ["source_path","destination_path","status_code","is_active"], order: "source_path" },
-  cms_settings: { fields: ["key","value"], order: "key" }
+  cms_settings: { fields: ["key","value"], order: "key" },
+  cms_audit_log: { fields: [], order: "created_at" }
 };
 function clean(input: unknown, allowed: string[]) {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("A JSON object is required.");
@@ -54,6 +55,7 @@ Deno.serve(async (req) => {
       if (error) return reply({ error: error.message }, 500);
       return reply({ ok: true, data: data || [] });
     }
+    if (table === "cms_audit_log") return reply({ error: "Audit history is read-only." }, 403);
     if (admin.role === "editor") return reply({ error: "Your CMS role is read-only for changes." }, 403);
     if (!["POST","PATCH","DELETE"].includes(req.method)) return reply({ error: "Method not allowed." }, 405);
     const body = req.method === "DELETE" ? {} : await req.json().catch(() => ({}));
