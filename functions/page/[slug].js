@@ -27,14 +27,15 @@ export async function onRequestGet(context){
  const template=await context.env.ASSETS.fetch(new URL(TEMPLATE_PATH,context.request.url));
  if(!template.ok)return new Response('Website template unavailable.',{status:500});
  const seoRow=(Array.isArray(data.seo)?data.seo:[]).find(item=>item.entity_type==='page'&&Number(item.entity_id)===Number(page.id))||{};
+ const siteSeo=(Array.isArray(data.seo)?data.seo:[]).find(item=>item.entity_type==='site'&&(item.entity_id==null||item.entity_id===''))||{};
  const seo=Object.assign({},page.seo||{},seoRow);
  const sections=Array.isArray(page.sections)?page.sections:[];
  const contentSection=sections.find(s=>s&&s.key==='cms-page-content');
  const content=cleanCmsHtml(contentSection?.content||'');
- const title=String(seo.meta_title||seo.title||page.title||'Talha Bilal Store');
- const description=String(seo.meta_description||seo.description||page.title||'');
+ const title=String(seo.meta_title||seo.title||siteSeo.title||page.title||'Talha Bilal Store');
+ const description=String(seo.meta_description||seo.description||siteSeo.description||page.title||'');
  const canonical=String(seo.canonical||('https://www.talhabilalstore.com/page/'+encodeURIComponent(slug)));
- const robots=String(seo.robots||'index,follow');
+ const robots=String(seo.robots||siteSeo.robots||'index,follow');
  const mainHtml='<main class="cms-managed-page"><section class="catalog-hero"><div class="container"><span class="eyebrow">TALHA BILAL STORE</span><h1>'+esc(page.title)+'</h1></div></section>'+
   (content?'<section class="container cms-page-content"><article class="article-body">'+content+'</article></section>':'')+
   '<section class="home-products products-section"><div class="container"><div class="section-heading"><div><span class="eyebrow">SHOP COLLECTION</span><h2>Products on this page</h2></div><p>Cash on Delivery across Pakistan</p></div><div class="product-grid" id="homeProductGrid"></div></div></section></main>';
