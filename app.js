@@ -42,11 +42,13 @@ function productList(){
   if(view==="new-products")list.sort((a,b)=>(b.newProductRank||0)-(a.newProductRank||0));
   return list;
  }
- const assigned=assignedCmsProductIds("home");
+ const customPage=location.pathname.match(/^\/page\/([^/]+)\/?$/i);
+ const assigned=assignedCmsProductIds(customPage?decodeURIComponent(customPage[1]):"home");
  if(assigned.length){
   const ordered=assigned.map(id=>list.find(p=>Number(p.cmsRecordId)===id)).filter(Boolean);
-  if(ordered.length)return ordered.slice(0,6);
+  return ordered.slice(0,12);
  }
+ if(customPage)return [];
  const featured=list.filter(p=>p.featured);
  return (featured.length?featured:list).slice(0,6);
 }
