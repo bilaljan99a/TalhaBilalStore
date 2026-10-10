@@ -193,9 +193,9 @@ async function doLogin(){
  finally{const current=document.getElementById("signInButton");if(current){current.disabled=false;current.textContent="Sign In"}}
 }
 async function logoutCMS(){
- await supabaseClient.auth.signOut();liveData=null;
+ await supabaseClient.auth.signOut();liveData=null;cmsNavHistory=[];cmsCurrentModule="dashboard";cmsEditorBackModule=null;
  const status=document.getElementById("liveState");if(status)status.textContent="Signed out";
- liveLogin();
+ cmsUpdateBackButton();liveLogin();
 }
 function showConnectionError(message){
  document.body.classList.remove("cms-authenticated");
