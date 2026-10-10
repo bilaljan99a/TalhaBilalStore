@@ -10,7 +10,26 @@
 *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
 button,input,textarea,select{font:inherit}button{cursor:pointer}
 .layout{min-height:100vh;display:none;grid-template-columns:245px 1fr}body.cms-authenticated .layout{display:grid}.auth-gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}.auth-shell{width:100%;max-width:520px}body.cms-authenticated #authGate{display:none}.sidebar{background:var(--nav);color:#fff;padding:24px 16px;position:sticky;top:0;height:100vh}.brand{font-size:18px;font-weight:800;padding:0 10px 26px}.brand small{display:block;color:#969ba4;font-size:11px;font-weight:500;margin-top:4px}.nav button{display:block;width:100%;border:0;background:transparent;color:#c9ccd1;text-align:left;padding:11px 12px;border-radius:9px;margin:3px 0}.nav button:hover,.nav button.active{background:#282b31;color:#fff}.main{min-width:0}.topbar{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px}.demo-badge{font-size:12px;font-weight:700;color:#9a4d00;background:#fff1e7;padding:7px 10px;border-radius:999px}.content{padding:28px;max-width:1400px}.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}.page-head h1{font-size:25px;margin:0 0 5px}.page-head p{margin:0;color:var(--muted);font-size:14px}.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:10px 14px;font-weight:650}.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px}.card{padding:18px}.card span{display:block;color:var(--muted);font-size:12px}.card strong{font-size:23px;display:block;margin-top:8px}.panel{padding:20px;margin-top:18px}.panel h2{font-size:17px;margin:0 0 15px}.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);font-size:13px}.table th{color:var(--muted);font-size:11px;text-transform:uppercase}.status{display:inline-block;padding:5px 8px;border-radius:999px;background:#eef8f1;color:var(--success);font-size:11px;font-weight:700}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.field.full{grid-column:1/-1}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}.field input,.field textarea,.field select{width:100%;border:1px solid #d9dce1;border-radius:8px;padding:10px 11px;background:#fff}.field textarea{min-height:105px;resize:vertical}.section-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.hint{font-size:12px;color:var(--muted);margin-top:6px}.item-list{display:grid;gap:10px}.item{display:flex;align-items:center;justify-content:space-between;gap:15px;border:1px solid var(--line);padding:14px;border-radius:9px}.item strong{font-size:14px}.item small{display:block;color:var(--muted);margin-top:3px}.item-actions{display:flex;gap:7px}.danger{color:#b42318}.hidden{display:none!important}@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:relative;height:auto;padding:12px}.brand{padding:8px 10px}.nav{display:flex;overflow:auto;gap:4px}.nav button{white-space:nowrap;width:auto}.cards{grid-template-columns:1fr 1fr}}@media(max-width:600px){.content{padding:18px}.topbar{padding:0 18px}.cards,.form-grid{grid-template-columns:1fr}.page-head{flex-direction:column}}
- .live-extra{padding:10px 12px;border-radius:9px;background:#eef5ff;color:#174ea6;font-size:12px;font-weight:700}.login-card{max-width:430px;margin:60px auto}.live-error{color:#b42318;font-size:13px;margin-top:10px}.live-table td,.live-table th{white-space:nowrap}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.toolbar input,.toolbar select{border:1px solid #d9dce1;border-radius:8px;padding:9px;background:#fff}</style>
+ .live-extra{padding:10px 12px;border-radius:9px;background:#eef5ff;color:#174ea6;font-size:12px;font-weight:700}.login-card{max-width:430px;margin:60px auto}.live-error{color:#b42318;font-size:13px;margin-top:10px}.live-table td,.live-table th{white-space:nowrap}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.toolbar input,.toolbar select{border:1px solid #d9dce1;border-radius:8px;padding:9px;background:#fff}
+.topbar-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#logoutBtn{display:none;background:#fff;color:#23262b;border:1px solid #d5d9df}
+body.cms-authenticated #logoutBtn{display:inline-block}
+.field-help{font-size:12px;color:var(--muted);margin:5px 0 0;line-height:1.45}
+.record-thumb{width:66px;height:58px;object-fit:cover;border-radius:8px;border:1px solid var(--line);background:#f3f4f6;display:block}
+.record-title{font-weight:750}.record-meta{font-size:12px;color:var(--muted);margin-top:4px}
+.preview-frame{margin-top:8px;padding:10px;border:1px dashed var(--line);border-radius:9px;background:#f8fafc}
+.preview-frame img{max-width:100%;max-height:220px;object-fit:contain;display:block;border-radius:6px}
+.assignment-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:10px}
+.assignment-item{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:9px;padding:10px;background:#fff;min-width:0}
+.assignment-item input{width:17px;height:17px;flex:0 0 auto}.assignment-item .assignment-copy{min-width:0}
+.assignment-item strong{display:block;font-size:13px}
+.assignment-item small{display:block;color:var(--muted);font-size:11px;margin-top:3px;overflow-wrap:anywhere}
+.module-note{padding:12px 14px;border:1px solid #e4e7ec;background:#f9fafb;border-radius:10px;color:#505864;font-size:12px;line-height:1.55;margin-bottom:14px}
+.module-note strong{color:#20242a}.cms-editor textarea#blogContent{min-height:340px}.table .item-actions{white-space:nowrap}
+@media(max-width:900px){.topbar-tools{justify-content:flex-end}.topbar{gap:10px}.assignment-list{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.topbar-tools{gap:6px}.live-extra{max-width:165px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.assignment-list{grid-template-columns:1fr}}
+
+</style>
 </head>
 <body>
 <div id="authGate" class="auth-gate"><div class="auth-shell"><div class="panel">Checking secure CMS access…</div></div></div>
@@ -20,16 +39,15 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 <nav class="nav" id="nav">
 <button data-page="dashboard" class="active">Dashboard</button>
 <button data-page="products">Products</button>
-<button data-page="pages">Website Content</button>
-<button data-page="blog">Blog</button>
-<button data-page="reviews">Reviews</button>
-<button data-page="faqs">FAQs</button>
-<button data-page="seo">SEO</button>
-<button data-page="settings">Settings</button><button data-page="orders">Orders</button><button data-page="finance">Finance</button><button data-page="promotions">Deals & Promotions</button><button data-page="meta">Meta Ads</button><button data-page="media">Media Library</button><button data-page="homepage">Homepage Builder</button><button data-page="banners">Banners / Slider</button><button data-page="categories">Categories</button><button data-page="attributes">Product Attributes</button><button data-page="audit">Change History</button>
+<button data-page="categories">Categories</button>
+<button data-page="pages">Website Pages</button>
+<button data-page="banners">Banners &amp; Sliders</button>
+<button data-page="blog">Blog Posts</button>
+<button data-page="seo">SEO Manager</button>
 </nav>
 </aside>
 <main class="main">
-<header class="topbar"><strong id="crumb">Dashboard</strong><span class="live-extra" id="liveState">Checking secure CMS access…</span></header>
+<header class="topbar"><strong id="crumb">Dashboard</strong><div class="topbar-tools"><span class="live-extra" id="liveState">Checking secure CMS access…</span><button class="btn" id="logoutBtn" type="button" onclick="logoutCMS()">Logout</button></div></header>
 <div class="content" id="app"></div>
 </main>
 </div>
@@ -128,6 +146,8 @@ const SUPABASE_URL="https://dxdjqeqlmyawqrzphzdb.supabase.co";
 const SUPABASE_KEY="sb_publishable__VZebPfljfwPNTxcWbDD7Q_pzIJvn_K";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let liveData=null;
+let cmsFormSeo={};
+let cmsCache={products:[],categories:[],pages:[],blog:[],banners:[],seo:[]};
 function money(v){return "Rs. "+Number(v||0).toLocaleString("en-PK",{maximumFractionDigits:2})}
 function liveLogin(){
  document.body.classList.remove("cms-authenticated");
@@ -169,21 +189,16 @@ async function loadLiveData(){
  const status=document.getElementById("liveState");
  const {data:{session}}=await supabaseClient.auth.getSession();
  if(!session){if(status)status.textContent="Login required";liveLogin();return}
- if(status)status.textContent="Loading real admin data…";
+ if(status)status.textContent="Checking Website Management access…";
  try{
-  const {data,error}=await supabaseClient.functions.invoke("cms-data");
-  if(error||!data?.ok){
-   const message=data?.error||error?.message||"The CMS data service returned an unexpected response.";
-   if(status)status.textContent="Connection error";
-   showConnectionError(message);return;
-  }
-  liveData=data;
+  await cmsRequest("cms_products");
+  liveData={cmsWorkspace:true};
   document.body.classList.add("cms-authenticated");
-  document.getElementById("liveState").textContent="LIVE • Real Admin Data";
+  if(status)status.textContent="Website Management • Connected";
   render("dashboard");
  }catch(e){
   if(status)status.textContent="Connection error";
-  showConnectionError(e instanceof Error?e.message:"Unable to load live admin data.");
+  showConnectionError(e instanceof Error?e.message:"Unable to connect to Website Management.");
  }
 }
 async function orders(){
@@ -236,16 +251,16 @@ function dashboard(){
 
 const CMS_SCHEMAS = {
  products:{table:"cms_products",title:"Products (CMS Draft Catalog)",fields:[
-  ["name","Product name","text"],["slug","URL slug","text"],["sku","SKU","text"],["short_description","Short description","textarea"],["description","Description","textarea"],["category_id","Category ID","number"],["price","Price (PKR)","number"],["sale_price","Sale price (PKR)","number"],["cost","Product cost (PKR)","number"],["stock","Stock quantity","number"],["status","Status: draft/active/archived","text"],["featured","Featured (true/false)","boolean"],["best_seller","Best seller (true/false)","boolean"],["is_new","New product (true/false)","boolean"],["attributes","Attributes JSON","json"],["images","Image URLs JSON array","json"],["seo","SEO JSON","json"]],summary:["name","slug","price","status"]},
- categories:{table:"cms_categories",title:"Categories (CMS Draft)",fields:[["name","Category name","text"],["slug","Slug","text"],["description","Description","textarea"],["image_url","Image URL","text"],["parent_id","Parent category ID","number"],["sort_order","Sort order","number"],["is_active","Active (true/false)","boolean"],["seo","SEO JSON","json"]],summary:["name","slug","is_active"]},
- pages:{table:"cms_pages",title:"Website Pages (CMS Draft)",fields:[["title","Page title","text"],["slug","Slug","text"],["status","Status: draft/published","text"],["sections","Sections JSON","json"],["seo","SEO JSON","json"]],summary:["title","slug","status"]},
- banners:{table:"cms_banners",title:"Banners / Sliders (CMS Draft)",fields:[["title","Title","text"],["subtitle","Subtitle","text"],["image_url","Desktop image URL","text"],["mobile_image_url","Mobile image URL","text"],["button_text","Button text","text"],["button_url","Button URL","text"],["placement","Placement","text"],["sort_order","Sort order","number"],["starts_at","Start time (ISO)","text"],["ends_at","End time (ISO)","text"],["is_active","Active (true/false)","boolean"]],summary:["title","placement","is_active"]},
+  ["name","Product name","text"],["slug","URL slug","text"],["sku","SKU","text"],["short_description","Short description","textarea"],["description","Description","textarea"],["category_id","Category ID","number"],["price","Price (PKR)","number"],["sale_price","Sale price (PKR)","number"],["cost","Product cost (PKR)","number"],["stock","Stock quantity","number"],["status","Status: draft/active/archived","text"],["featured","Featured (true/false)","boolean"],["best_seller","Best seller (true/false)","boolean"],["is_new","New product (true/false)","boolean"],["attributes","Attributes JSON","json"],["images","Image URLs JSON array","json"],["seo","SEO JSON","json"]],summary:["name","category_id","price","status"]},
+ categories:{table:"cms_categories",title:"Categories (CMS Draft)",fields:[["name","Category name","text"],["slug","Slug","text"],["description","Description","textarea"],["image_url","Image URL","text"],["parent_id","Parent category ID","number"],["sort_order","Sort order","number"],["is_active","Active (true/false)","boolean"],["seo","SEO JSON","json"]],summary:["name","slug","parent_id","is_active"]},
+ pages:{table:"cms_pages",title:"Website Pages (CMS Draft)",fields:[["title","Page title","text"],["slug","Slug","text"],["status","Status: draft/published","text"],["sections","Sections JSON","json"],["seo","SEO JSON","json"]],summary:["title","slug","status","sections"]},
+ banners:{table:"cms_banners",title:"Banners / Sliders (CMS Draft)",fields:[["title","Title","text"],["subtitle","Subtitle","text"],["image_url","Desktop image URL","text"],["mobile_image_url","Mobile image URL","text"],["button_text","Button text","text"],["button_url","Button URL","text"],["placement","Placement","text"],["sort_order","Sort order","number"],["starts_at","Start time (ISO)","text"],["ends_at","End time (ISO)","text"],["is_active","Active (true/false)","boolean"]],summary:["title","placement","is_active","sort_order"]},
  blog:{table:"cms_blog_posts",title:"Blog Posts (CMS Draft)",fields:[["title","Title","text"],["slug","Slug","text"],["excerpt","Excerpt","textarea"],["content","Article content","textarea"],["featured_image_url","Featured image URL","text"],["status","Status: draft/published","text"],["published_at","Publish time (ISO)","text"],["author_name","Author","text"],["tags","Tags JSON array","json"],["related_product_ids","Related product IDs JSON array","json"],["seo","SEO JSON","json"]],summary:["title","slug","status"]},
  reviews:{table:"cms_reviews",title:"Reviews (CMS Draft)",fields:[["customer_name","Customer name","text"],["rating","Rating 1–5","number"],["review_text","Review","textarea"],["product_id","Product ID","number"],["image_url","Image URL","text"],["status","Status: pending/approved/rejected","text"],["featured","Featured (true/false)","boolean"]],summary:["customer_name","rating","status"]},
  faqs:{table:"cms_faqs",title:"FAQs (CMS Draft)",fields:[["question","Question","text"],["answer","Answer","textarea"],["category","Category","text"],["sort_order","Sort order","number"],["is_active","Active (true/false)","boolean"]],summary:["question","category","is_active"]},
  promotions:{table:"cms_promotions",title:"Promotions (CMS Draft)",fields:[["name","Promotion name","text"],["type","Type","text"],["value","Value","number"],["min_order_value","Minimum order value","number"],["code","Coupon code","text"],["starts_at","Start time (ISO)","text"],["ends_at","End time (ISO)","text"],["rules","Rules JSON","json"],["is_active","Active (true/false)","boolean"]],summary:["name","type","code","is_active"]},
  media:{table:"cms_media",title:"Media Library",fields:[["name","Asset name","text"],["url","Asset URL","text"],["type","Type (image/video/file)","text"],["alt_text","Alt text","text"],["folder","Folder","text"]],summary:["name","type","url"]},
- seo:{table:"cms_seo",title:"SEO Records (CMS Draft)",fields:[["entity_type","Entity type","text"],["entity_id","Entity ID","text"],["title","SEO title","text"],["description","Meta description","textarea"],["canonical","Canonical URL","text"],["robots","Robots directive","text"],["og_image","Open Graph image URL","text"],["schema_json","Schema JSON","json"]],summary:["entity_type","entity_id","title"]},
+ seo:{table:"cms_seo",title:"SEO Records (CMS Draft)",fields:[["entity_type","Entity type","text"],["entity_id","Entity ID","number"],["title","SEO title","text"],["description","Meta description","textarea"],["canonical","Canonical URL","text"],["robots","Robots directive","text"],["og_image","Open Graph image URL","text"],["schema_json","Schema JSON","json"]],summary:["entity_type","entity_id","title"]},
  settings:{table:"cms_settings",title:"CMS Settings (Draft)",fields:[["key","Setting key","text"],["value","Setting value","textarea"]],summary:["key","value"]},
  redirects:{table:"cms_redirects",title:"URL Redirects (CMS Draft)",fields:[["source_path","Source path","text"],["destination_path","Destination path","text"],["status_code","HTTP status (301/302)","number"],["is_active","Active (true/false)","boolean"]],summary:["source_path","destination_path","status_code"]}
 };
@@ -261,44 +276,182 @@ async function cmsRequest(table, method="GET", id=null, data=null){
 function cmsValueText(v){if(v===null||v===undefined)return "—";if(typeof v==="object")return JSON.stringify(v);return String(v)}
 async function cmsManage(page){
  const cfg=CMS_SCHEMAS[page];if(!cfg)return;
- app.innerHTML=head(cfg.title,"Separate CMS records. These changes do not publish to the live storefront automatically.","<button class='btn' onclick='loadLiveData()'>Refresh</button> <button class='btn primary' onclick='cmsEdit(\""+page+"\",null)'>+ Add New</button>")+'<div class="panel"><p class="hint">This module saves to the separate CMS tables. Live products, checkout, orders and existing admin remain unchanged.</p><div id="cmsRecords">Loading records…</div></div>';
+ const labels={products:"Add Product",categories:"Add Category",pages:"Add Page",banners:"Add Banner",blog:"Add Blog Post",seo:"Add SEO Record"};
+ const subs={products:"Manage product details, images, price, category and SEO.",categories:"Organise products into main and subcategories.",pages:"Create page drafts and select the products assigned to each page.",banners:"Prepare responsive banners, CTA links, order and schedule.",blog:"Manage blog content. Existing public articles are copied into this list.",seo:"Manage title, description, canonical, indexing, Open Graph and structured data."};
+ app.innerHTML=head(cfg.title,subs[page]||"Website content management.","<button class='btn primary' onclick='cmsEdit(&quot;"+page+"&quot;,null)'>+ "+labels[page]+"</button>")+
+ (page==="blog"?'<div class="module-note"><strong>Existing blog posts included:</strong> These are copies of public articles. Saving here does not overwrite public HTML automatically.</div>':'<div class="module-note"><strong>Safe workspace:</strong> Content is saved in CMS tables. The live storefront, checkout, orders and finance are not changed automatically.</div>')+
+ '<div class="panel"><div id="cmsRecords">Loading website content…</div></div>';
  try{
-  const rows=await cmsRequest(cfg.table);
-  const body=document.getElementById("cmsRecords");if(!body)return;
-  body.innerHTML='<div class="table-wrap"><table class="table"><thead><tr>'+cfg.summary.map(k=>'<th>'+esc(k.replace(/_/g," "))+'</th>').join("")+'<th>Actions</th></tr></thead><tbody>'+
-   rows.map(r=>'<tr>'+cfg.summary.map(k=>'<td>'+esc(cmsValueText(r[k]))+'</td>').join("")+'<td><button class="btn" onclick="cmsEdit(\''+page+'\','+Number(r.id)+')">Edit</button> <button class="btn danger" onclick="cmsDelete(\''+page+'\','+Number(r.id)+')">Delete</button></td></tr>').join("")+
-   (rows.length?"":'<tr><td colspan="'+(cfg.summary.length+1)+'">No CMS records yet. Add one to get started.</td></tr>')+'</tbody></table></div><p class="hint">'+rows.length+' records loaded from Supabase.</p>';
- }catch(e){const body=document.getElementById("cmsRecords");if(body)body.innerHTML='<p class="live-error">'+esc(e.message)+'</p><button class="btn" onclick="cmsManage(\''+page+'\')">Retry</button>'}
+  const rows=await cmsRequest(cfg.table);cmsCache[page]=rows;
+  if(page==="products"||page==="categories")cmsCache.categories=page==="categories"?rows:await cmsRequest("cms_categories");
+  if(page==="pages"||page==="blog"){cmsCache.products=await cmsRequest("cms_products");cmsCache.pages=page==="pages"?rows:await cmsRequest("cms_pages")}
+  if(page==="seo"){const d=await Promise.all([cmsRequest("cms_products"),cmsRequest("cms_categories"),cmsRequest("cms_pages"),cmsRequest("cms_blog_posts"),cmsRequest("cms_banners")]);cmsCache.products=d[0];cmsCache.categories=d[1];cmsCache.pages=d[2];cmsCache.blog=d[3];cmsCache.banners=d[4]}
+  const target=document.getElementById("cmsRecords");if(target)target.innerHTML=cmsRowsMarkup(page,rows);
+ }catch(e){const target=document.getElementById("cmsRecords");if(target)target.innerHTML='<p class="live-error">'+esc(e.message)+'</p><button class="btn" onclick="cmsManage(&quot;'+page+'&quot;)">Retry</button>'}
+}
+function cmsRowsMarkup(page,rows){
+ const actions=id=>'<div class="item-actions"><button class="btn" onclick="cmsEdit(&quot;'+page+'&quot;,'+Number(id)+')">Edit</button> <button class="btn danger" onclick="cmsDelete(&quot;'+page+'&quot;,'+Number(id)+')">Delete</button></div>';
+ const empty='<tr><td colspan="8">No records yet. Use Add to create the first record.</td></tr>';let body="";
+ if(page==="products"){
+  body=rows.map(r=>{const im=cmsFirstImage(r.images),cat=(cmsCache.categories||[]).find(x=>Number(x.id)===Number(r.category_id));return '<tr><td>'+(im?'<img class="record-thumb" src="'+esc(im)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.name)+'</div><div class="record-meta">'+esc(r.slug)+'</div></td><td>'+esc(cat?cat.name:"Unassigned")+'</td><td>'+money(r.sale_price??r.price)+'</td><td>'+esc(r.status)+'</td><td>'+actions(r.id)+'</td></tr>'}).join("");
+  return '<div class="table-wrap"><table class="table"><thead><tr><th>Image</th><th>Product</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">'+rows.length+' CMS products. Use Website Pages to assign products to pages.</p>';
+ }
+ if(page==="categories"){
+  body=rows.map(r=>{const p=(cmsCache.categories||[]).find(x=>Number(x.id)===Number(r.parent_id));return '<tr><td><div class="record-title">'+esc(r.name)+'</div><div class="record-meta">'+esc(r.description||"")+'</div></td><td>'+esc(r.slug)+'</td><td>'+esc(p?p.name:"Main category")+'</td><td>'+esc(r.is_active?"Active":"Hidden")+'</td><td>'+Number(r.sort_order||0)+'</td><td>'+actions(r.id)+'</td></tr>'}).join("");
+  return '<div class="table-wrap"><table class="table"><thead><tr><th>Category</th><th>Slug</th><th>Parent</th><th>Status</th><th>Sort</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">Assign products to a category from the Products screen.</p>';
+ }
+ if(page==="pages"){
+  body=rows.map(r=>{const n=cmsPageProductIds(r).length,slug=r.slug&&r.slug!=="home"?"/"+String(r.slug).replace(/^\/+/, ""):"/";return '<tr><td><div class="record-title">'+esc(r.title)+'</div></td><td><code>'+esc(slug)+'</code></td><td>'+esc(r.status)+'</td><td>'+n+' products</td><td>'+actions(r.id)+'</td></tr>'}).join("");
+  return '<div class="table-wrap"><table class="table"><thead><tr><th>Page</th><th>Draft path</th><th>Status</th><th>Products assigned</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">Assignments are stored in CMS; public pages will not change until publishing is connected.</p>';
+ }
+ if(page==="banners"){
+  body=rows.map(r=>'<tr><td>'+(r.image_url?'<img class="record-thumb" src="'+esc(r.image_url)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.title||"Untitled banner")+'</div><div class="record-meta">'+esc(r.subtitle||"")+'</div></td><td>'+esc(r.placement)+'</td><td>'+esc(r.is_active?"Active":"Off")+'</td><td>'+Number(r.sort_order||0)+'</td><td>'+actions(r.id)+'</td></tr>').join("");
+  return '<div class="table-wrap"><table class="table"><thead><tr><th>Preview</th><th>Banner</th><th>Placement</th><th>Status</th><th>Sort</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">Editor includes desktop/mobile images, CTA and schedule dates.</p>';
+ }
+ if(page==="blog"){
+  body=rows.map(r=>{const s=r.seo&&typeof r.seo==="object"?r.seo:{};return '<tr><td>'+(r.featured_image_url?'<img class="record-thumb" src="'+esc(r.featured_image_url)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.title)+'</div><div class="record-meta">'+esc(r.slug)+'</div>'+(s.live_url?'<div class="record-meta"><a href="'+esc(s.live_url)+'" target="_blank" rel="noopener">Open public post ↗</a></div>':'')+'</td><td>'+esc(r.status)+'</td><td>'+esc((r.excerpt||"").slice(0,180))+'</td><td>'+actions(r.id)+'</td></tr>'}).join("");
+  return '<div class="table-wrap"><table class="table"><thead><tr><th>Image</th><th>Article</th><th>CMS status</th><th>Excerpt</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">'+rows.length+' CMS blog posts. Edits here do not replace public HTML files.</p>';
+ }
+ if(page==="seo"){
+  body=rows.map(r=>'<tr><td>'+esc(r.entity_type)+'</td><td>'+esc(cmsSeoTargetLabel(r))+'</td><td><div class="record-title">'+esc(r.title||"No title")+'</div><div class="record-meta">'+esc((r.description||"").slice(0,130))+'</div></td><td>'+esc(r.robots||"index,follow")+'</td><td>'+actions(r.id)+'</td></tr>').join("");
+  return '<div class="table-wrap"><table class="table"><thead><tr><th>Target</th><th>Item</th><th>SEO title / description</th><th>Indexing</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">Create site-wide defaults or link SEO to a product, category, page, blog post or banner.</p>';
+ }
+ return '<div class="table-wrap"><table class="table"><tbody>'+(rows.map(r=>'<tr><td>'+esc(r.title||r.name||r.slug||("Record "+r.id))+'</td><td>'+actions(r.id)+'</td></tr>').join("")||empty)+'</tbody></table></div>';
 }
 async function cmsEdit(page,id){
- const cfg=CMS_SCHEMAS[page];let record={};
- try{if(id!==null){const rows=await cmsRequest(cfg.table);record=rows.find(r=>Number(r.id)===Number(id));if(!record)throw new Error("Record not found.");}}
- catch(e){alert(e.message);return}
- const fields=cfg.fields.map(([key,label,type])=>{
-  let value=record[key];if(value===undefined||value===null)value=type==="boolean"?"false":type==="json"?"{}":"";
-  if(type==="json")value=JSON.stringify(value,null,2);
-  if(type==="boolean")return '<div class="field"><label>'+esc(label)+'</label><select id="cmsf_'+key+'"><option value="false" '+(String(value)==="false"?"selected":"")+'>False</option><option value="true" '+(String(value)==="true"?"selected":"")+'>True</option></select></div>';
-  if(type==="textarea"||type==="json")return '<div class="field full"><label>'+esc(label)+'</label><textarea id="cmsf_'+key+'" '+(type==="json"?'spellcheck="false"':'')+'>'+esc(value)+'</textarea></div>';
-  return '<div class="field"><label>'+esc(label)+'</label><input id="cmsf_'+key+'" type="'+(type==="number"?"number":"text")+'" value="'+esc(value)+'" '+(type==="number"?'step="any"':'')+'></div>';
- }).join("");
- app.innerHTML=head((id===null?"Add ":"Edit ")+cfg.title,"Save CMS data separately; nothing is published to the live storefront by this form.")+'<div class="panel"><div class="form-grid">'+fields+'</div><div class="section-actions"><button class="btn" onclick="cmsManage(\''+page+'\')">Cancel</button><button class="btn primary" onclick="cmsSave(\''+page+'\','+(id===null?"null":Number(id))+')">Save</button></div><div id="cmsFormError" class="live-error"></div></div>';
+ const cfg=CMS_SCHEMAS[page];if(!cfg)return;let r={};
+ try{if(id!==null){const rows=await cmsRequest(cfg.table);r=rows.find(x=>Number(x.id)===Number(id));if(!r)throw new Error("Record not found.")}}catch(e){alert(e.message);return}
+ cmsFormSeo=r.seo&&typeof r.seo==="object"?Object.assign({},r.seo):{};
+ if(page==="products")return cmsEditProduct(r,id);if(page==="categories")return cmsEditCategory(r,id);if(page==="pages")return cmsEditPage(r,id);if(page==="banners")return cmsEditBanner(r,id);if(page==="blog")return cmsEditBlog(r,id);if(page==="seo")return cmsEditSeo(r,id);
 }
-async function cmsSave(page,id){
- const cfg=CMS_SCHEMAS[page],data={};
- try{
-  for(const [key,label,type] of cfg.fields){
-   const el=document.getElementById("cmsf_"+key);if(!el)continue;
-   let value=el.value;
-   if(type==="json"){if(!value.trim())value=key==="images"||key==="tags"||key==="related_product_ids"?"[]":"{}";value=JSON.parse(value);}
-   else if(type==="boolean")value=value==="true";
-   else if(type==="number"){value=value.trim()===""?null:Number(value);if(value!==null&&!Number.isFinite(value))throw new Error(label+" must be a valid number.");}
-   else if(value==="")value=null;
-   data[key]=value;
-  }
-  await cmsRequest(cfg.table,id===null?"POST":"PATCH",id,data);
-  await cmsManage(page);
- }catch(e){const box=document.getElementById("cmsFormError");if(box)box.textContent=e.message;else alert(e.message)}
+function cmsField(label,id,v,type,help){
+ v=v===null||v===undefined?"":String(v);
+ if(type==="textarea")return '<div class="field full"><label for="'+id+'">'+esc(label)+'</label><textarea id="'+id+'">'+esc(v)+'</textarea>'+(help?'<p class="field-help">'+esc(help)+'</p>':'')+'</div>';
+ return '<div class="field"><label for="'+id+'">'+esc(label)+'</label><input id="'+id+'" type="'+(type||"text")+'" value="'+esc(v)+'" '+(type==="number"?'step="any"':'')+'>'+(help?'<p class="field-help">'+esc(help)+'</p>':'')+'</div>';
 }
+function cmsSelect(label,id,opts,sel,help){return '<div class="field"><label for="'+id+'">'+esc(label)+'</label><select id="'+id+'">'+opts.map(x=>'<option value="'+esc(x.value)+'" '+(String(sel??"")===String(x.value)?"selected":"")+'>'+esc(x.label)+'</option>').join("")+'</select>'+(help?'<p class="field-help">'+esc(help)+'</p>':'')+'</div>'}
+function cmsCheck(label,id,on){return '<label class="assignment-item"><input id="'+id+'" type="checkbox" '+(on?"checked":"")+'><span class="assignment-copy"><strong>'+esc(label)+'</strong></span></label>'}
+function cmsEditorShell(title,sub,fields,save,back){app.innerHTML=head(title,sub)+'<div class="panel cms-editor"><div class="form-grid">'+fields+'</div><div class="section-actions"><button class="btn" onclick="cmsManage(&quot;'+back+'&quot;)">Cancel</button><button class="btn primary" onclick="'+save+'">Save Changes</button></div><div id="cmsFormError" class="live-error" role="alert"></div></div>'}
+function cmsSlugify(v){return String(v||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")}
+function cmsFirstImage(v){if(!Array.isArray(v)){if(typeof v==="string"&&v.trim()){try{v=JSON.parse(v)}catch(e){v=[v]}}else return ""}const x=v[0];return typeof x==="string"?x:(x&&typeof x==="object"?(x.url||x.src||x.path||""):"")}
+function cmsPageProductIds(p){const a=Array.isArray(p?.sections)?p.sections:[],s=a.find(x=>x&&x.key==="cms-product-assignments");return Array.isArray(s?.product_ids)?s.product_ids.map(Number):[]}
+function cmsSeoTargetLabel(r){const t=String(r.entity_type||"site"),id=Number(r.entity_id||0);if(t==="site"||!id)return "Site-wide";const m={product:cmsCache.products||[],category:cmsCache.categories||[],page:cmsCache.pages||[],blog:cmsCache.blog||[],banner:cmsCache.banners||[]},x=(m[t]||[]).find(y=>Number(y.id)===id);return x?(x.title||x.name||x.slug||("ID "+id)):"ID "+id}
+function cmsPreviewImage(input,boxId){const x=document.getElementById(input),box=document.getElementById(boxId);if(!x||!box)return;box.innerHTML=x.value.trim()?'<img src="'+esc(x.value.trim())+'" alt="Preview">':'<span class="hint">Image preview appears here.</span>'}
+async function cmsEditProduct(r,id){
+ const cats=await cmsRequest("cms_categories");cmsCache.categories=cats;const imgs=Array.isArray(r.images)?r.images.map(x=>typeof x==="string"?x:(x?.url||x?.src||"")).filter(Boolean):[];
+ const fields=cmsField("Product name","pName",r.name,"text")+cmsField("URL slug","pSlug",r.slug,"text","Blank = generate from name.")+cmsField("SKU (optional)","pSku",r.sku,"text")+
+ cmsSelect("Category","pCat",[{value:"",label:"Unassigned"},...cats.map(x=>({value:x.id,label:x.name}))],r.category_id??"","Create a category first if empty.")+
+ cmsField("Price (PKR)","pPrice",r.price??0,"number")+cmsField("Sale price (optional)","pSale",r.sale_price,"number")+cmsField("Cost (optional)","pCost",r.cost,"number")+cmsField("Stock (optional)","pStock",r.stock,"number")+
+ cmsSelect("CMS status","pStatus",[{value:"draft",label:"Draft"},{value:"active",label:"Active in CMS"},{value:"archived",label:"Archived"}],r.status||"draft")+
+ cmsField("Short description","pShort",r.short_description,"textarea")+cmsField("Full description","pDescription",r.description,"textarea")+
+ cmsField("Image URL(s), one per line","pImages",imgs.join("\n"),"textarea","Example: /assets/products/1kg-mango-pulp.webp.")+
+ '<div class="field full"><label>Image preview</label><div class="preview-frame" id="pPreview">'+(imgs[0]?'<img src="'+esc(imgs[0])+'" alt="Product preview">':'<span class="hint">Add an image URL above.</span>')+'</div></div>'+
+ cmsField("SEO title","pSeoTitle",cmsFormSeo.title||"","text")+cmsField("SEO meta description","pSeoDesc",cmsFormSeo.description||"","textarea")+cmsField("SEO keywords","pSeoKeywords",Array.isArray(cmsFormSeo.keywords)?cmsFormSeo.keywords.join(", "):"","text")+
+ '<div class="field"><label>Product badges</label>'+cmsCheck("Featured","pFeatured",!!r.featured)+cmsCheck("Best seller","pBestSeller",!!r.best_seller)+cmsCheck("New product","pNew",!!r.is_new)+'</div>';
+ cmsEditorShell(id===null?"Add Product":"Edit Product","Manage product details, image, category and SEO. Assign it to pages from Website Pages.",fields,"cmsSaveProduct("+(id===null?"null":Number(id))+")","products");
+ const im=document.getElementById("pImages");if(im)im.addEventListener("input",()=>cmsPreviewImage("pImages","pPreview"));
+}
+async function cmsSaveProduct(id){const g=x=>document.getElementById(x);try{
+ const name=g("pName").value.trim();if(!name)throw new Error("Product name is required.");const slug=g("pSlug").value.trim()||cmsSlugify(name);if(!slug)throw new Error("URL slug is required.");
+ const num=x=>{const v=g(x).value.trim();if(!v)return null;const n=Number(v);if(!Number.isFinite(n))throw new Error("Enter a valid number.");return n};
+ const images=g("pImages").value.split(/\n+/).map(x=>x.trim()).filter(Boolean),seo=Object.assign({},cmsFormSeo,{title:g("pSeoTitle").value.trim()||null,description:g("pSeoDesc").value.trim()||null,keywords:g("pSeoKeywords").value.split(",").map(x=>x.trim()).filter(Boolean)});
+ const data={name,slug,sku:g("pSku").value.trim()||null,category_id:g("pCat").value?Number(g("pCat").value):null,price:num("pPrice")??0,sale_price:num("pSale"),cost:num("pCost"),stock:num("pStock"),status:g("pStatus").value,short_description:g("pShort").value.trim()||null,description:g("pDescription").value.trim()||null,images,seo,featured:g("pFeatured").checked,best_seller:g("pBestSeller").checked,is_new:g("pNew").checked};
+ await cmsRequest("cms_products",id===null?"POST":"PATCH",id,data);await cmsManage("products");
+}catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
+async function cmsEditCategory(r,id){
+ const all=await cmsRequest("cms_categories");cmsCache.categories=all;const opts=[{value:"",label:"Main category — no parent"},...all.filter(x=>Number(x.id)!==Number(id)).map(x=>({value:x.id,label:x.name}))];
+ const fields=cmsField("Category name","cName",r.name,"text")+cmsField("URL slug","cSlug",r.slug,"text","Blank = generate from name.")+cmsField("Image URL","cImage",r.image_url,"text")+cmsSelect("Parent category","cParent",opts,r.parent_id??"")+
+ cmsField("Description","cDescription",r.description,"textarea")+cmsField("Display order","cSort",r.sort_order??0,"number")+cmsSelect("Visibility","cActive",[{value:"true",label:"Active"},{value:"false",label:"Hidden"}],String(r.is_active!==false))+
+ cmsField("SEO title","cSeoTitle",cmsFormSeo.title||"","text")+cmsField("SEO meta description","cSeoDesc",cmsFormSeo.description||"","textarea")+
+ '<div class="field full"><label>Image preview</label><div class="preview-frame" id="cPreview">'+(r.image_url?'<img src="'+esc(r.image_url)+'" alt="Category preview">':'<span class="hint">Add an image URL above.</span>')+'</div></div>';
+ cmsEditorShell(id===null?"Add Category":"Edit Category","Create main/subcategories; assign products from Products.",fields,"cmsSaveCategory("+(id===null?"null":Number(id))+")","categories");
+ const im=document.getElementById("cImage");if(im)im.addEventListener("input",()=>cmsPreviewImage("cImage","cPreview"));
+}
+async function cmsSaveCategory(id){const g=x=>document.getElementById(x);try{
+ const name=g("cName").value.trim();if(!name)throw new Error("Category name is required.");const slug=g("cSlug").value.trim()||cmsSlugify(name);if(!slug)throw new Error("URL slug is required.");
+ const parent=g("cParent").value?Number(g("cParent").value):null;if(parent!==null&&parent===Number(id))throw new Error("A category cannot be its own parent.");
+ const seo=Object.assign({},cmsFormSeo,{title:g("cSeoTitle").value.trim()||null,description:g("cSeoDesc").value.trim()||null});
+ const data={name,slug,image_url:g("cImage").value.trim()||null,parent_id:parent,description:g("cDescription").value.trim()||null,sort_order:Number(g("cSort").value||0),is_active:g("cActive").value==="true",seo};
+ await cmsRequest("cms_categories",id===null?"POST":"PATCH",id,data);await cmsManage("categories");
+}catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
+async function cmsEditPage(r,id){
+ const products=await cmsRequest("cms_products");cmsCache.products=products;const sections=Array.isArray(r.sections)?r.sections:[],content=sections.find(x=>x&&x.key==="cms-page-content")?.content||"",selected=cmsPageProductIds(r);
+ const list=products.map(p=>'<label class="assignment-item"><input type="checkbox" data-page-product value="'+Number(p.id)+'" '+(selected.includes(Number(p.id))?"checked":"")+'><span class="assignment-copy"><strong>'+esc(p.name)+'</strong><small>'+esc(p.status||"draft")+' • '+esc(p.slug||"")+'</small></span></label>').join("");
+ const fields=cmsField("Page title","pgTitle",r.title,"text")+cmsField("URL slug","pgSlug",r.slug,"text","Use home for homepage draft; otherwise a path such as kids-care.")+
+ cmsSelect("CMS status","pgStatus",[{value:"draft",label:"Draft"},{value:"published",label:"Prepared in CMS"}],r.status||"draft")+cmsField("Page content / intro","pgContent",content,"textarea","Plain text or HTML for this draft.")+
+ '<div class="field full"><label>Assign products to this page</label><p class="field-help">A product can belong to more than one page.</p><div class="assignment-list">'+(list||'<p class="hint">Add products first, then return here.</p>')+'</div></div>'+
+ cmsField("SEO title","pgSeoTitle",cmsFormSeo.title||r.seo?.title||"","text")+cmsField("SEO meta description","pgSeoDesc",cmsFormSeo.description||r.seo?.description||"","textarea");
+ cmsEditorShell(id===null?"Add Website Page":"Edit Website Page","Assign products and content to this CMS page draft; it does not overwrite the public page.",fields,"cmsSavePage("+(id===null?"null":Number(id))+")","pages");
+}
+async function cmsSavePage(id){const g=x=>document.getElementById(x);try{
+ const title=g("pgTitle").value.trim();if(!title)throw new Error("Page title is required.");const slug=g("pgSlug").value.trim()||cmsSlugify(title);if(!slug)throw new Error("Page slug is required.");
+ const all=id===null?[]:await cmsRequest("cms_pages"),old=all.find(x=>Number(x.id)===Number(id)),s=Array.isArray(old?.sections)?old.sections:[];
+ const keep=s.filter(x=>!x||(x.key!=="cms-page-content"&&x.key!=="cms-product-assignments")),content=g("pgContent").value.trim();if(content)keep.push({type:"content",key:"cms-page-content",content});
+ const ids=[...document.querySelectorAll("[data-page-product]:checked")].map(x=>Number(x.value)).filter(Number.isFinite);if(ids.length)keep.push({type:"product-grid",key:"cms-product-assignments",title:"Assigned Products",product_ids:ids});
+ const seo=Object.assign({},old?.seo||{},cmsFormSeo,{title:g("pgSeoTitle").value.trim()||null,description:g("pgSeoDesc").value.trim()||null});
+ await cmsRequest("cms_pages",id===null?"POST":"PATCH",id,{title,slug,status:g("pgStatus").value,sections:keep,seo});await cmsManage("pages");
+}catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
+function cmsLocalDatetime(v){if(!v)return "";const d=new Date(v);if(Number.isNaN(d.getTime()))return "";return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}
+async function cmsEditBanner(r,id){
+ const fields=cmsField("Banner title","bTitle",r.title,"text")+cmsField("Subtitle / offer","bSubtitle",r.subtitle,"text")+cmsField("Desktop image URL","bImage",r.image_url,"text")+cmsField("Mobile image URL","bMobileImage",r.mobile_image_url,"text")+
+ cmsSelect("Placement","bPlacement",[{value:"homepage",label:"Homepage hero"},{value:"category",label:"Category page"},{value:"product",label:"Product page"},{value:"blog",label:"Blog / editorial"},{value:"campaign",label:"Campaign / promotion"},{value:"sitewide",label:"Site-wide"}],r.placement||"homepage")+
+ cmsField("Button text","bButtonText",r.button_text,"text")+cmsField("Button URL","bButtonUrl",r.button_url,"text")+cmsField("Sort order","bSort",r.sort_order??0,"number")+cmsField("Start time (optional)","bStart",cmsLocalDatetime(r.starts_at),"datetime-local")+cmsField("End time (optional)","bEnd",cmsLocalDatetime(r.ends_at),"datetime-local")+
+ cmsSelect("CMS status","bActive",[{value:"true",label:"Active in CMS"},{value:"false",label:"Disabled"}],String(r.is_active!==false))+
+ '<div class="field full"><label>Image preview</label><div class="preview-frame" id="bPreview">'+(r.image_url?'<img src="'+esc(r.image_url)+'" alt="Banner preview">':'<span class="hint">Add an image URL above.</span>')+'</div></div>';
+ cmsEditorShell(id===null?"Add Banner / Slider":"Edit Banner / Slider","Prepare desktop/mobile creative, CTA, placement, sorting and schedule. Live slider is unchanged.",fields,"cmsSaveBanner("+(id===null?"null":Number(id))+")","banners");
+ const im=document.getElementById("bImage");if(im)im.addEventListener("input",()=>cmsPreviewImage("bImage","bPreview"));
+}
+async function cmsSaveBanner(id){const g=x=>document.getElementById(x);try{
+ const dt=x=>g(x).value?new Date(g(x).value).toISOString():null,start=dt("bStart"),end=dt("bEnd");if(start&&end&&new Date(end)<new Date(start))throw new Error("End time must be after start time.");
+ const data={title:g("bTitle").value.trim()||null,subtitle:g("bSubtitle").value.trim()||null,image_url:g("bImage").value.trim()||null,mobile_image_url:g("bMobileImage").value.trim()||null,placement:g("bPlacement").value,button_text:g("bButtonText").value.trim()||null,button_url:g("bButtonUrl").value.trim()||null,sort_order:Number(g("bSort").value||0),starts_at:start,ends_at:end,is_active:g("bActive").value==="true"};
+ await cmsRequest("cms_banners",id===null?"POST":"PATCH",id,data);await cmsManage("banners");
+}catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
+async function cmsEditBlog(r,id){
+ const products=await cmsRequest("cms_products");cmsCache.products=products;const selected=Array.isArray(r.related_product_ids)?r.related_product_ids.map(Number):[],seo=Object.assign({},cmsFormSeo);
+ const list=products.map(p=>'<label class="assignment-item"><input type="checkbox" data-blog-product value="'+Number(p.id)+'" '+(selected.includes(Number(p.id))?"checked":"")+'><span class="assignment-copy"><strong>'+esc(p.name)+'</strong><small>'+esc(p.slug||"")+'</small></span></label>').join("");
+ const fields=cmsField("Post title","blTitle",r.title,"text")+cmsField("URL slug","blSlug",r.slug,"text")+cmsField("Excerpt / meta summary","blExcerpt",r.excerpt,"textarea")+
+ cmsField("Featured image URL","blImage",r.featured_image_url,"text")+cmsSelect("CMS status","blStatus",[{value:"draft",label:"Draft"},{value:"published",label:"Published in CMS"},{value:"scheduled",label:"Scheduled"}],r.status||"draft")+
+ cmsField("Publish date (optional)","blDate",cmsLocalDatetime(r.published_at),"datetime-local")+cmsField("Author","blAuthor",r.author_name||"Talha Bilal Store","text")+cmsField("Tags (comma separated)","blTags",Array.isArray(r.tags)?r.tags.join(", "):"","text")+
+ '<div class="field full"><label>Article HTML content</label><textarea id="blogContent" spellcheck="false">'+esc(r.content||"")+'</textarea><p class="field-help">Edits save to the CMS copy; the existing public blog HTML remains unchanged.</p></div>'+
+ '<div class="field full"><label>Related products</label><div class="assignment-list">'+(list||'<p class="hint">Add products before linking them.</p>')+'</div></div>'+
+ cmsField("SEO title","blSeoTitle",seo.meta_title||seo.title||r.title||"","text")+cmsField("SEO meta description","blSeoDesc",seo.meta_description||seo.description||r.excerpt||"","textarea");
+ const live=seo.live_url?'<div class="module-note">Current public article: <a href="'+esc(seo.live_url)+'" target="_blank" rel="noopener">'+esc(seo.live_url)+'</a></div>':"";
+ cmsEditorShell(id===null?"Add Blog Post":"Edit Blog Post","Manage article content, SEO and related products. Edits save to the CMS copy.",live+fields,"cmsSaveBlog("+(id===null?"null":Number(id))+")","blog");
+}
+async function cmsSaveBlog(id){const g=x=>document.getElementById(x);try{
+ const title=g("blTitle").value.trim();if(!title)throw new Error("Post title is required.");const slug=g("blSlug").value.trim()||cmsSlugify(title);if(!slug)throw new Error("Post slug is required.");
+ const related=[...document.querySelectorAll("[data-blog-product]:checked")].map(x=>Number(x.value)).filter(Number.isFinite),date=g("blDate").value?new Date(g("blDate").value).toISOString():null;
+ const seo=Object.assign({},cmsFormSeo,{meta_title:g("blSeoTitle").value.trim()||null,meta_description:g("blSeoDesc").value.trim()||null});
+ const data={title,slug,excerpt:g("blExcerpt").value.trim()||null,content:g("blogContent").value||null,featured_image_url:g("blImage").value.trim()||null,status:g("blStatus").value,published_at:date,author_name:g("blAuthor").value.trim()||null,tags:g("blTags").value.split(",").map(x=>x.trim()).filter(Boolean),related_product_ids:related,seo};
+ await cmsRequest("cms_blog_posts",id===null?"POST":"PATCH",id,data);await cmsManage("blog");
+}catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
+async function cmsEditSeo(r,id){
+ const fields=cmsSelect("SEO applies to","sType",[{value:"site",label:"Site-wide / Homepage"},{value:"product",label:"Product"},{value:"category",label:"Category"},{value:"page",label:"Website page"},{value:"blog",label:"Blog post"},{value:"banner",label:"Banner"}],r.entity_type||"site")+
+ '<div class="field"><label for="sTarget">Choose item</label><select id="sTarget" onchange="cmsSeoTargetChanged()"><option value="">Site-wide default</option></select><p class="field-help">Leave blank for site-wide metadata, or select an item.</p></div>'+
+ cmsField("SEO title","sTitle",r.title,"text")+cmsField("Meta description","sDesc",r.description,"textarea")+cmsField("Canonical URL","sCanonical",r.canonical,"text")+
+ cmsSelect("Indexing","sRobots",[{value:"index,follow",label:"Index, Follow"},{value:"noindex,follow",label:"Noindex, Follow"},{value:"index,nofollow",label:"Index, Nofollow"},{value:"noindex,nofollow",label:"Noindex, Nofollow"}],r.robots||"index,follow")+
+ cmsField("Open Graph image URL","sOgImage",r.og_image,"text")+cmsField("Structured data JSON","sSchema",JSON.stringify(r.schema_json||{},null,2),"textarea","Valid JSON. Saved in CMS but not injected into live pages automatically.");
+ cmsEditorShell(id===null?"Add SEO Record":"Edit SEO Record","Set site-wide defaults or item metadata. Live publishing remains separate.",fields,"cmsSaveSeo("+(id===null?"null":Number(id))+")","seo");
+ const sel=document.getElementById("sType");if(sel)sel.addEventListener("change",()=>refreshSeoTargets(null));await refreshSeoTargets(r.entity_id??null);
+}
+async function cmsSeoTargetChanged(){await refreshSeoTargets(document.getElementById("sTarget")?.value||null)}
+async function refreshSeoTargets(selected){
+ const type=document.getElementById("sType")?.value||"site",sel=document.getElementById("sTarget");if(!sel)return;
+ const map={product:["cms_products","products"],category:["cms_categories","categories"],page:["cms_pages","pages"],blog:["cms_blog_posts","blog"],banner:["cms_banners","banners"]};
+ if(type==="site"){sel.innerHTML='<option value="">Site-wide default</option>';return}
+ try{const [table,key]=map[type],rows=await cmsRequest(table);cmsCache[key]=rows;sel.innerHTML='<option value="">Select an item…</option>'+rows.map(x=>'<option value="'+Number(x.id)+'" '+(String(selected??"")===String(x.id)?"selected":"")+'>'+esc(x.title||x.name||x.slug||("ID "+x.id))+'</option>').join("")}catch(e){sel.innerHTML='<option value="">Could not load targets</option>'}
+}
+async function cmsSaveSeo(id){const g=x=>document.getElementById(x);try{
+ let schema;try{schema=JSON.parse(g("sSchema").value||"{}")}catch(e){throw new Error("Structured data must be valid JSON.")}
+ const target=g("sTarget").value,data={entity_type:g("sType").value,entity_id:target?Number(target):null,title:g("sTitle").value.trim()||null,description:g("sDesc").value.trim()||null,canonical:g("sCanonical").value.trim()||null,robots:g("sRobots").value,og_image:g("sOgImage").value.trim()||null,schema_json:schema};
+ await cmsRequest("cms_seo",id===null?"POST":"PATCH",id,data);await cmsManage("seo");
+}catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
+async function cmsSave(page,id){const cfg=CMS_SCHEMAS[page],data={};try{
+ for(const [key,label,type] of cfg.fields){const el=document.getElementById("cmsf_"+key);if(!el)continue;let v=el.value;
+  if(type==="json"){if(!v.trim())v=key==="images"||key==="tags"||key==="related_product_ids"?"[]":"{}";v=JSON.parse(v)}else if(type==="boolean")v=v==="true";else if(type==="number"){v=v.trim()===""?null:Number(v);if(v!==null&&!Number.isFinite(v))throw new Error(label+" must be a valid number.")}else if(v==="")v=null;data[key]=v;
+ }
+ await cmsRequest(cfg.table,id===null?"POST":"PATCH",id,data);await cmsManage(page);
+}catch(e){const b=document.getElementById("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
 async function cmsDelete(page,id){
  if(!confirm("Delete this CMS record? This does not delete live storefront products or orders."))return;
  try{await cmsRequest(CMS_SCHEMAS[page].table,"DELETE",id);await cmsManage(page)}catch(e){alert(e.message)}
@@ -340,18 +493,23 @@ async function audit(){
 
 async function dashboard(){
  if(!liveData){liveLogin();return}
- const rows=liveData.orders||[],active=rows.filter(o=>!/cancelled/i.test(o.status||"")),delivered=rows.filter(o=>/delivered/i.test(o.status||""));
- const sales=active.filter(o=>!/delivery failed/i.test(o.status||"")).reduce((a,o)=>a+Number(o.total||0),0);
- let cmsCounts={products:0,categories:0,blog:0,banners:0};
+ let n={products:0,categories:0,pages:0,blog:0,banners:0,seo:0};
  try{
-  const data=await Promise.all([cmsRequest("cms_products"),cmsRequest("cms_categories"),cmsRequest("cms_blog_posts"),cmsRequest("cms_banners")]);
-  cmsCounts={products:data[0].length,categories:data[1].length,blog:data[2].length,banners:data[3].length};
- }catch(e){}
- app.innerHTML=head("CMS Dashboard","Real orders and finance data, plus separately stored CMS content.","<button class='btn' onclick='loadLiveData()'>Refresh</button>")+
- '<div class="cards"><div class="card"><span>Real Orders</span><strong>'+rows.length+'</strong></div><div class="card"><span>Sales (excluding cancelled / delivery failed)</span><strong>'+money(sales)+'</strong></div><div class="card"><span>Delivered Orders</span><strong>'+delivered.length+'</strong></div><div class="card"><span>Daily Finance Rows</span><strong>'+(liveData.daily_finance||[]).length+'</strong></div></div>'+
- '<div class="panel"><h2>CMS Content Records</h2><div class="cards"><div class="card"><span>CMS Products</span><strong>'+cmsCounts.products+'</strong></div><div class="card"><span>Categories</span><strong>'+cmsCounts.categories+'</strong></div><div class="card"><span>Blog Posts</span><strong>'+cmsCounts.blog+'</strong></div><div class="card"><span>Banners</span><strong>'+cmsCounts.banners+'</strong></div></div><p class="hint">These are separate CMS records. They do not publish to the live storefront automatically. The existing storefront and admin remain unchanged.</p></div>';
+  const a=await Promise.all([cmsRequest("cms_products"),cmsRequest("cms_categories"),cmsRequest("cms_pages"),cmsRequest("cms_blog_posts"),cmsRequest("cms_banners"),cmsRequest("cms_seo")]);
+  n={products:a[0].length,categories:a[1].length,pages:a[2].length,blog:a[3].length,banners:a[4].length,seo:a[5].length};
+  cmsCache.products=a[0];cmsCache.categories=a[1];cmsCache.pages=a[2];cmsCache.blog=a[3];cmsCache.banners=a[4];cmsCache.seo=a[5];
+ }catch(e){app.innerHTML=head("Website Management","CMS data could not be loaded.","<button class='btn' onclick='loadLiveData()'>Retry</button>")+'<div class="panel"><p class="live-error">'+esc(e.message)+'</p></div>';return}
+ app.innerHTML=head("Website Management","Manage products, categories, pages, banners, blog posts and SEO in one place.","<button class='btn' onclick='loadLiveData()'>Refresh</button>")+
+ '<div class="cards">'+
+ '<div class="card"><span>Products</span><strong>'+n.products+'</strong><button class="btn" onclick="render(&quot;products&quot;)">Manage Products</button></div>'+
+ '<div class="card"><span>Categories</span><strong>'+n.categories+'</strong><button class="btn" onclick="render(&quot;categories&quot;)">Manage Categories</button></div>'+
+ '<div class="card"><span>Website Pages</span><strong>'+n.pages+'</strong><button class="btn" onclick="render(&quot;pages&quot;)">Assign Products to Pages</button></div>'+
+ '<div class="card"><span>Blog Posts</span><strong>'+n.blog+'</strong><button class="btn" onclick="render(&quot;blog&quot;)">Manage Blog</button></div>'+
+ '<div class="card"><span>Banners / Sliders</span><strong>'+n.banners+'</strong><button class="btn" onclick="render(&quot;banners&quot;)">Manage Banners</button></div>'+
+ '<div class="card"><span>SEO Records</span><strong>'+n.seo+'</strong><button class="btn" onclick="render(&quot;seo&quot;)">Manage SEO</button></div></div>'+
+ '<div class="panel"><h2>Two-admin setup</h2><p class="hint">Use this panel for website content only. Orders, delivery statuses, finance calculations and Meta Ads stay in your existing admin.</p></div>'+
+ '<div class="module-note"><strong>Publishing boundary:</strong> CMS content and product assignments are saved separately. They do not automatically overwrite live storefront pages or public blog HTML, keeping current checkout safe.</div>';
 }
-
 supabaseClient.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){liveData=null;liveLogin()}});
 
 loadLiveData();
