@@ -39,6 +39,7 @@
       ".cms-category-filter{display:inline-flex;padding:9px 14px;border:1px solid #e5e7eb;border-radius:999px;text-decoration:none;color:inherit;background:#fff;font-size:14px;font-weight:650}",
       ".cms-category-filter[aria-current=true],.cms-category-filter:hover{background:#17191d;color:#fff;border-color:#17191d}",
       ".cms-homepage-banners{display:grid;gap:14px;margin:18px auto 24px}",
+      ".store-banner.cms-banner-replaced{display:none!important}",
       ".cms-home-banner{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(220px,.8fr);gap:22px;align-items:center;overflow:hidden;border:1px solid #e8e8e8;border-radius:18px;background:#fff;color:#151515;text-decoration:none;padding:18px 22px}",
       ".cms-home-banner-copy h2{margin:0 0 8px;font-size:clamp(20px,3vw,32px);line-height:1.2}",
       ".cms-home-banner-copy p{margin:0 0 12px;line-height:1.55;color:#555}",
@@ -62,8 +63,9 @@
   function renderBanners(data) {
     const slot = document.getElementById("cmsHomepageBanners"); if (!slot) return;
     const banners = (data.banners || []).filter(b => ["homepage","sitewide"].includes(String(b.placement || "").toLowerCase()));
-    if (!banners.length) { slot.hidden = true; slot.innerHTML = ""; return; }
-    injectStyles(); slot.hidden = false;
+    const legacyHero=document.querySelector(".store-banner");
+    if (!banners.length) { slot.hidden = true; slot.innerHTML = ""; legacyHero?.classList.remove("cms-banner-replaced"); return; }
+    injectStyles(); slot.hidden = false; legacyHero?.classList.add("cms-banner-replaced");
     slot.innerHTML = banners.map(b => {
       const dest = /^javascript:/i.test(b.button_url || "") ? "/products" : (b.button_url || "/products");
       const image = b.mobile_image_url || b.image_url;
