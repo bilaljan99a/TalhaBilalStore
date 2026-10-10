@@ -44,7 +44,7 @@ export async function onRequestGet(context){
   if(!p)return new Response('Not Found',{status:404,headers:{'Content-Type':'text/plain; charset=UTF-8'}});
   const response=await context.env.ASSETS.fetch(new URL('/product.html',context.request.url));
   const seo=seoForProduct(p,id),schemaJson=JSON.stringify(seo.schema).replace(/</g,'\\u003c');
-  const headMeta='<meta property="og:title" content="'+attr(seo.title)+'"><meta property="og:description" content="'+attr(seo.description)+'"><meta property="og:type" content="product"><meta property="og:image" content="'+attr(seo.image)+'"><meta property="og:url" content="'+attr(seo.cleanUrl)+'"><link rel="canonical" href="'+attr(seo.cleanUrl)+'">';
+  const headMeta='<meta property="og:title" content="'+attr(seo.title)+'"><meta property="og:description" content="'+attr(seo.description)+'"><meta property="og:type" content="product"><meta property="og:image" content="'+attr(seo.image)+'"><meta property="og:url" content="'+attr(seo.cleanUrl)+'"><link rel="canonical" href="'+attr(seo.cleanUrl)+'"><script type="application/ld+json" data-product-schema>'+schemaJson+'</script>';
   return new HTMLRewriter()
     .on('title',{element(el){el.setInnerContent(seo.title)}})
     .on('meta[name="description"]',{element(el){el.setAttribute('content',seo.description)}})
