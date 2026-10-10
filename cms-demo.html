@@ -29,6 +29,13 @@ body.cms-authenticated #logoutBtn{display:inline-block}
 @media(max-width:900px){.topbar-tools{justify-content:flex-end}.topbar{gap:10px}.assignment-list{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.topbar-tools{gap:6px}.live-extra{max-width:165px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.assignment-list{grid-template-columns:1fr}}
 
+
+#backBtn{display:none;background:#fff;color:#20242a;border:1px solid #d5d9df}
+body.cms-back-visible #backBtn{display:inline-block}
+#cmsHomepageBanners[hidden]{display:none!important}
+.cms-upload-field input[type=file]{display:block;width:100%;max-width:100%;margin-top:7px;padding:10px;background:#fafafa;border:1px dashed #cbd0d8;border-radius:8px}
+.cms-upload-status{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.45}
+
 </style>
 </head>
 <body>
@@ -47,7 +54,7 @@ body.cms-authenticated #logoutBtn{display:inline-block}
 </nav>
 </aside>
 <main class="main">
-<header class="topbar"><strong id="crumb">Dashboard</strong><div class="topbar-tools"><span class="live-extra" id="liveState">Checking secure CMS access…</span><button class="btn" id="logoutBtn" type="button" onclick="logoutCMS()">Logout</button></div></header>
+<header class="topbar"><strong id="crumb">Dashboard</strong><div class="topbar-tools"><button class="btn" id="backBtn" type="button" onclick="cmsGoBack()">← Back</button><span class="live-extra" id="liveState">Checking secure CMS access…</span><button class="btn" id="logoutBtn" type="button" onclick="logoutCMS()">Logout</button></div></header>
 <div class="content" id="app"></div>
 </main>
 </div>
@@ -148,6 +155,19 @@ const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let liveData=null;
 let cmsFormSeo={};
 let cmsCache={products:[],categories:[],pages:[],blog:[],banners:[],seo:[]};
+let cmsNavHistory=[];
+let cmsCurrentModule="dashboard";
+let cmsEditorBackModule=null;
+function cmsUpdateBackButton(){document.body.classList.toggle("cms-back-visible",document.body.classList.contains("cms-authenticated")&&!!(cmsEditorBackModule||cmsNavHistory.length));}
+function cmsGoBack(){
+ if(cmsEditorBackModule){const page=cmsEditorBackModule;cmsEditorBackModule=null;cmsManage(page);cmsUpdateBackButton();return;}
+ const page=cmsNavHistory.pop()||"dashboard";
+ cmsCurrentModule=page;cmsEditorBackModule=null;
+ document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+ crumb.textContent=page==="dashboard"?"Dashboard":page.replace(/^./,x=>x.toUpperCase());
+ if(page==="dashboard")oldRenderForCms(page);else cmsManage(page);
+ cmsUpdateBackButton();
+}
 function money(v){return "Rs. "+Number(v||0).toLocaleString("en-PK",{maximumFractionDigits:2})}
 function liveLogin(){
  document.body.classList.remove("cms-authenticated");
@@ -331,7 +351,7 @@ function cmsField(label,id,v,type,help){
 }
 function cmsSelect(label,id,opts,sel,help){return '<div class="field"><label for="'+id+'">'+esc(label)+'</label><select id="'+id+'">'+opts.map(x=>'<option value="'+esc(x.value)+'" '+(String(sel??"")===String(x.value)?"selected":"")+'>'+esc(x.label)+'</option>').join("")+'</select>'+(help?'<p class="field-help">'+esc(help)+'</p>':'')+'</div>'}
 function cmsCheck(label,id,on){return '<label class="assignment-item"><input id="'+id+'" type="checkbox" '+(on?"checked":"")+'><span class="assignment-copy"><strong>'+esc(label)+'</strong></span></label>'}
-function cmsEditorShell(title,sub,fields,save,back){app.innerHTML=head(title,sub)+'<div class="panel cms-editor"><div class="form-grid">'+fields+'</div><div class="section-actions"><button class="btn" onclick="cmsManage(&quot;'+back+'&quot;)">Cancel</button><button class="btn primary" onclick="'+save+'">Save Changes</button></div><div id="cmsFormError" class="live-error" role="alert"></div></div>'}
+function cmsEditorShell(title,sub,fields,save,back){cmsEditorBackModule=back;cmsUpdateBackButton();app.innerHTML=head(title,sub)+'<div class="panel cms-editor"><div class="form-grid">'+fields+'</div><div class="section-actions"><button class="btn" onclick="cmsGoBack()">← Back</button><button class="btn primary" onclick="'+save+'">Save Changes</button></div><div id="cmsFormError" class="live-error" role="alert"></div></div>'}
 function cmsSlugify(v){return String(v||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")}
 function cmsFirstImage(v){if(!Array.isArray(v)){if(typeof v==="string"&&v.trim()){try{v=JSON.parse(v)}catch(e){v=[v]}}else return ""}const x=v[0];return typeof x==="string"?x:(x&&typeof x==="object"?(x.url||x.src||x.path||""):"")}
 function cmsPageProductIds(p){const a=Array.isArray(p?.sections)?p.sections:[],s=a.find(x=>x&&x.key==="cms-product-assignments");return Array.isArray(s?.product_ids)?s.product_ids.map(Number):[]}
@@ -458,7 +478,14 @@ async function cmsDelete(page,id){
 }
 const oldRenderForCms=render;
 render=function(page="dashboard"){
- if(CMS_SCHEMAS[page]){document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));crumb.textContent=page.replace(/^./,x=>x.toUpperCase());return cmsManage(page)}
+ if(CMS_SCHEMAS[page]){
+  if(!cmsEditorBackModule && page!==cmsCurrentModule)cmsNavHistory.push(cmsCurrentModule);
+  cmsCurrentModule=page;cmsEditorBackModule=null;
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+  crumb.textContent=page.replace(/^./,x=>x.toUpperCase());
+  cmsUpdateBackButton();
+  return cmsManage(page);
+ }
  return oldRenderForCms(page);
 };
 
