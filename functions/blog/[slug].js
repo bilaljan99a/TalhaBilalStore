@@ -42,7 +42,10 @@ async function fetchCmsPost(slug){
   if(!response.ok)return null;
   const data=await response.json();
   if(!data?.ok||!Array.isArray(data.blog_posts))return null;
-  return data.blog_posts.find(post=>post.slug===slug)||null;
+  const post=data.blog_posts.find(item=>item.slug===slug)||null;
+  if(!post)return null;
+  const seoRow=(data.seo||[]).find(item=>item.entity_type==='blog'&&Number(item.entity_id)===Number(post.id))||{};
+  return {...post,seo:{...(post.seo||{}),...seoRow}};
 }
 export async function onRequestGet(context){
   const requestUrl=new URL(context.request.url);
@@ -65,7 +68,11 @@ export async function onRequestGet(context){
   const metaDescription=(post.seo&&(post.seo.meta_description||post.seo.description))||post.excerpt||'Helpful guides and tips from Talha Bilal Store.';
   const image=post.featured_image_url||'https://www.talhabilalstore.com/assets/here-banner.webp';
   const content=safeArticleHtml(post.content,post.title,post.excerpt,image);
-  const schema=JSON.stringify(blogSchema(post,canonical,image)).replace(/</g,'\\u003c');
+  let schemaValue=post.seo?.schema_json;
+  if(typeof schemaValue==='string'){try{schemaValue=JSON.parse(schemaValue)}catch{schemaValue=null}}
+  if(!schemaValue||typeof schemaValue!=='object'||!Object.keys(schemaValue).length)schemaValue=blogSchema(post,canonical,image);
+  const schema=JSON.stringify(schemaValue).replace(/</g,'\\u003c');
+  const robots=post.seo?.robots||'index,follow';
 
   return new HTMLRewriter()
     .on('title',{element(el){el.setInnerContent(metaTitle)}})
