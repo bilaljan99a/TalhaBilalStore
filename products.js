@@ -7,3 +7,6 @@ const PRODUCTS = [
   { id:'mango-5kg', name:'Mango Pulp Drink Premix 5kg', description:'1kg × 5 pack for larger gatherings — makes approximately 49–50 liters.', price:2130, oldPrice:3030, weight:5, image:'assets/products/5kg-mango-pulp.jpg', tag:'VALUE PACK', bestSellerRank:4, newProductRank:6 },
   { id:'mango-10kg', name:'Mango Pulp Drink Premix 10kg', description:'Large 10kg pack for events, families and bulk use — makes approximately 98–100 liters.', price:4130, oldPrice:5530, weight:10, image:'assets/products/10kg-mango-pulp.webp', tag:'BULK PACK', bestSellerRank:6, newProductRank:5 }
 ];
+
+// Expose the same array so the authenticated CMS can add/update published products without replacing the legacy catalogue.
+window.PRODUCTS = PRODUCTS;
