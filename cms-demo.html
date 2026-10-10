@@ -197,6 +197,125 @@ function dashboard(){
  '<div class="panel"><h2>Live Data</h2><p class="hint">Orders, daily finance, finance settings and existing admin records are loaded live. This CMS does not write to those tables.</p></div>'+
  '<div class="panel"><h2>CMS Content Modules</h2><p class="hint">Products, categories, homepage, banners, blog, SEO, promotions, media, FAQs and settings remain isolated demo modules until we connect their actual website content.</p></div>';
 }
+
+const CMS_SCHEMAS = {
+ products:{table:"cms_products",title:"Products (CMS Draft Catalog)",fields:[
+  ["name","Product name","text"],["slug","URL slug","text"],["sku","SKU","text"],["short_description","Short description","textarea"],["description","Description","textarea"],["category_id","Category ID","number"],["price","Price (PKR)","number"],["sale_price","Sale price (PKR)","number"],["cost","Product cost (PKR)","number"],["stock","Stock quantity","number"],["status","Status: draft/active/archived","text"],["featured","Featured (true/false)","boolean"],["best_seller","Best seller (true/false)","boolean"],["is_new","New product (true/false)","boolean"],["attributes","Attributes JSON","json"],["images","Image URLs JSON array","json"],["seo","SEO JSON","json"]],summary:["name","slug","price","status"]},
+ categories:{table:"cms_categories",title:"Categories (CMS Draft)",fields:[["name","Category name","text"],["slug","Slug","text"],["description","Description","textarea"],["image_url","Image URL","text"],["parent_id","Parent category ID","number"],["sort_order","Sort order","number"],["is_active","Active (true/false)","boolean"],["seo","SEO JSON","json"]],summary:["name","slug","is_active"]},
+ pages:{table:"cms_pages",title:"Website Pages (CMS Draft)",fields:[["title","Page title","text"],["slug","Slug","text"],["status","Status: draft/published","text"],["sections","Sections JSON","json"],["seo","SEO JSON","json"]],summary:["title","slug","status"]},
+ banners:{table:"cms_banners",title:"Banners / Sliders (CMS Draft)",fields:[["title","Title","text"],["subtitle","Subtitle","text"],["image_url","Desktop image URL","text"],["mobile_image_url","Mobile image URL","text"],["button_text","Button text","text"],["button_url","Button URL","text"],["placement","Placement","text"],["sort_order","Sort order","number"],["starts_at","Start time (ISO)","text"],["ends_at","End time (ISO)","text"],["is_active","Active (true/false)","boolean"]],summary:["title","placement","is_active"]},
+ blog:{table:"cms_blog_posts",title:"Blog Posts (CMS Draft)",fields:[["title","Title","text"],["slug","Slug","text"],["excerpt","Excerpt","textarea"],["content","Article content","textarea"],["featured_image_url","Featured image URL","text"],["status","Status: draft/published","text"],["published_at","Publish time (ISO)","text"],["author_name","Author","text"],["tags","Tags JSON array","json"],["related_product_ids","Related product IDs JSON array","json"],["seo","SEO JSON","json"]],summary:["title","slug","status"]},
+ reviews:{table:"cms_reviews",title:"Reviews (CMS Draft)",fields:[["customer_name","Customer name","text"],["rating","Rating 1–5","number"],["review_text","Review","textarea"],["product_id","Product ID","number"],["image_url","Image URL","text"],["status","Status: pending/approved/rejected","text"],["featured","Featured (true/false)","boolean"]],summary:["customer_name","rating","status"]},
+ faqs:{table:"cms_faqs",title:"FAQs (CMS Draft)",fields:[["question","Question","text"],["answer","Answer","textarea"],["category","Category","text"],["sort_order","Sort order","number"],["is_active","Active (true/false)","boolean"]],summary:["question","category","is_active"]},
+ promotions:{table:"cms_promotions",title:"Promotions (CMS Draft)",fields:[["name","Promotion name","text"],["type","Type","text"],["value","Value","number"],["min_order_value","Minimum order value","number"],["code","Coupon code","text"],["starts_at","Start time (ISO)","text"],["ends_at","End time (ISO)","text"],["rules","Rules JSON","json"],["is_active","Active (true/false)","boolean"]],summary:["name","type","code","is_active"]},
+ media:{table:"cms_media",title:"Media Library",fields:[["name","Asset name","text"],["url","Asset URL","text"],["type","Type (image/video/file)","text"],["alt_text","Alt text","text"],["folder","Folder","text"]],summary:["name","type","url"]},
+ seo:{table:"cms_seo",title:"SEO Records (CMS Draft)",fields:[["entity_type","Entity type","text"],["entity_id","Entity ID","text"],["title","SEO title","text"],["description","Meta description","textarea"],["canonical","Canonical URL","text"],["robots","Robots directive","text"],["og_image","Open Graph image URL","text"],["schema_json","Schema JSON","json"]],summary:["entity_type","entity_id","title"]},
+ settings:{table:"cms_settings",title:"CMS Settings (Draft)",fields:[["key","Setting key","text"],["value","Setting value","textarea"]],summary:["key","value"]},
+ redirects:{table:"cms_redirects",title:"URL Redirects (CMS Draft)",fields:[["source_path","Source path","text"],["destination_path","Destination path","text"],["status_code","HTTP status (301/302)","number"],["is_active","Active (true/false)","boolean"]],summary:["source_path","destination_path","status_code"]}
+};
+async function cmsRequest(table, method="GET", id=null, data=null){
+ const {data:{session}}=await supabaseClient.auth.getSession();
+ if(!session) throw new Error("Please sign in again.");
+ const u=SUPABASE_URL+"/functions/v1/cms-manage?table="+encodeURIComponent(table)+(id!==null?"&id="+encodeURIComponent(id):"");
+ const response=await fetch(u,{method,headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_KEY,"Content-Type":"application/json"},...(method==="GET"||method==="DELETE"?{}:{body:JSON.stringify({data})})});
+ const payload=await response.json().catch(()=>({error:"Invalid server response"}));
+ if(!response.ok||!payload.ok) throw new Error(payload.error||("Request failed: "+response.status));
+ return payload.data;
+}
+function cmsValueText(v){if(v===null||v===undefined)return "—";if(typeof v==="object")return JSON.stringify(v);return String(v)}
+async function cmsManage(page){
+ const cfg=CMS_SCHEMAS[page];if(!cfg)return;
+ app.innerHTML=head(cfg.title,"Separate CMS records. These changes do not publish to the live storefront automatically.","<button class='btn' onclick='loadLiveData()'>Refresh</button> <button class='btn primary' onclick='cmsEdit(\""+page+"\",null)'>+ Add New</button>")+'<div class="panel"><p class="hint">This module saves to the separate CMS tables. Live products, checkout, orders and existing admin remain unchanged.</p><div id="cmsRecords">Loading records…</div></div>';
+ try{
+  const rows=await cmsRequest(cfg.table);
+  const body=document.getElementById("cmsRecords");if(!body)return;
+  body.innerHTML='<div class="table-wrap"><table class="table"><thead><tr>'+cfg.summary.map(k=>'<th>'+esc(k.replace(/_/g," "))+'</th>').join("")+'<th>Actions</th></tr></thead><tbody>'+
+   rows.map(r=>'<tr>'+cfg.summary.map(k=>'<td>'+esc(cmsValueText(r[k]))+'</td>').join("")+'<td><button class="btn" onclick="cmsEdit(\''+page+'\','+Number(r.id)+')">Edit</button> <button class="btn danger" onclick="cmsDelete(\''+page+'\','+Number(r.id)+')">Delete</button></td></tr>').join("")+
+   (rows.length?"":'<tr><td colspan="'+(cfg.summary.length+1)+'">No CMS records yet. Add one to get started.</td></tr>')+'</tbody></table></div><p class="hint">'+rows.length+' records loaded from Supabase.</p>';
+ }catch(e){const body=document.getElementById("cmsRecords");if(body)body.innerHTML='<p class="live-error">'+esc(e.message)+'</p><button class="btn" onclick="cmsManage(\''+page+'\')">Retry</button>'}
+}
+async function cmsEdit(page,id){
+ const cfg=CMS_SCHEMAS[page];let record={};
+ try{if(id!==null){const rows=await cmsRequest(cfg.table);record=rows.find(r=>Number(r.id)===Number(id));if(!record)throw new Error("Record not found.");}}
+ catch(e){alert(e.message);return}
+ const fields=cfg.fields.map(([key,label,type])=>{
+  let value=record[key];if(value===undefined||value===null)value=type==="boolean"?"false":type==="json"?"{}":"";
+  if(type==="json")value=JSON.stringify(value,null,2);
+  if(type==="boolean")return '<div class="field"><label>'+esc(label)+'</label><select id="cmsf_'+key+'"><option value="false" '+(String(value)==="false"?"selected":"")+'>False</option><option value="true" '+(String(value)==="true"?"selected":"")+'>True</option></select></div>';
+  if(type==="textarea"||type==="json")return '<div class="field full"><label>'+esc(label)+'</label><textarea id="cmsf_'+key+'" '+(type==="json"?'spellcheck="false"':'')+'>'+esc(value)+'</textarea></div>';
+  return '<div class="field"><label>'+esc(label)+'</label><input id="cmsf_'+key+'" type="'+(type==="number"?"number":"text")+'" value="'+esc(value)+'" '+(type==="number"?'step="any"':'')+'></div>';
+ }).join("");
+ app.innerHTML=head((id===null?"Add ":"Edit ")+cfg.title,"Save CMS data separately; nothing is published to the live storefront by this form.")+'<div class="panel"><div class="form-grid">'+fields+'</div><div class="section-actions"><button class="btn" onclick="cmsManage(\''+page+'\')">Cancel</button><button class="btn primary" onclick="cmsSave(\''+page+'\','+(id===null?"null":Number(id))+')">Save</button></div><div id="cmsFormError" class="live-error"></div></div>';
+}
+async function cmsSave(page,id){
+ const cfg=CMS_SCHEMAS[page],data={};
+ try{
+  for(const [key,label,type] of cfg.fields){
+   const el=document.getElementById("cmsf_"+key);if(!el)continue;
+   let value=el.value;
+   if(type==="json"){if(!value.trim())value=key==="images"||key==="tags"||key==="related_product_ids"?"[]":"{}";value=JSON.parse(value);}
+   else if(type==="boolean")value=value==="true";
+   else if(type==="number"){value=value.trim()===""?null:Number(value);if(value!==null&&!Number.isFinite(value))throw new Error(label+" must be a valid number.");}
+   else if(value==="")value=null;
+   data[key]=value;
+  }
+  await cmsRequest(cfg.table,id===null?"POST":"PATCH",id,data);
+  await cmsManage(page);
+ }catch(e){const box=document.getElementById("cmsFormError");if(box)box.textContent=e.message;else alert(e.message)}
+}
+async function cmsDelete(page,id){
+ if(!confirm("Delete this CMS record? This does not delete live storefront products or orders."))return;
+ try{await cmsRequest(CMS_SCHEMAS[page].table,"DELETE",id);await cmsManage(page)}catch(e){alert(e.message)}
+}
+const oldRenderForCms=render;
+render=function(page="dashboard"){
+ if(CMS_SCHEMAS[page]){document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));crumb.textContent=page.replace(/^./,x=>x.toUpperCase());return cmsManage(page)}
+ return oldRenderForCms(page);
+};
+
+
+async function homepage(){
+ app.innerHTML=head("Homepage Content","Manage CMS pages and banners separately. No changes are pushed to the live homepage yet.")+
+ '<div class="cards"><div class="card"><span>Page Content</span><strong>CMS Drafts</strong><button class="btn" onclick="render(\'pages\')">Manage Pages</button></div><div class="card"><span>Banners / Sliders</span><strong>CMS Drafts</strong><button class="btn" onclick="render(\'banners\')">Manage Banners</button></div></div>'+
+ '<div class="panel"><p class="hint">The live storefront is intentionally not connected to CMS publishing until a separate review confirms the product, banner, and SEO data mapping. Existing homepage design stays untouched.</p></div>';
+}
+async function attributes(){
+ let products=[];try{products=await cmsRequest("cms_products")}catch(e){app.innerHTML=head("Product Attributes","Unable to load CMS products.")+'<div class="panel"><p class="live-error">'+esc(e.message)+'</p></div>';return}
+ app.innerHTML=head("Product Attributes","Attributes are stored per CMS product so only relevant fields are used.","<button class='btn primary' onclick='render(\"products\")'>Manage Products</button>")+
+ '<div class="panel"><div class="table-wrap"><table class="table"><thead><tr><th>Product</th><th>Attributes JSON</th></tr></thead><tbody>'+
+ products.map(p=>'<tr><td>'+esc(p.name)+'</td><td><code>'+esc(JSON.stringify(p.attributes||{}))+'</code></td></tr>').join("")+
+ (products.length?"":'<tr><td colspan="2">No CMS products yet.</td></tr>')+'</tbody></table></div><p class="hint">Edit a product to manage attributes. These CMS records remain separate from live storefront products until approved.</p></div>';
+}
+async function meta(){
+ app.innerHTML=head("Meta Ads","Live Meta Ads metrics are not connected in this CMS yet.")+
+ '<div class="panel"><h2>Integration status</h2><p class="hint">No campaign, spend, purchase, revenue, or ROAS figures are shown here because a verified server-side Meta Marketing API connection has not been configured for this module.</p><p class="hint">Do not enter access tokens in this page. Any future connection must use secured server-side secrets and be tested without changing the existing Pixel or Conversions API implementation.</p></div>';
+}
+async function audit(){
+ app.innerHTML=head("Change History","Audit records created by the separate CMS management API.")+'<div class="panel"><div id="auditRows">Loading audit history…</div></div>';
+ try{
+  const rows=await cmsRequest("cms_audit_log");
+  const target=document.getElementById("auditRows");if(!target)return;
+  target.innerHTML='<div class="table-wrap"><table class="table"><thead><tr><th>Time</th><th>User</th><th>Module</th><th>Record</th><th>Action</th></tr></thead><tbody>'+
+  rows.map(x=>'<tr><td>'+esc(x.created_at||"—")+'</td><td>'+esc(x.user_id||"—")+'</td><td>'+esc(x.entity_type||"—")+'</td><td>'+esc(x.entity_id||"—")+'</td><td>'+esc(x.action||"—")+'</td></tr>').join("")+
+  (rows.length?"":'<tr><td colspan="5">No CMS changes have been recorded yet.</td></tr>')+'</tbody></table></div><p class="hint">Read-only history. Existing admin/order logs are not modified.</p>';
+ }catch(e){const target=document.getElementById("auditRows");if(target)target.innerHTML='<p class="live-error">'+esc(e.message)+'</p>'}
+}
+
+
+async function dashboard(){
+ if(!liveData){liveLogin();return}
+ const rows=liveData.orders||[],active=rows.filter(o=>!/cancelled/i.test(o.status||"")),delivered=rows.filter(o=>/delivered/i.test(o.status||""));
+ const sales=active.filter(o=>!/delivery failed/i.test(o.status||"")).reduce((a,o)=>a+Number(o.total||0),0);
+ let cmsCounts={products:0,categories:0,blog:0,banners:0};
+ try{
+  const data=await Promise.all([cmsRequest("cms_products"),cmsRequest("cms_categories"),cmsRequest("cms_blog_posts"),cmsRequest("cms_banners")]);
+  cmsCounts={products:data[0].length,categories:data[1].length,blog:data[2].length,banners:data[3].length};
+ }catch(e){}
+ app.innerHTML=head("CMS Dashboard","Real orders and finance data, plus separately stored CMS content.","<button class='btn' onclick='loadLiveData()'>Refresh</button>")+
+ '<div class="cards"><div class="card"><span>Real Orders</span><strong>'+rows.length+'</strong></div><div class="card"><span>Sales (excluding cancelled / delivery failed)</span><strong>'+money(sales)+'</strong></div><div class="card"><span>Delivered Orders</span><strong>'+delivered.length+'</strong></div><div class="card"><span>Daily Finance Rows</span><strong>'+(liveData.daily_finance||[]).length+'</strong></div></div>'+
+ '<div class="panel"><h2>CMS Content Records</h2><div class="cards"><div class="card"><span>CMS Products</span><strong>'+cmsCounts.products+'</strong></div><div class="card"><span>Categories</span><strong>'+cmsCounts.categories+'</strong></div><div class="card"><span>Blog Posts</span><strong>'+cmsCounts.blog+'</strong></div><div class="card"><span>Banners</span><strong>'+cmsCounts.banners+'</strong></div></div><p class="hint">These are separate CMS records. They do not publish to the live storefront automatically. The existing storefront and admin remain unchanged.</p></div>';
+}
+
 supabaseClient.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){liveData=null;liveLogin()}});
 
 loadLiveData();
