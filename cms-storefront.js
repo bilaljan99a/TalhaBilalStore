@@ -45,6 +45,7 @@
       ".cms-home-banner-copy .cms-banner-cta{display:inline-block;background:#ff6a00;color:#fff;padding:10px 15px;border-radius:8px;font-weight:750}",
       ".cms-home-banner img{display:block;width:100%;max-height:220px;object-fit:contain;border-radius:10px}",
       ".cms-blog-card-image{width:100%;height:100%;min-height:270px;object-fit:cover}",
+      "#cmsHomepageBanners[hidden]{display:none!important}",
       "@media(max-width:700px){.cms-home-banner{grid-template-columns:1fr;padding:15px;gap:12px}.cms-home-banner img{max-height:210px;grid-row:1}.cms-blog-card-image{height:240px;min-height:0}}"
     ].join("");
     document.head.appendChild(st);
@@ -104,6 +105,7 @@
     else if (/^\/blog\/[^/]+\.html$/i.test(path)) { type="blog"; const slug=path.split("/").pop().replace(/\.html$/i,""); row=(data.blog_posts||[]).find(x=>x.slug===slug)||null; }
     else if (path==="/products" && params.get("category")) { type="category"; row=(data.categories||[]).find(x=>x.slug===params.get("category"))||null; }
     else if (path==="/" || /\/index\.html$/i.test(path)) { type="page"; row=(data.pages||[]).find(x=>["home","homepage"].includes(x.slug))||null; }
+    else if (/^\/page\/[^/]+$/i.test(path)) { type="page"; const slug=decodeURIComponent(path.split("/").pop()); row=(data.pages||[]).find(x=>x.slug===slug)||null; }
     else if (path==="/products") { type="page"; row=(data.pages||[]).find(x=>x.slug==="products")||null; }
     const nested=row?.seo&&typeof row.seo==="object"?row.seo:{};
     const target=row? (data.seo||[]).find(x=>x.entity_type===type&&Number(x.entity_id)===Number(row.id)):null;
