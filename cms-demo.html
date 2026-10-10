@@ -301,6 +301,21 @@ async function audit(){
  }catch(e){const target=document.getElementById("auditRows");if(target)target.innerHTML='<p class="live-error">'+esc(e.message)+'</p>'}
 }
 
+
+async function dashboard(){
+ if(!liveData){liveLogin();return}
+ const rows=liveData.orders||[],active=rows.filter(o=>!/cancelled/i.test(o.status||"")),delivered=rows.filter(o=>/delivered/i.test(o.status||""));
+ const sales=active.filter(o=>!/delivery failed/i.test(o.status||"")).reduce((a,o)=>a+Number(o.total||0),0);
+ let cmsCounts={products:0,categories:0,blog:0,banners:0};
+ try{
+  const data=await Promise.all([cmsRequest("cms_products"),cmsRequest("cms_categories"),cmsRequest("cms_blog_posts"),cmsRequest("cms_banners")]);
+  cmsCounts={products:data[0].length,categories:data[1].length,blog:data[2].length,banners:data[3].length};
+ }catch(e){}
+ app.innerHTML=head("CMS Dashboard","Real orders and finance data, plus separately stored CMS content.","<button class='btn' onclick='loadLiveData()'>Refresh</button>")+
+ '<div class="cards"><div class="card"><span>Real Orders</span><strong>'+rows.length+'</strong></div><div class="card"><span>Sales (excluding cancelled / delivery failed)</span><strong>'+money(sales)+'</strong></div><div class="card"><span>Delivered Orders</span><strong>'+delivered.length+'</strong></div><div class="card"><span>Daily Finance Rows</span><strong>'+(liveData.daily_finance||[]).length+'</strong></div></div>'+
+ '<div class="panel"><h2>CMS Content Records</h2><div class="cards"><div class="card"><span>CMS Products</span><strong>'+cmsCounts.products+'</strong></div><div class="card"><span>Categories</span><strong>'+cmsCounts.categories+'</strong></div><div class="card"><span>Blog Posts</span><strong>'+cmsCounts.blog+'</strong></div><div class="card"><span>Banners</span><strong>'+cmsCounts.banners+'</strong></div></div><p class="hint">These are separate CMS records. They do not publish to the live storefront automatically. The existing storefront and admin remain unchanged.</p></div>';
+}
+
 supabaseClient.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){liveData=null;liveLogin()}});
 
 loadLiveData();
