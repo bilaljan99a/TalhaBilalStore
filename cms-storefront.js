@@ -167,4 +167,14 @@
     }
   }
   window.CMS_SITE_READY = load();
+  // app.js may finish loading before or after this catalogue request. Explicitly
+  // refresh it once the CMS promise resolves so newly published items appear in
+  // the All Products/category listing even if the initial DOM event was missed.
+  window.CMS_SITE_READY.then(data => {
+    if (data && data.ok && typeof window.refreshFromCms === "function") {
+      window.refreshFromCms();
+    } else if (data && !data.ok) {
+      console.warn("Website CMS sync did not complete; using the existing static catalogue.", data.error || "");
+    }
+  }).catch(error => console.warn("Website CMS sync failed; using the existing static catalogue.", error));
 })();
