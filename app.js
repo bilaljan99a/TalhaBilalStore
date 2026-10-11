@@ -53,11 +53,13 @@ function productList(){
  return (featured.length?featured:list).slice(0,6);
 }
 function productCardSummary(product){
- let summary=String(product?.shortDescription||product?.short_description||product?.description||"").replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+ // Never fall back to the long description for CMS cards.
+ const source=product?.isCmsProduct
+   ? String(product?.shortDescription||product?.short_description||"")
+   : String(product?.description||"");
+ let summary=source.replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
  const limit=110;
- if(summary.length>limit){
-  summary=summary.slice(0,limit-1).replace(/\s+\S*$/,"").trim()+"…";
- }
+ if(summary.length>limit)summary=summary.slice(0,limit-1).replace(/\s+\S*$/,"").trim()+"…";
  return summary;
 }
 function renderProducts(){
@@ -125,11 +127,14 @@ renderProducts();renderCart();closeCart();processCatalogQuery();
 function refreshFromCms(){
  if(!window.CMS_SITE_DATA)return;
  renderProducts();
- // Drop cart items only after the published catalogue has loaded successfully.
+ // Only validate cart item IDs after the published catalogue has completed loading.
  for(let i=cart.length-1;i>=0;i--)if(!findProduct(cart[i].id))cart.splice(i,1);
  persistCart();renderCart();processCatalogQuery();
 }
 window.refreshFromCms=refreshFromCms;
-window.refreshFromCms=refreshFromCms;
 document.addEventListener("cms-site-data-ready",refreshFromCms);
-if(window.CMS_SITE_READY&&typeof window.CMS_SITE_READY.then==="function")window.CMS_SITE_READY.then(data=>{if(data&&data.ok)refreshFromCms()});
+// Handle both script-load orders, including a CMS response that finished before app.js executed.
+if(window.CMS_SITE_DATA)refreshFromCms();
+if(window.CMS_SITE_READY&&typeof window.CMS_SITE_READY.then==="function"){
+ window.CMS_SITE_READY.then(data=>{if(data&&data.ok)refreshFromCms()}).catch(()=>{});
+}
