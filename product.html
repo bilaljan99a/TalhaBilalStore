@@ -51,6 +51,7 @@ function renderMangoProduct(){setSeo();const delivery=deliveryForWeight(p.weight
 const size=document.getElementById('mangoSize');size?.addEventListener('change',()=>{selectedId=size.value;p=PRODUCTS.find(x=>x.id===selectedId)||PRODUCTS[0];history.replaceState({},'',`/product/${encodeURIComponent(p.id)}`);renderProduct();loadReviews()});document.querySelectorAll('[data-gallery-src]').forEach(btn=>btn.addEventListener('click',()=>{const main=document.getElementById('galleryMain');if(!main)return;main.src=btn.dataset.gallerySrc;main.alt=btn.dataset.galleryAlt;document.querySelectorAll('.gallery-thumb').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}))}
 async function loadReviews(){const box=document.getElementById('productReviews');if(!box)return;if(p?.isCmsProduct&&!p.isMangoPremix){box.innerHTML='<div class="empty-reviews">No reviews for this product yet.</div>';return}box.innerHTML=reviewMarkup([]);if(!supabaseClient)return;try{const {data,error}=await supabaseClient.from('reviews').select('customer_name,rating,review_text,image_urls,created_at').eq('approved',true).order('created_at',{ascending:false});if(!error)box.innerHTML=reviewMarkup(data||[])}catch{}}
 function renderCmsGenericProduct(){
+ detail.classList.add("cms-generic-detail");
  const images=(Array.isArray(p.images)&&p.images.length?p.images:[p.image]).filter(Boolean).slice(0,8);
  const title=(p.seo?.meta_title||p.seo?.title)||(p.name+" | Talha Bilal Store");
  const description=(p.seo?.meta_description||p.seo?.description)||p.description||p.name;
@@ -71,7 +72,7 @@ function renderCmsGenericProduct(){
  '<p class="pack-info"><strong>Weight:</strong> '+Number(p.weight||1)+' kg</p>'+
  '<div class="detail-actions"><a class="detail-cart" href="/products?add='+encodeURIComponent(p.id)+'">Add to Cart</a><a class="detail-buy" href="/products?buy='+encodeURIComponent(p.id)+'">Buy Now</a></div>'+
  '<p class="note">Cash on Delivery available. Your delivery fee is calculated from total cart weight at checkout.</p></div></section>'+
- '<section class="detail-accordions"><details open><summary>Product Details <span>⌄</span></summary><div class="accordion-content">'+(p.description?'<p>'+esc(p.description)+'</p>':'<p>More product details will be added soon.</p>')+'</div></details>'+
+ '<section class="detail-accordions"><details><summary>Product Details <span>⌄</span></summary><div class="accordion-content">'+(p.description?'<p>'+esc(p.description)+'</p>':'<p>More product details will be added soon.</p>')+'</div></details>'+
  '<details><summary>Delivery Information <span>⌄</span></summary><div class="accordion-content"><p>Cash on Delivery is available. Delivery fee is calculated from total cart weight and shown before the order is placed.</p></div></details></section>'+
  '<section class="detail-section customer-reviews-section"><div class="section-heading"><div><span class="eyebrow">CUSTOMER REVIEWS</span><h2>Reviews for this product</h2></div></div><div id="productReviews"><div class="empty-reviews">No reviews for this product yet.</div></div></section>'+
  '<div class="detail-bottom-link"><a class="detail-back" href="/products">← All Products</a></div>';
