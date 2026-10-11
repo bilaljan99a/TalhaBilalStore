@@ -52,14 +52,25 @@ function productList(){
  const featured=list.filter(p=>p.featured);
  return (featured.length?featured:list).slice(0,6);
 }
+function productCardSummary(product){
+ let summary=String(product?.shortDescription||product?.short_description||product?.description||"").replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+ const limit=135;
+ if(summary.length>limit){
+  summary=summary.slice(0,limit-1).replace(/\s+\S*$/,"").trim()+"…";
+ }
+ return summary;
+}
 function renderProducts(){
  if(!grid)return;
  const list=productList(),homeOnly=!!homeProductGrid&&!productGrid;
  if(!list.length){grid.innerHTML='<div class="empty-cart">No products are available in this category yet.</div>';return}
  grid.innerHTML=list.map(p=>{
   const url="/product/"+encodeURIComponent(p.id);
-  const old=p.oldPrice?'<span class="old-price">'+currency(p.oldPrice)+'</span>':"";
-  return '<article class="product-card"><div class="product-visual"><span class="tag">'+appEsc(p.tag||"PRODUCT")+'</span><a class="product-link" href="'+url+'" aria-label="View '+appEsc(p.name)+'"><img class="product-image" src="'+appEsc(p.image||"/assets/products/mango-pulp-product-image.webp")+'" alt="'+appEsc(p.name)+'" loading="lazy"></a></div><div class="product-info"><a class="product-title-link" href="'+url+'"><h3>'+appEsc(p.name)+'</h3></a>'+(homeOnly?"":'<p>'+appEsc(p.description||"Product details and delivery information.")+'</p>')+'<div class="price-row"><div><span class="price">'+currency(p.price)+'</span>'+old+'</div></div><div class="product-actions"><button class="add-btn" data-add="'+appEsc(p.id)+'" type="button">Add to Cart</button><button class="buy-btn" data-buy="'+appEsc(p.id)+'" type="button">Buy Now</button></div></div></article>';
+  const sellingPrice=Number(p.price)||0;
+  const previousPrice=Number(p.oldPrice)||0;
+  const old=previousPrice>sellingPrice?'<span class="old-price">'+currency(previousPrice)+'</span>':"";
+  const summary=productCardSummary(p);
+  return '<article class="product-card"><div class="product-visual"><span class="tag">'+appEsc(p.tag||"PRODUCT")+'</span><a class="product-link" href="'+url+'" aria-label="View '+appEsc(p.name)+'"><img class="product-image" src="'+appEsc(p.image||"/assets/products/mango-pulp-product-image.webp")+'" alt="'+appEsc(p.name)+'" loading="lazy"></a></div><div class="product-info"><a class="product-title-link" href="'+url+'"><h3>'+appEsc(p.name)+'</h3></a>'+(homeOnly||!summary?"":'<p class="product-card-summary">'+appEsc(summary)+'</p>')+'<div class="price-row"><div><span class="price">'+currency(sellingPrice)+'</span>'+old+'</div></div><div class="product-actions"><button class="add-btn" data-add="'+appEsc(p.id)+'" type="button">Add to Cart</button><button class="buy-btn" data-buy="'+appEsc(p.id)+'" type="button">Buy Now</button></div></div></article>';
  }).join("");
 }
 function checkoutSummary(items,totalWeight,productTotal,delivery,total){const itemTitle=items.map(i=>`${i.name} × ${i.quantity}`).join(', ');return `<div class="checkout-summary-card"><div class="checkout-summary-title">${itemTitle}</div><div class="checkout-summary-row"><span>Quantity</span><strong>${items.reduce((s,i)=>s+i.quantity,0)}</strong></div><div class="checkout-summary-row"><span>Total weight</span><strong>${totalWeight}kg</strong></div><div class="checkout-summary-row"><span>Delivery fee</span><strong>${currency(delivery)}</strong></div><div class="checkout-summary-total"><span>Payable total</span><strong>${currency(total)}</strong></div></div>`}
