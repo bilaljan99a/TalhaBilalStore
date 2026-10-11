@@ -94,11 +94,12 @@ function renderCmsGenericProduct(){
  '<div class="detail-price">'+currency(p.price)+(p.oldPrice?'<span class="old-price">'+currency(p.oldPrice)+'</span>':'')+'</div>'+
  '<p class="pack-info"><strong>Weight:</strong> '+Number(p.weight||1)+' kg</p>'+
  '<p class="cms-detail-delivery">Delivery fee for this item: <strong>'+currency(cmsDeliveryFee(p.weight))+'</strong></p>'+
- '<div class="detail-actions"><a class="detail-cart" id="detailAdd" href="/products?cart=1" onclick="return cmsAddProductToCart(\''+esc(p.id)+'\')">Add to Cart</a><a class="detail-buy" id="detailBuy" href="/products?buy='+encodeURIComponent(p.id)+'">Buy Now</a></div></div></section>'+
+ '<div class="detail-actions"><a class="detail-cart" id="detailAdd" href="/products?cart=1" data-cms-cart="'+esc(p.id)+'">Add to Cart</a><a class="detail-buy" id="detailBuy" href="/products?buy='+encodeURIComponent(p.id)+'">Buy Now</a></div></div></section>'+
  '<section class="detail-accordions"><details><summary>Product Details <span>⌄</span></summary><div class="accordion-content">'+(p.description?'<p>'+esc(p.description)+'</p>':'<p>More product details will be added soon.</p>')+'</div></details>'+
  '<details><summary>Delivery Information <span>⌄</span></summary><div class="accordion-content"><p>Cash on Delivery is available. For this '+Number(p.weight||1)+' kg item, the current delivery fee is <strong>'+currency(cmsDeliveryFee(p.weight))+'</strong>. If you order multiple items, the final delivery charge is calculated from the total cart weight and shown before you confirm the order.</p></div></details></section>'+
  '<section class="detail-section customer-reviews-section"><div class="section-heading"><div><span class="eyebrow">CUSTOMER REVIEWS</span><h2>Reviews for this product</h2></div></div><div id="productReviews"><div class="empty-reviews">No reviews for this product yet.</div></div></section>'+
  '<div class="detail-bottom-link"><a class="detail-back" href="/products">← All Products</a></div>';
+ document.getElementById("detailAdd")?.addEventListener("click",event=>{event.preventDefault();cmsAddProductToCart(p.id)});
  document.querySelectorAll('[data-cms-gallery]').forEach(btn=>btn.addEventListener('click',()=>{const im=document.getElementById('cmsGalleryMain');if(im)im.src=btn.dataset.cmsGallery;document.querySelectorAll('[data-cms-gallery]').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}));
 }
 function renderProduct(){
