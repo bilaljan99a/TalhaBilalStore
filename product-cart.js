@@ -173,7 +173,7 @@ document.addEventListener('click',e=>{
   return;
  }
 },true);
-document.getElementById('closeModal')?.addEventListener('click',closeOrder);orderModal?.addEventListener('click',e=>{if(e.target===orderModal)closeOrder()});document.getElementById('closeCart')?.addEventListener('click',e=>{e.preventDefault();closeCart()});drawerOverlay?.addEventListener('click',e=>{e.preventDefault();closeCart()});document.getElementById('cartCheckout')?.addEventListener('click',checkoutCart);
+document.getElementById('closeModal')?.addEventListener('click',closeOrder);orderModal?.addEventListener('click',e=>{if(e.target===orderModal)closeOrder()});document.getElementById('closeCart')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closeCart()});drawerOverlay?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closeCart()});document.getElementById('cartCheckout')?.addEventListener('click',checkoutCart);
 cartItems?.addEventListener('click',e=>{const inc=e.target.closest('[data-inc]'),dec=e.target.closest('[data-dec]'),remove=e.target.closest('[data-remove]'),button=inc||dec||remove;if(!button)return;const id=button.dataset.inc||button.dataset.dec||button.dataset.remove,key=button.dataset.variant||"{}";const matches=x=>String(x.id)===String(id)&&variantKey(x.variant)===key;if(inc){const i=cart.find(matches);if(i)i.quantity++}if(dec){const i=cart.find(matches);if(i){i.quantity--;if(i.quantity<=0)cart.splice(cart.indexOf(i),1)}}if(remove){const i=cart.findIndex(matches);if(i>=0)cart.splice(i,1)}persistCart();renderCart()});
 orderForm?.addEventListener('submit',async e=>{e.preventDefault();e.stopPropagation();const button=document.getElementById('submitOrderBtn')||orderForm.querySelector('.place-order');if(button){button.disabled=true;button.textContent='Placing Order…'}try{const orderNumber=await saveOrder();cart.length=0;persistCart();renderCart();closeOrder();window.location.href=`thank-you.html?order=${encodeURIComponent(orderNumber)}`;}catch(err){console.error(err);alert(err.message||'Sorry, your order could not be placed. Please try again.')}finally{if(button){button.disabled=false;button.innerHTML='Confirm Cash on Delivery Order <span>→</span>'}}});document.getElementById('submitOrderBtn')?.addEventListener('click',e=>{e.stopPropagation()});
 function processCatalogQuery(){
@@ -185,6 +185,9 @@ function processCatalogQuery(){
  return false;
 }
 renderProducts();renderCart();closeCart();processCatalogQuery();
+window.addEventListener('pageshow',()=>{renderCart()});
+window.addEventListener('storage',event=>{if(event.key===CART_KEY){const fresh=loadCart();cart.splice(0,cart.length,...fresh);renderCart()}});
+
 function refreshFromCms(){
  if(!window.CMS_SITE_DATA)return;
  renderProducts();
