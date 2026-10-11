@@ -38,9 +38,13 @@ async function getPublishedCmsProduct(id){
     if(!image)image='/assets/products/mango-pulp-product-image.webp';
     const isMango=cat?.slug==='mango-pulp-premix'||/^mango-/.test(String(row.slug));
     const price=row.sale_price!=null?Number(row.sale_price):Number(row.price||0);
+    const rawOldPrice=row.old_price!=null?Number(row.old_price):(row.sale_price!=null?Number(row.price||0):0);
+    const description=String(row.description||row.short_description||'');
+    const rawSummary=String(row.short_description||row.description||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+    const shortDescription=rawSummary.length>135?rawSummary.slice(0,134).replace(/\s+\S*$/,'').trim()+'…':rawSummary;
     const seoRow=(data.seo||[]).find(x=>x.entity_type==='product'&&Number(x.entity_id)===Number(row.id))||{};
     const siteSeo=(data.seo||[]).find(x=>x.entity_type==='site'&&(x.entity_id==null||x.entity_id===''))||{};
-    return {name:row.name,description:row.description||row.short_description||'',price,oldPrice:row.sale_price!=null?Number(row.price||0):Number(row.old_price||0),image,images,weight:Number(row.weight_kg)||1,sku:row.sku,seo:Object.assign({},row.seo||{},seoRow),siteSeo,isCmsProduct:true,isMangoPremix:isMango};
+    return {name:row.name,description,shortDescription,price,oldPrice:rawOldPrice>price?rawOldPrice:undefined,image,images,weight:Number(row.weight_kg)||1,sku:row.sku,seo:Object.assign({},row.seo||{},seoRow),siteSeo,isCmsProduct:true,isMangoPremix:isMango,categoryName:cat?.name||'',tag:row.tag||cat?.name||'PRODUCT'};
   }catch{return null}
 }
 export async function onRequestGet(context){
