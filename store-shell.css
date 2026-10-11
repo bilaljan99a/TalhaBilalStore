@@ -371,3 +371,49 @@
     line-height:1.25!important;
   }
 }
+
+
+/* Final consistency layer for all product detail pages and catalogue cards. */
+.detail-top .detail-info h1,
+.detail-page .detail-info h1,
+.cms-generic-detail .detail-info h1{
+  font-size:clamp(24px,2.25vw,32px)!important;
+  line-height:1.22!important;
+  letter-spacing:-.02em!important;
+  margin:8px 0 14px!important;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+.products-section:not(.home-products) .product-card .product-actions .add-btn{
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100%!important;
+  min-height:44px!important;
+  box-sizing:border-box!important;
+}
+.products-section:not(.home-products) .product-card .product-actions{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+.products-section:not(.home-products) .product-card .product-actions .buy-btn{
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100%!important;
+  min-height:44px!important;
+}
+@media(max-width:560px){
+  .detail-top .detail-info h1,
+  .detail-page .detail-info h1,
+  .cms-generic-detail .detail-info h1{
+    font-size:24px!important;
+    line-height:1.25!important;
+  }
+}
