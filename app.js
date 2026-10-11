@@ -130,5 +130,6 @@ function refreshFromCms(){
  persistCart();renderCart();processCatalogQuery();
 }
 window.refreshFromCms=refreshFromCms;
+window.refreshFromCms=refreshFromCms;
 document.addEventListener("cms-site-data-ready",refreshFromCms);
 if(window.CMS_SITE_READY&&typeof window.CMS_SITE_READY.then==="function")window.CMS_SITE_READY.then(data=>{if(data&&data.ok)refreshFromCms()});
