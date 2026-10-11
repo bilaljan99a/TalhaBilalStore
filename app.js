@@ -155,20 +155,17 @@ document.addEventListener('click',e=>{
  const cartButton=target.closest('#cartButton');
  if(cartButton){
   e.preventDefault();
-  e.stopImmediatePropagation();
   openCart();
   return;
  }
  const add=target.closest('[data-add]'),buy=target.closest('[data-buy]');
  if(add){
   e.preventDefault();
-  e.stopImmediatePropagation();
   addToCart(add.dataset.add,readSelectedVariations(add));
   return;
  }
  if(buy){
   e.preventDefault();
-  e.stopImmediatePropagation();
   const product=findProduct(buy.dataset.buy);
   if(product)openOrder(product,1,readSelectedVariations(buy));
   return;
