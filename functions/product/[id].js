@@ -44,7 +44,7 @@ async function getPublishedCmsProduct(id){
     const shortDescription=rawSummary.length>135?rawSummary.slice(0,134).replace(/\s+\S*$/,'').trim()+'…':rawSummary;
     const seoRow=(data.seo||[]).find(x=>x.entity_type==='product'&&Number(x.entity_id)===Number(row.id))||{};
     const siteSeo=(data.seo||[]).find(x=>x.entity_type==='site'&&(x.entity_id==null||x.entity_id===''))||{};
-    return {name:row.name,description,shortDescription,price,oldPrice:rawOldPrice>price?rawOldPrice:undefined,image,images,weight:Number(row.weight_kg)||1,sku:row.sku,seo:Object.assign({},row.seo||{},seoRow),siteSeo,isCmsProduct:true,isMangoPremix:isMango,categoryName:cat?.name||'',tag:row.tag||cat?.name||'PRODUCT'};
+    return {name:row.name,description,shortDescription,price,oldPrice:rawOldPrice>price?rawOldPrice:undefined,image,images,weight:Number(row.weight_kg)||1,deliveryMode:row.delivery_mode==='manual'?'manual':'weight',manualDeliveryFee:Math.max(0,Number(row.manual_delivery_fee)||0),showWeight:!!row.show_weight,variations:Array.isArray(row.variations)?row.variations:[],sku:row.sku,seo:Object.assign({},row.seo||{},seoRow),siteSeo,isCmsProduct:true,isMangoPremix:isMango,categoryName:cat?.name||'',tag:row.tag||cat?.name||'PRODUCT'};
   }catch{return null}
 }
 export async function onRequestGet(context){
