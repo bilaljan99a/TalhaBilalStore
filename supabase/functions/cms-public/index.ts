@@ -25,7 +25,7 @@ Deno.serve(async (req: Request) => {
 
     const [productsQ, categoriesQ, pagesQ, bannersQ, blogsQ, seoQ, hiddenQ] = await Promise.all([
       db.from("cms_products")
-        .select("id,name,slug,short_description,description,category_id,price,sale_price,old_price,weight_kg,tag,featured,best_seller,is_new,images,attributes,seo,status")
+        .select("id,name,slug,short_description,description,category_id,price,sale_price,old_price,weight_kg,tag,featured,best_seller,is_new,images,attributes,seo,status,delivery_mode,manual_delivery_fee,show_weight,variations")
         .eq("status", "active")
         .order("created_at", { ascending: true }),
       db.from("cms_categories")
