@@ -289,7 +289,7 @@ function dashboard(){
 
 const CMS_SCHEMAS = {
  products:{table:"cms_products",title:"Products",fields:[
-  ["name","Product name","text"],["slug","URL slug","text"],["sku","SKU","text"],["short_description","Short description","textarea"],["description","Description","textarea"],["category_id","Category ID","number"],["price","Price (PKR)","number"],["sale_price","Sale price (PKR)","number"],["cost","Product cost (PKR)","number"],["stock","Stock quantity","number"],["status","Status: draft/active/archived","text"],["featured","Featured (true/false)","boolean"],["best_seller","Best seller (true/false)","boolean"],["is_new","New product (true/false)","boolean"],["attributes","Attributes JSON","json"],["images","Image URLs JSON array","json"],["seo","SEO JSON","json"],["weight_kg","Weight (kg)","number"],["old_price","Old price (PKR)","number"],["tag","Tag / badge","text"]],summary:["name","category_id","price","status"]},
+  ["name","Product name","text"],["slug","URL slug","text"],["sku","SKU","text"],["short_description","Short description","textarea"],["description","Description","textarea"],["category_id","Category ID","number"],["price","Price (PKR)","number"],["sale_price","Sale price (PKR)","number"],["cost","Product cost (PKR)","number"],["stock","Stock quantity","number"],["status","Status: draft/active/archived","text"],["featured","Featured (true/false)","boolean"],["best_seller","Best seller (true/false)","boolean"],["is_new","New product (true/false)","boolean"],["attributes","Attributes JSON","json"],["images","Image URLs JSON array","json"],["seo","SEO JSON","json"],["weight_kg","Weight (kg)","number"],["old_price","Old price (PKR)","number"],["tag","Tag / badge","text"],["delivery_mode","Delivery method","text"],["manual_delivery_fee","Fixed delivery fee","number"],["show_weight","Show weight","boolean"],["variations","Variations JSON","json"]],summary:["name","category_id","price","status"]},
  categories:{table:"cms_categories",title:"Categories",fields:[["name","Category name","text"],["slug","Slug","text"],["description","Description","textarea"],["image_url","Image URL","text"],["parent_id","Parent category ID","number"],["sort_order","Sort order","number"],["is_active","Active (true/false)","boolean"],["seo","SEO JSON","json"]],summary:["name","slug","parent_id","is_active"]},
  pages:{table:"cms_pages",title:"Website Pages",fields:[["title","Page title","text"],["slug","Slug","text"],["status","Status: draft/published","text"],["sections","Sections JSON","json"],["seo","SEO JSON","json"]],summary:["title","slug","status","sections"]},
  banners:{table:"cms_banners",title:"Banners / Sliders",fields:[["title","Title","text"],["subtitle","Subtitle","text"],["image_url","Desktop image URL","text"],["mobile_image_url","Mobile image URL","text"],["button_text","Button text","text"],["button_url","Button URL","text"],["placement","Placement","text"],["sort_order","Sort order","number"],["starts_at","Start time (ISO)","text"],["ends_at","End time (ISO)","text"],["is_active","Active (true/false)","boolean"]],summary:["title","placement","is_active","sort_order"]},
@@ -463,6 +463,40 @@ async function cmsUploadFiles(input,targetId,folder,mode){
 }
 
 function cmsPreviewImage(input,boxId){const x=document.getElementById(input),box=document.getElementById(boxId);if(!x||!box)return;const value=x.value.trim().split(/\r?\n/).map(v=>v.trim()).filter(Boolean)[0]||"";box.innerHTML=value?'<img src="'+esc(value)+'" alt="Preview">':'<span class="hint">Image preview appears here.</span>'}
+function cmsVariationsToText(value){
+ return (Array.isArray(value)?value:[]).map(v=>{
+  const name=String(v?.name||v?.label||"").trim();
+  const options=(Array.isArray(v?.options)?v.options:[]).map(o=>{
+   const label=String(typeof o==="object"?(o.value??o.label??o.name??""):o).trim();
+   const price=typeof o==="object"&&o.price!==null&&o.price!==undefined&&o.price!==""?Number(o.price):null;
+   return label+(Number.isFinite(price)&&price>=0?" = "+price:"");
+  }).filter(Boolean);
+  return name&&options.length?name+": "+options.join(", "):"";
+ }).filter(Boolean).join("\n");
+}
+function cmsParseVariations(input){
+ const lines=String(input||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ const variations=[];
+ for(const line of lines){
+  const colon=line.indexOf(":");
+  if(colon<=0||colon===line.length-1)throw new Error("Each variation needs a name and options, e.g. Color: Black, Pink.");
+  const name=line.slice(0,colon).trim();
+  if(!name)throw new Error("Variation name cannot be blank.");
+  const tokens=line.slice(colon+1).split(",").map(x=>x.trim()).filter(Boolean);
+  const options=tokens.map(token=>{
+   const match=token.match(/^(.*?)\s*=\s*([0-9]+(?:\.[0-9]{1,2})?)$/);
+   if(!match)return {label:token,value:token};
+   const label=match[1].trim(),price=Number(match[2]);
+   if(!label||!Number.isFinite(price)||price<0)throw new Error("Invalid variation price in: "+token);
+   return {label,value:label,price};
+  });
+  if(!options.length)throw new Error("Add at least one option for "+name+".");
+  if(variations.some(v=>v.name.toLowerCase()===name.toLowerCase()))throw new Error("Variation names must be unique: "+name);
+  variations.push({name,options});
+ }
+ return variations;
+}
+
 async function cmsEditProduct(r,id){
  const cats=await cmsRequest("cms_categories");cmsCache.categories=cats;
  const pages=await cmsRequest("cms_pages");cmsCache.pages=pages;
@@ -472,31 +506,37 @@ async function cmsEditProduct(r,id){
  const customPages=(pages||[]).filter(p=>!["home","homepage","products"].includes(String(p.slug||""))&&!categoryPageSlugs.has(String(p.slug||"")));
  const checkedIds=new Set(assigned.map(p=>Number(p.id)));
  const pageAssignment=customPages.map(p=>'<label class="assignment-item"><input type="checkbox" data-product-page value="'+Number(p.id)+'" '+(checkedIds.has(Number(p.id))?"checked":"")+'><span class="assignment-copy"><strong>'+esc(p.title)+'</strong><small>/page/'+esc(p.slug)+' • '+esc(p.status)+'</small></span></label>').join("");
+ const deliveryMode=r.delivery_mode==="manual"?"manual":"weight";
  const fields=cmsField("Product name","pName",r.name,"text")+
  cmsField("URL slug","pSlug",r.slug,"text","Blank = generate from name.")+
  cmsField("SKU (optional)","pSku",r.sku,"text")+
- cmsSearchSelect("Category","pCat",[{value:"",label:"Unassigned"},...cats.map(x=>({value:x.id,label:x.name+" ("+x.slug+")"}))],r.category_id??"","Search and select a category. Save automatically assigns the product to the category and All Products page.")+
+ cmsSearchSelect("Category","pCat",[{value:"",label:"Unassigned"},...cats.map(x=>({value:x.id,label:x.name+" ("+x.slug+")"}))],r.category_id??"","Search and select a category. Saving assigns this product to its category and All Products page automatically.")+
  cmsField("Price (PKR)","pPrice",r.price??0,"number")+
  cmsField("Old price (optional)","pOldPrice",r.old_price,"number")+
  cmsField("Sale price (optional)","pSale",r.sale_price,"number")+
- cmsField("Weight (kg)","pWeight",r.weight_kg??1,"number","This value is used by delivery-weight calculations.")+
+ cmsSelect("Delivery charge method","pDeliveryMode",[{value:"weight",label:"Standard store delivery rate"},{value:"manual",label:"Set a fixed fee for this product"}],deliveryMode,"The customer sees the resulting delivery amount, not this setting.")+
+ cmsField("Fixed delivery fee (PKR)","pManualDeliveryFee",r.manual_delivery_fee??0,"number","Used only when “Set a fixed fee” is selected. This fee is added once per product line in the cart.")+
+ cmsField("Product weight (kg)","pWeight",r.weight_kg??1,"number","Used for internal delivery calculation when standard delivery is selected. It is shown on the website only if you enable the option below.")+
+ '<div class="field full">'+cmsCheck("Show product weight on the website","pShowWeight",!!r.show_weight)+'</div>'+
  cmsField("Product badge / tag","pTag",r.tag||"","text")+
  cmsField("Cost (optional)","pCost",r.cost,"number")+
  cmsField("Stock (optional)","pStock",r.stock,"number")+
  cmsSelect("Publish status","pStatus",[{value:"draft",label:"Draft — not shown on website"},{value:"active",label:"Active — publish to website"},{value:"archived",label:"Archived — hidden"}],r.status||"draft")+
- cmsField("Short description (max 135 characters)","pShort",r.short_description,"textarea-135","Short summary shown on product cards. Full description stays in the Product Details section.")+
- cmsField("Full description","pDescription",r.description,"textarea")+
+ cmsField("Short description (max 135 characters)","pShort",r.short_description,"textarea-135","Short summary shown on the product detail page. Product cards show only image, title, price and buttons.")+
+ cmsField("Full description","pDescription",r.description,"textarea","Shown inside Product Details on the product page, not on product cards.")+
+ cmsField("Variations (one per line)","pVariations",cmsVariationsToText(r.variations),"textarea","Examples: Color: Black, Pink, Blue — or Size: Small = 300, Medium = 450, Large = 600. Option prices are optional; if supplied, they override this product's price when selected.")+
  cmsField("Image URL(s), one per line","pImages",imgs.join("\n"),"textarea","Paste existing image URLs or upload files below.")+
- cmsUploadField("Upload product image(s)","pImages","products",true,"append-lines","Select multiple images. First image is the main photo.")+
+ cmsUploadField("Upload product image(s)","pImages","products",true,"append-lines","Select multiple images. The first image is the main photo.")+
  '<div class="field full"><label>Image preview</label><div class="preview-frame" id="pPreview">'+(imgs[0]?'<img src="'+esc(imgs[0])+'" alt="Product preview">':'<span class="hint">Add an image URL above.</span>')+'</div></div>'+
- '<div class="field full"><label>Website page assignment</label><p class="field-help">The selected category drives the category filter page automatically. Every saved product is added to All Products; tick extra CMS pages below. Featured controls homepage placement.</p><div class="assignment-list">'+(pageAssignment||'<p class="hint">No extra CMS pages yet. Products will still appear in All Products and their selected category.</p>')+'</div></div>'+
+ '<div class="field full"><label>Website page assignment</label><p class="field-help">The category links automatically. Every saved product is added to All Products. The existing homepage products remain unchanged; select extra CMS pages below if needed.</p><div class="assignment-list">'+(pageAssignment||'<p class="hint">No extra CMS pages yet. The product will still appear on All Products and its selected category page.</p>')+'</div></div>'+
  cmsField("SEO title","pSeoTitle",cmsFormSeo.title||"","text")+
  cmsField("SEO meta description","pSeoDesc",cmsFormSeo.description||"","textarea")+
  cmsField("SEO keywords","pSeoKeywords",Array.isArray(cmsFormSeo.keywords)?cmsFormSeo.keywords.join(", "):"","text")+
- '<div class="field full"><label>Product listing flags</label><p class="field-help">New products are not added to the homepage from this panel; current homepage products remain unchanged.</p>'+cmsCheck("Featured flag (homepage unchanged)","pFeatured",!!r.featured)+cmsCheck("Best seller","pBestSeller",!!r.best_seller)+cmsCheck("New product","pNew",!!r.is_new)+'</div>';
- cmsEditorShell(id===null?"Add Product":"Edit Product","Add a product, choose its category from the searchable list, upload photos, and save it as Active when ready to publish.",fields,"cmsSaveProduct("+(id===null?"null":Number(id))+")","products");
+ '<div class="field full"><label>Product listing flags</label><p class="field-help">New products are not added to the homepage from this panel.</p>'+cmsCheck("Featured flag (homepage unchanged)","pFeatured",!!r.featured)+cmsCheck("Best seller","pBestSeller",!!r.best_seller)+cmsCheck("New product","pNew",!!r.is_new)+'</div>';
+ cmsEditorShell(id===null?"Add Product":"Edit Product","Add product details, select a category, set delivery handling, optional variations and publish status.",fields,"cmsSaveProduct("+(id===null?"null":Number(id))+")","products");
  const img=document.getElementById("pImages");if(img)img.addEventListener("input",()=>cmsPreviewImage("pImages","pPreview"));
 }
+
 async function cmsSyncProductAssignments(productId,categoryId,featured,customPageIds){
  const pages=await cmsRequest("cms_pages");
  const cats=await cmsRequest("cms_categories");
@@ -530,13 +570,16 @@ async function cmsSaveProduct(id){
   const slug=g("pSlug").value.trim()||cmsSlugify(name);if(!slug)throw new Error("URL slug is required.");
   if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))throw new Error("Use a slug with lowercase letters, numbers and hyphens only.");
   const num=x=>{const v=g(x).value.trim();if(!v)return null;const n=Number(v);if(!Number.isFinite(n))throw new Error("Enter a valid number.");return n};
-  const weight=num("pWeight")??1;if(weight<=0||weight>1000)throw new Error("Weight must be greater than 0 and no more than 1000 kg.");
+  const weight=num("pWeight")??1;if(weight<=0||weight>1000)throw new Error("Product weight must be greater than 0 and no more than 1000 kg.");
   const images=g("pImages").value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
   const seo=Object.assign({},cmsFormSeo,{title:g("pSeoTitle").value.trim()||null,description:g("pSeoDesc").value.trim()||null,keywords:g("pSeoKeywords").value.split(",").map(x=>x.trim()).filter(Boolean)});
   const selectedPageIds=[...document.querySelectorAll("[data-product-page]:checked")].map(x=>Number(x.value)).filter(Number.isFinite);
   const shortDescription=g("pShort").value.trim();if(shortDescription.length>135)throw new Error("Short description must be 135 characters or fewer.");
-  const oldPrice=num("pOldPrice"),salePrice=num("pSale");if(oldPrice!==null&&salePrice!==null&&salePrice>=oldPrice)throw new Error("Sale price should be lower than old price.");
-  const data={name,slug,sku:g("pSku").value.trim()||null,category_id:g("pCat").value?Number(g("pCat").value):null,price:num("pPrice")??0,old_price:oldPrice,sale_price:salePrice,weight_kg:weight,tag:g("pTag").value.trim()||null,cost:num("pCost"),stock:num("pStock"),status:g("pStatus").value,short_description:shortDescription||null,description:g("pDescription").value.trim()||null,images,seo,featured:g("pFeatured").checked,best_seller:g("pBestSeller").checked,is_new:g("pNew").checked};
+  const oldPrice=num("pOldPrice"),salePrice=num("pSale"),fixedDelivery=num("pManualDeliveryFee")??0;
+  if(oldPrice!==null&&salePrice!==null&&salePrice>=oldPrice)throw new Error("Sale price should be lower than old price.");
+  if(fixedDelivery<0)throw new Error("Fixed delivery fee cannot be negative.");
+  const variations=cmsParseVariations(g("pVariations").value);
+  const data={name,slug,sku:g("pSku").value.trim()||null,category_id:g("pCat").value?Number(g("pCat").value):null,price:num("pPrice")??0,old_price:oldPrice,sale_price:salePrice,weight_kg:weight,delivery_mode:g("pDeliveryMode").value,manual_delivery_fee:fixedDelivery,show_weight:g("pShowWeight").checked,variations,tag:g("pTag").value.trim()||null,cost:num("pCost"),stock:num("pStock"),status:g("pStatus").value,short_description:shortDescription||null,description:g("pDescription").value.trim()||null,images,seo,featured:g("pFeatured").checked,best_seller:g("pBestSeller").checked,is_new:g("pNew").checked};
   const saved=await cmsRequest("cms_products",id===null?"POST":"PATCH",id,data);
   if(saved?.id)await cmsSyncProductAssignments(Number(saved.id),data.category_id,data.featured,selectedPageIds);
   await cmsManage("products");
