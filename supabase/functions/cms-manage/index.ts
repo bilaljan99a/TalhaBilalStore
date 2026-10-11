@@ -11,7 +11,7 @@ const reply = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: cors });
 
 const TABLES: Record<string, { fields: string[]; order: string }> = {
-  cms_products: { fields: ["name","slug","sku","short_description","description","category_id","price","sale_price","cost","stock","status","featured","best_seller","is_new","attributes","images","seo","weight_kg","old_price","tag"], order: "updated_at" },
+  cms_products: { fields: ["name","slug","sku","short_description","description","category_id","price","sale_price","cost","stock","status","featured","best_seller","is_new","attributes","images","seo","weight_kg","old_price","tag","delivery_mode","manual_delivery_fee","show_weight","variations"], order: "updated_at" },
   cms_categories: { fields: ["name","slug","description","image_url","parent_id","sort_order","is_active","seo"], order: "sort_order" },
   cms_pages: { fields: ["title","slug","status","sections","seo"], order: "updated_at" },
   cms_banners: { fields: ["title","subtitle","image_url","mobile_image_url","button_text","button_url","placement","sort_order","starts_at","ends_at","is_active"], order: "sort_order" },
