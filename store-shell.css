@@ -244,3 +244,47 @@
   line-height:1.45!important;
   max-height:calc(1.45em * 2)!important;
 }
+
+
+/* Final product-page/cart fixes: apply to Mango and CMS products, not just new items. */
+.detail-page .detail-info h1{
+  font-size:clamp(24px,2.5vw,34px)!important;
+  line-height:1.22!important;
+  letter-spacing:-.02em!important;
+  margin:8px 0 14px!important;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+.detail-page .detail-info .detail-price{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:baseline;
+  font-size:clamp(23px,2.4vw,30px);
+  line-height:1.2;
+}
+.detail-page .detail-info .detail-price .old-price{font-size:14px!important}
+.cms-detail-delivery{
+  margin:10px 0 16px!important;
+  padding:10px 12px!important;
+  border:1px solid #ece3da;
+  border-radius:9px;
+  background:#fffaf6;
+  font-size:14px;
+  line-height:1.5;
+}
+.cms-detail-delivery strong{color:var(--orange);white-space:nowrap}
+.cms-variation-selector{display:grid;gap:10px}
+.cms-variation-selector>strong{font-size:12px}
+.cms-variation-label{display:grid;gap:6px;font-size:12px;font-weight:800}
+.cms-variation-label select{width:100%;min-height:46px;border:1px solid #ddd;border-radius:10px;background:#fff;color:var(--ink);padding:10px 12px;font-size:13px;font-weight:700;outline:none}
+.cms-variation-label select:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,106,0,.1)}
+/* Keep Add to Cart visible on All Products/category pages on mobile.
+   Homepage button layout is intentionally excluded from this override. */
+@media(max-width:560px){
+  .products-section:not(.home-products) .product-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .products-section:not(.home-products) .product-actions .add-btn{display:flex!important;align-items:center;justify-content:center}
+  .products-section:not(.home-products) .product-actions .buy-btn{display:flex!important;align-items:center;justify-content:center}
+  .detail-page .detail-info h1{font-size:24px!important;line-height:1.25!important}
+}
+
