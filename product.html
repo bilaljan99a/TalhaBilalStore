@@ -67,7 +67,7 @@ function renderCmsGenericProduct(){
  const thumbs=images.map((src,i)=>'<button class="gallery-thumb '+(i===0?'active':'')+'" type="button" data-cms-gallery="'+esc(src)+'" aria-label="View image '+(i+1)+'"><img src="'+esc(src)+'" alt="" loading="lazy"></button>').join('');
  detail.innerHTML='<div class="detail-breadcrumb"><a href="/">Home</a> / <a href="/products">All Products</a> / '+esc(p.name)+'</div>'+
  '<section class="detail-top"><div><div class="product-gallery"><div class="gallery-main"><img id="cmsGalleryMain" src="'+esc(mainImage)+'" alt="'+esc(p.name)+'"></div><div class="gallery-thumbs" role="list">'+thumbs+'</div></div></div>'+
- '<div class="detail-info"><span class="eyebrow">'+esc(p.categoryName||p.tag||'PRODUCT')+'</span><h1>'+esc(p.name)+'</h1><p class="detail-description">'+esc(p.description||'')+'</p>'+
+ '<div class="detail-info"><span class="eyebrow">'+esc(p.categoryName||p.tag||'PRODUCT')+'</span><h1>'+esc(p.name)+'</h1><p class="detail-description">'+esc(p.shortDescription||'')+'</p>'+
  '<div class="detail-price">'+currency(p.price)+(p.oldPrice?'<span class="old-price">'+currency(p.oldPrice)+'</span>':'')+'</div>'+
  '<p class="pack-info"><strong>Weight:</strong> '+Number(p.weight||1)+' kg</p>'+
  '<div class="detail-actions"><a class="detail-cart" href="/products?add='+encodeURIComponent(p.id)+'">Add to Cart</a><a class="detail-buy" href="/products?buy='+encodeURIComponent(p.id)+'">Buy Now</a></div>'+
