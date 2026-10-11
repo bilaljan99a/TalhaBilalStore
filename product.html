@@ -102,6 +102,17 @@ function cmsPriceForVariant(product,chosen){
 function cmsCurrentVariant(){
  const chosen={};document.querySelectorAll(".detail-info [data-cms-variation]").forEach(select=>{if(select.value)chosen[select.dataset.cmsVariation||"Option"]=select.value});return chosen;
 }
+function cmsVariantWeight(product,chosen){
+ let weight=Math.max(0,Number(product?.weight)||0);
+ for(const [name,value] of Object.entries(chosen||{})){
+  if(!/^(weight|pack\s*weight|product\s*weight)$/i.test(String(name).trim()))continue;
+  const match=String(value||"").trim().replace(/,/g,"").match(/([0-9]+(?:\.[0-9]+)?)\s*(kg|kgs|kilograms?|g|grams?)?/i);
+  if(!match)continue;
+  let selected=Number(match[1]);if(/^(g|gram)/i.test(match[2]||""))selected/=1000;
+  if(Number.isFinite(selected)&&selected>0&&selected<=1000)weight=selected;
+ }
+ return weight;
+}
 function renderCmsGenericProduct(){
  detail.classList.add("cms-generic-detail");
  const images=(Array.isArray(p.images)&&p.images.length?p.images:[p.image]).filter(Boolean).slice(0,8);
@@ -118,9 +129,10 @@ function renderCmsGenericProduct(){
  const mainImage=images[0]||'/assets/products/mango-pulp-product-image.webp';
  const thumbs=images.map((src,i)=>'<button class="gallery-thumb '+(i===0?'active':'')+'" type="button" data-cms-gallery="'+esc(src)+'" aria-label="View image '+(i+1)+'"><img src="'+esc(src)+'" alt="" loading="lazy"></button>').join('');
  const showWeight=!!p.showWeight||!!p.isMangoPremix;
- const itemDeliveryFee=cmsDeliveryFee(p.weight,p.deliveryMode,p.manualDeliveryFee);
  const defaultVariant=cmsInitialVariant(p.variations);
  const displayPrice=cmsPriceForVariant(p,defaultVariant);
+ const displayWeight=cmsVariantWeight(p,defaultVariant);
+ const itemDeliveryFee=cmsDeliveryFee(displayWeight,p.deliveryMode,p.manualDeliveryFee);
  const oldPriceMarkup=Number(p.oldPrice)>displayPrice?'<span class="old-price" data-cms-old-price>'+currency(p.oldPrice)+'</span>':(p.oldPrice?'<span class="old-price" data-cms-old-price hidden>'+currency(p.oldPrice)+'</span>':'');
  const variationMarkup=(Array.isArray(p.variations)?p.variations:[]).map((v,index)=>{
   const name=String(v?.name||v?.label||("Option "+(index+1)));
@@ -133,21 +145,25 @@ function renderCmsGenericProduct(){
  '<section class="detail-top"><div><div class="product-gallery"><div class="gallery-main"><img id="cmsGalleryMain" src="'+esc(mainImage)+'" alt="'+esc(p.name)+'"></div><div class="gallery-thumbs" role="list">'+thumbs+'</div></div></div>'+
  '<div class="detail-info" data-product-id="'+esc(p.id)+'"><span class="eyebrow">'+esc(p.categoryName||p.tag||'PRODUCT')+'</span><h1>'+esc(p.name)+'</h1><p class="detail-description">'+esc(p.shortDescription||'')+'</p>'+
  '<div class="detail-price"><span data-cms-current-price>'+currency(displayPrice)+'</span>'+oldPriceMarkup+'</div>'+
- (showWeight?'<p class="pack-info"><strong>Weight:</strong> '+Number(p.weight||1)+' kg</p>':'')+
+ (showWeight?'<p class="pack-info" data-cms-weight-info><strong>Weight:</strong> <span data-cms-current-weight>'+displayWeight+'</span> kg</p>':'')+
  (variationMarkup?'<div class="variant-selector cms-variation-selector"><strong>Select options</strong>'+variationMarkup+'</div>':'')+
- '<p class="cms-detail-delivery">Delivery fee for this item: <strong>'+currency(itemDeliveryFee)+'</strong></p>'+
+ '<p class="cms-detail-delivery">Delivery fee for this item: <strong data-cms-current-delivery>'+currency(itemDeliveryFee)+'</strong></p>'+
  '<div class="detail-actions"><a class="detail-cart" id="detailAdd" data-add="'+esc(p.id)+'" href="#">Add to Cart</a><a class="detail-buy" id="detailBuy" data-buy="'+esc(p.id)+'" href="#">Buy Now</a></div></div></section>'+
  '<section class="detail-accordions"><details><summary>Product Details <span>⌄</span></summary><div class="accordion-content">'+(p.description?'<p>'+esc(p.description)+'</p>':'<p>More product details will be added soon.</p>')+'</div></details>'+
- '<details open><summary>Delivery Information <span>⌄</span></summary><div class="accordion-content"><p>'+esc(deliveryCopy)+'</p></div></details></section>'+
+ '<details open><summary>Delivery Information <span>⌄</span></summary><div class="accordion-content"><p data-cms-delivery-copy>'+esc(deliveryCopy)+'</p></div></details></section>'+
  '<section class="detail-section customer-reviews-section"><div class="section-heading"><div><span class="eyebrow">CUSTOMER REVIEWS</span><h2>Reviews for this product</h2></div></div><div id="productReviews"><div class="empty-reviews">No reviews for this product yet.</div></div></section>'+
  '<div class="detail-bottom-link"><a class="detail-back" href="/products">← All Products</a></div>';
  // Let the catalogue page add this product after its CMS catalogue has loaded.
  // This avoids opening an empty cart while the CMS request is still in flight.
  document.querySelectorAll('[data-cms-gallery]').forEach(btn=>btn.addEventListener('click',()=>{const im=document.getElementById('cmsGalleryMain');if(im)im.src=btn.dataset.cmsGallery;document.querySelectorAll('[data-cms-gallery]').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}));
  document.querySelectorAll('.detail-info [data-cms-variation]').forEach(select=>select.addEventListener('change',()=>{
-  const price=cmsPriceForVariant(p,cmsCurrentVariant()),display=document.querySelector('[data-cms-current-price]'),old=document.querySelector('[data-cms-old-price]');
+  const chosen=cmsCurrentVariant(),price=cmsPriceForVariant(p,chosen),weight=cmsVariantWeight(p,chosen),delivery=cmsDeliveryFee(weight,p.deliveryMode,p.manualDeliveryFee);
+  const display=document.querySelector('[data-cms-current-price]'),old=document.querySelector('[data-cms-old-price]'),weightLabel=document.querySelector('[data-cms-current-weight]'),deliveryLabel=document.querySelector('[data-cms-current-delivery]'),deliveryCopyEl=document.querySelector('[data-cms-delivery-copy]');
   if(display)display.textContent=currency(price);
   if(old)old.hidden=!(Number(p.oldPrice)>price);
+  if(weightLabel)weightLabel.textContent=String(weight);
+  if(deliveryLabel)deliveryLabel.textContent=currency(delivery);
+  if(deliveryCopyEl)deliveryCopyEl.textContent='Cash on Delivery is available. The delivery fee for this item is '+currency(delivery)+'. If you add other items, the final delivery fee will be shown in your cart before you place the order.';
  }));
 }
 function renderProduct(){
