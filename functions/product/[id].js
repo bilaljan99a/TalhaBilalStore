@@ -40,7 +40,7 @@ async function getPublishedCmsProduct(id){
     const price=row.sale_price!=null?Number(row.sale_price):Number(row.price||0);
     const rawOldPrice=row.old_price!=null?Number(row.old_price):(row.sale_price!=null?Number(row.price||0):0);
     const description=String(row.description||row.short_description||'');
-    const rawSummary=String(row.short_description||row.description||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+    const rawSummary=String(row.short_description||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
     const shortDescription=rawSummary.length>135?rawSummary.slice(0,134).replace(/\s+\S*$/,'').trim()+'…':rawSummary;
     const seoRow=(data.seo||[]).find(x=>x.entity_type==='product'&&Number(x.entity_id)===Number(row.id))||{};
     const siteSeo=(data.seo||[]).find(x=>x.entity_type==='site'&&(x.entity_id==null||x.entity_id===''))||{};
