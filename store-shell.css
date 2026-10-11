@@ -216,3 +216,31 @@
   .cms-generic-detail .detail-info .detail-price{font-size:25px}
 }
 
+
+.cms-generic-detail .cms-detail-delivery{
+  margin:10px 0 16px;
+  padding:10px 12px;
+  border:1px solid #ece3da;
+  border-radius:9px;
+  background:#fffaf6;
+  font-size:14px;
+  line-height:1.5;
+}
+.cms-generic-detail .cms-detail-delivery strong{color:var(--orange);white-space:nowrap}
+.cms-generic-detail .detail-actions a{cursor:pointer}
+.cms-generic-detail .detail-info .detail-description{
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+  line-clamp:3;
+  overflow:hidden;
+  font-size:14px!important;
+  line-height:1.55!important;
+}
+.product-info .product-card-summary{
+  -webkit-line-clamp:2!important;
+  line-clamp:2!important;
+  font-size:12px!important;
+  line-height:1.45!important;
+  max-height:calc(1.45em * 2)!important;
+}
