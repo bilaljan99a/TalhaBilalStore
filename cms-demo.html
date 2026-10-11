@@ -363,9 +363,18 @@ async function cmsEdit(page,id){
  cmsFormSeo=r.seo&&typeof r.seo==="object"?Object.assign({},r.seo):{};
  if(page==="products")return cmsEditProduct(r,id);if(page==="categories")return cmsEditCategory(r,id);if(page==="pages")return cmsEditPage(r,id);if(page==="banners")return cmsEditBanner(r,id);if(page==="blog")return cmsEditBlog(r,id);if(page==="seo")return cmsEditSeo(r,id);
 }
+function cmsUpdateCharacterCount(id,limit){
+ const input=document.getElementById(id),count=document.getElementById(id+"Count");if(!input||!count)return;
+ count.textContent=String(input.value.length)+" / "+String(limit)+" characters";
+ count.style.color=input.value.length>=limit?"#b42318":"var(--muted)";
+}
 function cmsField(label,id,v,type,help){
  v=v===null||v===undefined?"":String(v);
- if(type==="textarea")return '<div class="field full"><label for="'+id+'">'+esc(label)+'</label><textarea id="'+id+'">'+esc(v)+'</textarea>'+(help?'<p class="field-help">'+esc(help)+'</p>':'')+'</div>';
+ if(type==="textarea"||type==="textarea-135"){
+  const limit=type==="textarea-135"?135:null;
+  if(limit&&v.length>limit)v=v.slice(0,limit);
+  return '<div class="field full"><label for="'+id+'">'+esc(label)+'</label><textarea id="'+id+'" '+(limit?'maxlength="'+limit+'" oninput="cmsUpdateCharacterCount(&quot;'+id+'&quot;,'+limit+')"':'')+'>'+esc(v)+'</textarea>'+(help?'<p class="field-help">'+esc(help)+'</p>':'')+(limit?'<p class="field-help" id="'+id+'Count">'+v.length+' / '+limit+' characters</p>':'')+'</div>';
+ }
  return '<div class="field"><label for="'+id+'">'+esc(label)+'</label><input id="'+id+'" type="'+(type||"text")+'" value="'+esc(v)+'" '+(type==="number"?'step="any"':'')+'>'+(help?'<p class="field-help">'+esc(help)+'</p>':'')+'</div>';
 }
 function cmsSelect(label,id,opts,sel,help){return '<div class="field"><label for="'+id+'">'+esc(label)+'</label><select id="'+id+'">'+opts.map(x=>'<option value="'+esc(x.value)+'" '+(String(sel??"")===String(x.value)?"selected":"")+'>'+esc(x.label)+'</option>').join("")+'</select>'+(help?'<p class="field-help">'+esc(help)+'</p>':'')+'</div>'}
@@ -475,7 +484,7 @@ async function cmsEditProduct(r,id){
  cmsField("Cost (optional)","pCost",r.cost,"number")+
  cmsField("Stock (optional)","pStock",r.stock,"number")+
  cmsSelect("Publish status","pStatus",[{value:"draft",label:"Draft — not shown on website"},{value:"active",label:"Active — publish to website"},{value:"archived",label:"Archived — hidden"}],r.status||"draft")+
- cmsField("Short description","pShort",r.short_description,"textarea")+
+ cmsField("Short description (max 135 characters)","pShort",r.short_description,"textarea-135","Short summary shown on product cards. Full description stays in the Product Details section.")+
  cmsField("Full description","pDescription",r.description,"textarea")+
  cmsField("Image URL(s), one per line","pImages",imgs.join("\n"),"textarea","Paste existing image URLs or upload files below.")+
  cmsUploadField("Upload product image(s)","pImages","products",true,"append-lines","Select multiple images. First image is the main photo.")+
@@ -525,7 +534,9 @@ async function cmsSaveProduct(id){
   const images=g("pImages").value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
   const seo=Object.assign({},cmsFormSeo,{title:g("pSeoTitle").value.trim()||null,description:g("pSeoDesc").value.trim()||null,keywords:g("pSeoKeywords").value.split(",").map(x=>x.trim()).filter(Boolean)});
   const selectedPageIds=[...document.querySelectorAll("[data-product-page]:checked")].map(x=>Number(x.value)).filter(Number.isFinite);
-  const data={name,slug,sku:g("pSku").value.trim()||null,category_id:g("pCat").value?Number(g("pCat").value):null,price:num("pPrice")??0,old_price:num("pOldPrice"),sale_price:num("pSale"),weight_kg:weight,tag:g("pTag").value.trim()||null,cost:num("pCost"),stock:num("pStock"),status:g("pStatus").value,short_description:g("pShort").value.trim()||null,description:g("pDescription").value.trim()||null,images,seo,featured:g("pFeatured").checked,best_seller:g("pBestSeller").checked,is_new:g("pNew").checked};
+  const shortDescription=g("pShort").value.trim();if(shortDescription.length>135)throw new Error("Short description must be 135 characters or fewer.");
+  const oldPrice=num("pOldPrice"),salePrice=num("pSale");if(oldPrice!==null&&salePrice!==null&&salePrice>=oldPrice)throw new Error("Sale price should be lower than old price.");
+  const data={name,slug,sku:g("pSku").value.trim()||null,category_id:g("pCat").value?Number(g("pCat").value):null,price:num("pPrice")??0,old_price:oldPrice,sale_price:salePrice,weight_kg:weight,tag:g("pTag").value.trim()||null,cost:num("pCost"),stock:num("pStock"),status:g("pStatus").value,short_description:shortDescription||null,description:g("pDescription").value.trim()||null,images,seo,featured:g("pFeatured").checked,best_seller:g("pBestSeller").checked,is_new:g("pNew").checked};
   const saved=await cmsRequest("cms_products",id===null?"POST":"PATCH",id,data);
   if(saved?.id)await cmsSyncProductAssignments(Number(saved.id),data.category_id,data.featured,selectedPageIds);
   await cmsManage("products");
