@@ -16,7 +16,7 @@
     const image = firstImage(images);
     const price = row.sale_price != null ? Number(row.sale_price) : Number(row.price || 0);
     const was = row.old_price != null ? Number(row.old_price) : (row.sale_price != null ? Number(row.price || 0) : 0);
-    const summarySource = String(row.short_description || row.description || "").replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+    const summarySource = String(row.short_description || "").replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
     const shortDescription = summarySource.length > 135 ? summarySource.slice(0,134).replace(/\s+\S*$/,"").trim()+"…" : summarySource;
     return {
       id:String(row.slug), cmsRecordId:Number(row.id), isCmsProduct:true,
