@@ -114,10 +114,10 @@
     const existing=document.querySelector('link[data-store-shell],link[rel="stylesheet"][href*="store-shell.css"]');
     if(existing){
       existing.dataset.storeShell='true';
-      if(!existing.href.includes('v=20261012-2'))existing.href='/store-shell.css?v=20261012-2';
+      if(!existing.href.includes('v=20261012-3'))existing.href='/store-shell.css?v=20261012-3';
       return;
     }
-    const link=document.createElement('link');link.id='storeShellStyles';link.dataset.storeShell='true';link.rel='stylesheet';link.href='/store-shell.css?v=20261012-2';document.head.appendChild(link);
+    const link=document.createElement('link');link.id='storeShellStyles';link.dataset.storeShell='true';link.rel='stylesheet';link.href='/store-shell.css?v=20261012-3';document.head.appendChild(link);
   }
   function loadMetaEvents(){if(document.querySelector('script[data-meta-events]'))return;const script=document.createElement('script');script.src='/meta-events.js?v=20261005-2';script.dataset.metaEvents='true';document.head.appendChild(script)}
   function productIdFromPath(){const m=location.pathname.match(/^\/product\/([^/]+)\/?$/i);return m?decodeURIComponent(m[1]):null}
