@@ -25,7 +25,28 @@ const CART_KEY='tb_cart_v2';
 function loadCart(){try{const parsed=JSON.parse(localStorage.getItem(CART_KEY)||'[]');return Array.isArray(parsed)?parsed.filter(i=>i&&typeof i.id==='string'&&i.id.length>0&&Number(i.quantity)>0).map(i=>({id:i.id,quantity:Math.max(1,Math.floor(Number(i.quantity))),variant:i.variant&&typeof i.variant==='object'&&!Array.isArray(i.variant)?i.variant:{},price:i.price!==null&&i.price!==undefined&&Number.isFinite(Number(i.price))?Math.max(0,Number(i.price)):null})):[]}catch{return[]}}
 const cart=loadCart();
 function persistCart(){localStorage.setItem(CART_KEY,JSON.stringify(cart))}
-function findProduct(id){return PRODUCTS.find(p=>String(p.id)===String(id))}
+function findProduct(id){
+ const list=Array.isArray(window.PRODUCTS)?window.PRODUCTS:PRODUCTS;
+ const key=String(id??"");
+ return list.find(p=>String(p.id)===key||String(p.slug||"")===key)||null;
+}
+async function waitForProduct(id){
+ let product=findProduct(id);
+ if(product)return product;
+ const pending=window.CMS_SITE_READY;
+ if(pending&&typeof pending.then==="function"){
+  try{const result=await pending;if(result&&result.ok)product=findProduct(id)}catch(error){console.warn("CMS catalogue is not ready",error)}
+ }
+ return product||null;
+}
+async function ensureCartProductsReady(){
+ const missing=cart.some(item=>!findProduct(item.id));
+ const pending=window.CMS_SITE_READY;
+ if(missing&&pending&&typeof pending.then==="function"){
+  try{const result=await pending;if(result&&result.ok&&typeof window.refreshFromCms==="function")window.refreshFromCms()}catch(error){console.warn("Could not refresh products before checkout",error)}
+ }
+ return cart.every(item=>!!findProduct(item.id));
+}
 function normalizedVariant(variant){if(!variant||typeof variant!=="object"||Array.isArray(variant))return{};return Object.keys(variant).sort().reduce((out,key)=>{const value=String(variant[key]??"").trim();if(value)out[key]=value;return out},{})}
 function variantKey(variant){return JSON.stringify(normalizedVariant(variant))}
 function variantLabel(variant){return Object.entries(normalizedVariant(variant)).filter(([k])=>!['price','weight','image','delivery_fee','sku'].includes(k.toLowerCase())).map(([key,value])=>key+": "+value).join(", ")}
@@ -141,7 +162,7 @@ function checkoutSummary(items,totalWeight,productTotal,delivery,total){
  return '<div class="checkout-summary-card"><div class="checkout-summary-title">'+itemTitle+'</div><div class="checkout-summary-row"><span>Quantity</span><strong>'+items.reduce((s,i)=>s+i.quantity,0)+'</strong></div>'+weightRow+'<div class="checkout-summary-row"><span>Delivery fee</span><strong>'+currency(delivery)+'</strong></div><div class="checkout-summary-total"><span>Payable total</span><strong>'+currency(total)+'</strong></div></div>';
 }
 function openOrder(p,q=1,variant={}){if(!orderModal||!orderForm)return;const quantity=Math.max(1,Number(q)||1),chosen=normalizedVariant(variant),unitPrice=productVariantPrice(p,chosen),unitWeight=productVariantWeight(p,chosen),weight=unitWeight*quantity,isMango=!!p.isMangoPremix||/^mango-/.test(String(p.id||"")),productTotal=isMango?(bundlePriceForWeight(weight)||unitPrice*quantity):unitPrice*quantity,delivery=productDeliveryFee(Object.assign({},p,{weight:unitWeight}),quantity),total=productTotal+delivery;activeCheckout={items:[{id:p.id||null,name:orderItemName(p,chosen),quantity,price:unitPrice,weight:unitWeight,variant:chosen}],weight,productTotal,delivery};document.getElementById('orderProduct').value=orderItemName(p,chosen);document.getElementById('orderPrice').value=productTotal;document.getElementById('orderQuantity').value=quantity;if(selectedProduct)selectedProduct.innerHTML=checkoutSummary(activeCheckout.items,weight,productTotal,delivery,total);if(checkoutProductTotal)checkoutProductTotal.textContent=currency(productTotal);if(checkoutDelivery)checkoutDelivery.textContent=currency(delivery);if(checkoutGrandTotal)checkoutGrandTotal.textContent=currency(total);orderModal.hidden=false;document.body.style.overflow='hidden';setTimeout(()=>document.getElementById('fullName')?.focus(),50)}
-function openCartOrder(){const totals=cartTotals();if(!cart.length||!orderModal||!orderForm)return;activeCheckout={items:cart.map(i=>{const p=findProduct(i.id);return{id:p.id,name:orderItemName(p,i.variant),quantity:i.quantity,price:Number(i.price??p.price),weight:productVariantWeight(p,i.variant),variant:normalizedVariant(i.variant)}}).filter(i=>i.id),weight:totals.weight,productTotal:totals.subtotal,delivery:totals.delivery};document.getElementById('orderProduct').value=activeCheckout.items.map(i=>`${i.name} × ${i.quantity}`).join(', ');document.getElementById('orderPrice').value=totals.subtotal;document.getElementById('orderQuantity').value=cart.reduce((s,i)=>s+i.quantity,0);if(selectedProduct)selectedProduct.innerHTML=checkoutSummary(activeCheckout.items,totals.weight,totals.subtotal,totals.delivery,totals.total);if(checkoutProductTotal)checkoutProductTotal.textContent=currency(totals.subtotal);if(checkoutDelivery)checkoutDelivery.textContent=currency(totals.delivery);if(checkoutGrandTotal)checkoutGrandTotal.textContent=currency(totals.total);orderModal.hidden=false;document.body.style.overflow='hidden';closeCart();setTimeout(()=>document.getElementById('fullName')?.focus(),50)}
+function openCartOrder(){if(!cart.length||!orderModal||!orderForm)return;if(cart.some(i=>!findProduct(i.id))){alert("One or more cart items are still loading. Please wait for the catalogue to finish loading and try again.");return}const totals=cartTotals();activeCheckout={items:cart.map(i=>{const p=findProduct(i.id);return{id:p.id,name:orderItemName(p,i.variant),quantity:i.quantity,price:Number(i.price??p.price),weight:productVariantWeight(p,i.variant),variant:normalizedVariant(i.variant)}}).filter(i=>i.id),weight:totals.weight,productTotal:totals.subtotal,delivery:totals.delivery};document.getElementById('orderProduct').value=activeCheckout.items.map(i=>`${i.name} × ${i.quantity}`).join(', ');document.getElementById('orderPrice').value=totals.subtotal;document.getElementById('orderQuantity').value=cart.reduce((s,i)=>s+i.quantity,0);if(selectedProduct)selectedProduct.innerHTML=checkoutSummary(activeCheckout.items,totals.weight,totals.subtotal,totals.delivery,totals.total);if(checkoutProductTotal)checkoutProductTotal.textContent=currency(totals.subtotal);if(checkoutDelivery)checkoutDelivery.textContent=currency(totals.delivery);if(checkoutGrandTotal)checkoutGrandTotal.textContent=currency(totals.total);orderModal.hidden=false;document.body.style.overflow='hidden';closeCart();setTimeout(()=>document.getElementById('fullName')?.focus(),50)}
 function cartTotals(){
  const weight=cart.reduce((sum,item)=>{const p=findProduct(item.id);return sum+productVariantWeight(p,item.variant)*item.quantity},0);
  const weightedShippingWeight=cart.reduce((sum,item)=>{const p=findProduct(item.id);return sum+(p&&p.deliveryMode!=="manual"?productVariantWeight(p,item.variant)*item.quantity:0)},0);
@@ -180,32 +201,37 @@ function renderCart(){
 }
 function openCart(){if(!cartDrawer||!drawerOverlay)return;cartDrawer.classList.add('open');cartDrawer.setAttribute('aria-hidden','false');cartDrawer.inert=false;drawerOverlay.hidden=false;document.body.style.overflow='hidden'}
 function closeCart(){if(!cartDrawer||!drawerOverlay)return;cartDrawer.classList.remove('open');cartDrawer.setAttribute('aria-hidden','true');cartDrawer.inert=true;drawerOverlay.hidden=true;document.body.style.overflow=''}
-function checkoutCart(){if(cart.length)openCartOrder()}
+async function checkoutCart(){
+ if(!cart.length){alert("Your cart is empty. Add a product before checkout.");return}
+ const ready=await ensureCartProductsReady();
+ if(!ready){alert("Your cart is still syncing with the catalogue. Please refresh the page and try again; your cart has been kept.");return}
+ openCartOrder();
+}
 function setMetaAdvancedMatching({fullName='',phone='',email='',city=''}){try{if(typeof window.fbq!=='function')return;let cleanPhone=String(phone||'').replace(/[^0-9+]/g,'');if(cleanPhone.startsWith('03')&&cleanPhone.length===11){cleanPhone='92'+cleanPhone.slice(1)}else if(cleanPhone.startsWith('+92')){cleanPhone=cleanPhone.replace('+','')}const cleanEmail=String(email||'').trim().toLowerCase();const parts=String(fullName||'').trim().split(/\s+/).filter(Boolean);const data={};if(cleanEmail)data.em=cleanEmail;if(cleanPhone)data.ph=cleanPhone;if(parts[0])data.fn=parts[0].toLowerCase();if(parts.length>1)data.ln=parts.slice(1).join(' ').toLowerCase();if(city)data.ct=String(city).trim().toLowerCase();data.country='pk';if(Object.keys(data).length)window.fbq('set','userData',data)}catch{}}
 async function saveOrder(){const d=new FormData(orderForm);if(!activeCheckout)throw new Error('No product selected.');const fullName=String(d.get('fullName')||'').trim(),phone=String(d.get('phone')||'').trim(),address=String(d.get('address')||'').trim(),city=String(d.get('city')||'').trim(),nearestLandmark=String(d.get('nearest_landmark')||'').trim(),email=String(d.get('email')||'').trim();if(!fullName||!phone||!address||!city)throw new Error('Please complete all required fields.');setMetaAdvancedMatching({fullName,phone,email,city});const payload={full_name:fullName,phone,address,city,nearest_landmark:nearestLandmark,email:email||null,items:activeCheckout.items,product_total:activeCheckout.productTotal,delivery_fee:activeCheckout.delivery,total:activeCheckout.productTotal+activeCheckout.delivery,total_weight:activeCheckout.weight};const res=await fetch(ORDER_FUNCTION,{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_KEY},body:JSON.stringify(payload)});const result=await res.json().catch(()=>({}));if(!res.ok||!result.success)throw new Error(result.error||'Order could not be placed.');const purchaseHandoff={content_ids:Array.isArray(payload.items)?payload.items.map(i=>i.id).filter(Boolean):[],content_type:'product',value:Number(payload.total||0),currency:'PKR',num_items:Array.isArray(payload.items)?payload.items.reduce((sum,i)=>sum+Number(i.quantity||0),0):0,order_id:result.order_number};try{const raw=JSON.stringify(purchaseHandoff);sessionStorage.setItem(`tb_pending_purchase_${result.order_number}`,raw);localStorage.setItem(`tb_pending_purchase_${result.order_number}`,raw);localStorage.setItem('tb_last_order',raw);}catch{}try{if(typeof window.fbq==='function'){window.fbq('track','Purchase',{content_ids:purchaseHandoff.content_ids.length?purchaseHandoff.content_ids:['mango-2kg'],content_type:'product',value:purchaseHandoff.value,currency:'PKR',num_items:purchaseHandoff.num_items||1},{eventID:result.order_number});sessionStorage.setItem(`purchase_tracked_${result.order_number}`,'1');localStorage.setItem(`purchase_tracked_${result.order_number}`,'1');}}catch(e){console.warn('Purchase tracking dispatch:',e)}return result.order_number}
-document.addEventListener('click',e=>{
+document.addEventListener('click',async e=>{
  const target=e.target instanceof Element?e.target:null;
  if(!target)return;
  const cartButton=target.closest('#cartButton');
  if(cartButton){
-  e.preventDefault();
+  e.preventDefault();e.stopPropagation();
   openCart();
   return;
  }
  const add=target.closest('[data-add]'),buy=target.closest('[data-buy]');
+ if(!add&&!buy)return;
+ e.preventDefault();e.stopPropagation();
+ const id=add?add.dataset.add:buy.dataset.buy;
+ const product=await waitForProduct(id);
+ if(!product){alert("This product is still loading. Please refresh the page and try again. Your cart and existing orders have not been changed.");return}
+ const qty=readCurrentQuantity(add||buy);
+ const variant=readSelectedVariations(add||buy);
  if(add){
-  e.preventDefault();
-  const qty=readCurrentQuantity(add);
-  addToCart(add.dataset.add,readSelectedVariations(add),qty);
+  const added=addToCart(id,variant,qty);
+  if(!added)alert("Could not add this item. Please refresh and try again.");
   return;
  }
- if(buy){
-  e.preventDefault();
-  const product=findProduct(buy.dataset.buy);
-  const qty=readCurrentQuantity(buy);
-  if(product)openOrder(product,qty,readSelectedVariations(buy));
-  return;
- }
+ openOrder(product,qty,variant);
 },true);
 document.getElementById('closeModal')?.addEventListener('click',closeOrder);orderModal?.addEventListener('click',e=>{if(e.target===orderModal)closeOrder()});document.getElementById('closeCart')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closeCart()});drawerOverlay?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closeCart()});document.getElementById('cartCheckout')?.addEventListener('click',checkoutCart);
 cartItems?.addEventListener('click',e=>{const inc=e.target.closest('[data-inc]'),dec=e.target.closest('[data-dec]'),remove=e.target.closest('[data-remove]'),button=inc||dec||remove;if(!button)return;const id=button.dataset.inc||button.dataset.dec||button.dataset.remove,key=button.dataset.variant||"{}";const matches=x=>String(x.id)===String(id)&&variantKey(x.variant)===key;if(inc){const i=cart.find(matches);if(i)i.quantity++}if(dec){const i=cart.find(matches);if(i){i.quantity--;if(i.quantity<=0)cart.splice(cart.indexOf(i),1)}}if(remove){const i=cart.findIndex(matches);if(i>=0)cart.splice(i,1)}persistCart();renderCart()});
