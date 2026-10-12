@@ -1063,10 +1063,10 @@ async function cmsEditProduct(r,id){
  cmsSelect("Publish status","pStatus",[{value:"draft",label:"Draft — not shown on website"},{value:"active",label:"Active — publish to website"},{value:"archived",label:"Archived — hidden"}],r.status||"draft")+
  cmsField("Short description (max 135 characters)","pShort",r.short_description,"textarea-135","Short summary shown on the product detail page. Product cards show only image, title, price and buttons.")+
  cmsRenderRichEditor("pDescription",r.description,"Full description (Product Details)","Shown inside Product Details on the product page. Use bold text, headings, bullet points and images to build an attractive, high-converting product description.")+
- cmsUploadField("Upload image inside product description","pDescription","products/description",false,"inline","Upload photos to insert them directly into the description at your cursor.")+
+ cmsUploadField("Upload image inside product description","pDescription","products/description",false,"inline","Recommended: 1200 px wide, proportional height, WebP/JPG, ideally 150–300 KB. Use this for in-article illustrations, not the main product gallery.")+
  cmsRenderVariationsManager(r.variations, r)+
  cmsField("Image URL(s), one per line","pImages",imgs.join("\n"),"textarea","Paste existing image URLs or upload files below.")+
- cmsUploadField("Upload product image(s)","pImages","products",true,"append-lines","Select multiple images. The first image is the main photo.")+
+ cmsUploadField("Upload product image(s)","pImages","products",true,"append-lines","RECOMMENDED MAIN/GALLERY SIZE: 1200 × 1200 px, square (1:1), WebP preferred, ideally 150–300 KB per image. Keep the product centred on the same square canvas with consistent padding. Use this same size for every gallery image. Upload limit: 8 MB each.")+
  '<div class="field full"><label>Image preview</label><div class="preview-frame" id="pPreview">'+(imgs[0]?'<img src="'+esc(imgs[0])+'" alt="Product preview">':'<span class="hint">Add an image URL above.</span>')+'</div></div>'+
  '<div class="field full"><label>Website page assignment</label><p class="field-help">The category links automatically. Every saved product is added to All Products. The existing homepage products remain unchanged; select extra CMS pages below if needed.</p><div class="assignment-list">'+(pageAssignment||'<p class="hint">No extra CMS pages yet. The product will still appear on All Products and its selected category page.</p>')+'</div></div>'+
  cmsField("SEO title","pSeoTitle",cmsFormSeo.title||"","text")+
@@ -1130,7 +1130,7 @@ async function cmsSaveProduct(id){
 
 async function cmsEditCategory(r,id){
  const all=await cmsRequest("cms_categories");cmsCache.categories=all;const opts=[{value:"",label:"Main category — no parent"},...all.filter(x=>Number(x.id)!==Number(id)).map(x=>({value:x.id,label:x.name}))];
- const fields=cmsField("Category name","cName",r.name,"text")+cmsField("URL slug","cSlug",r.slug,"text","Blank = generate from name.")+cmsField("Image URL","cImage",r.image_url,"text")+cmsUploadField("Upload category image","cImage","categories",false,"set","Or paste an image URL.")+cmsSelect("Parent category","cParent",opts,r.parent_id??"")+
+ const fields=cmsField("Category name","cName",r.name,"text")+cmsField("URL slug","cSlug",r.slug,"text","Blank = generate from name.")+cmsField("Image URL","cImage",r.image_url,"text")+cmsUploadField("Upload category image","cImage","categories",false,"set","Recommended: 800 × 800 px square (1:1), WebP preferred, ideally under 200 KB. Keep subject centred.")+cmsSelect("Parent category","cParent",opts,r.parent_id??"")+
  cmsField("Description","cDescription",r.description,"textarea")+cmsField("Display order","cSort",r.sort_order??0,"number")+cmsSelect("Visibility","cActive",[{value:"true",label:"Active"},{value:"false",label:"Hidden"}],String(r.is_active!==false))+
  cmsField("SEO title","cSeoTitle",cmsFormSeo.title||"","text")+cmsField("SEO meta description","cSeoDesc",cmsFormSeo.description||"","textarea")+
  '<div class="field full"><label>Image preview</label><div class="preview-frame" id="cPreview">'+(r.image_url?'<img src="'+esc(r.image_url)+'" alt="Category preview">':'<span class="hint">Add an image URL above.</span>')+'</div></div>';
@@ -1163,7 +1163,7 @@ async function cmsSavePage(id){const g=x=>document.getElementById(x);try{
 }catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
 function cmsLocalDatetime(v){if(!v)return "";const d=new Date(v);if(Number.isNaN(d.getTime()))return "";return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}
 async function cmsEditBanner(r,id){
- const fields=cmsField("Banner title","bTitle",r.title,"text")+cmsField("Subtitle / offer","bSubtitle",r.subtitle,"text")+cmsField("Desktop image URL","bImage",r.image_url,"text")+cmsUploadField("Upload desktop banner","bImage","banners",false,"set")+cmsField("Mobile image URL","bMobileImage",r.mobile_image_url,"text")+cmsUploadField("Upload mobile banner","bMobileImage","banners",false,"set")+
+ const fields=cmsField("Banner title","bTitle",r.title,"text")+cmsField("Subtitle / offer","bSubtitle",r.subtitle,"text")+cmsField("Desktop image URL","bImage",r.image_url,"text")+cmsUploadField("Upload desktop banner","bImage","banners",false,"set","Recommended: 1920 × 650 px wide landscape, WebP/JPG, ideally under 500 KB. Keep text/logos away from edges.")+cmsField("Mobile image URL","bMobileImage",r.mobile_image_url,"text")+cmsUploadField("Upload mobile banner","bMobileImage","banners",false,"set","Recommended: 1080 × 1350 px portrait (4:5), WebP/JPG, ideally under 350 KB. Keep the main subject near the centre.")+
  cmsSelect("Placement","bPlacement",[{value:"homepage",label:"Homepage hero"},{value:"category",label:"Category page"},{value:"product",label:"Product page"},{value:"blog",label:"Blog / editorial"},{value:"campaign",label:"Campaign / promotion"},{value:"sitewide",label:"Site-wide"}],r.placement||"homepage")+
  cmsField("Button text","bButtonText",r.button_text,"text")+cmsField("Button URL","bButtonUrl",r.button_url,"text")+cmsField("Sort order","bSort",r.sort_order??0,"number")+cmsField("Start time (optional)","bStart",cmsLocalDatetime(r.starts_at),"datetime-local")+cmsField("End time (optional)","bEnd",cmsLocalDatetime(r.ends_at),"datetime-local")+
  cmsSelect("CMS status","bActive",[{value:"true",label:"Active in CMS"},{value:"false",label:"Disabled"}],String(r.is_active!==false))+
@@ -1217,12 +1217,12 @@ async function cmsEditBlog(r,id){
  const editor=cmsRenderRichEditor("blogContent",r.content||"","Article content","Select text and use the toolbar for headings, bold/italic, lists, quotes, dividers and links. Insert images with the upload control below.");
  const fields=cmsField("Post title","blTitle",r.title,"text")+cmsField("URL slug","blSlug",r.slug,"text","Keep the current slug to preserve the public URL.")+
  cmsField("Excerpt / meta summary","blExcerpt",r.excerpt,"textarea")+
- cmsField("Featured image URL","blImage",r.featured_image_url,"text")+cmsUploadField("Upload featured image","blImage","blog/featured",false,"set")+
+ cmsField("Featured image URL","blImage",r.featured_image_url,"text")+cmsUploadField("Upload featured image","blImage","blog/featured",false,"set","Recommended: 1200 × 630 px (1.91:1), WebP, ideally under 300 KB. This ratio also works well for social previews.")+
  '<div class="field full"><label>Featured image preview</label><div class="preview-frame" id="blImagePreview">'+(r.featured_image_url?'<img src="'+esc(r.featured_image_url)+'" alt="Blog featured image">':'<span class="hint">Upload or paste an image URL.</span>')+'</div></div>'+
  cmsSelect("CMS status","blStatus",[{value:"draft",label:"Draft"},{value:"published",label:"Published in CMS"},{value:"scheduled",label:"Scheduled"}],r.status||"draft")+
  cmsField("Publish date (optional)","blDate",cmsLocalDatetime(r.published_at),"datetime-local")+cmsField("Author","blAuthor",r.author_name||"Talha Bilal Store","text")+
  cmsField("Tags (comma separated)","blTags",Array.isArray(r.tags)?r.tags.join(", "):"","text")+editor+
- cmsUploadField("Upload image inside article","blogContent","blog/content",false,"inline","Upload and insert the image at your cursor position.")+
+ cmsUploadField("Upload image inside article","blogContent","blog/content",false,"inline","Recommended: 1200 px wide with proportional height, WebP/JPG, ideally under 300 KB. Use a landscape ratio for screenshots/diagrams.")+
  '<div class="field full"><label>Related products</label><div class="assignment-list">'+(list||'<p class="hint">Add products before linking them.</p>')+'</div></div>'+
  cmsField("SEO title","blSeoTitle",seo.meta_title||seo.title||r.title||"","text")+cmsField("SEO meta description","blSeoDesc",seo.meta_description||seo.description||r.excerpt||"","textarea");
  const live=seo.live_url?'<div class="module-note">Current public article: <a href="'+esc(seo.live_url)+'" target="_blank" rel="noopener">'+esc(seo.live_url)+'</a></div>':"";
@@ -1250,7 +1250,7 @@ async function cmsEditSeo(r,id){
  '<div class="field"><label for="sTarget">Choose item</label><select id="sTarget" onchange="cmsSeoTargetChanged()"><option value="">Site-wide default</option></select><p class="field-help">Leave blank for site-wide metadata, or select an item.</p></div>'+
  cmsField("SEO title","sTitle",r.title,"text")+cmsField("Meta description","sDesc",r.description,"textarea")+cmsField("Canonical URL","sCanonical",r.canonical,"text")+
  cmsSelect("Indexing","sRobots",[{value:"index,follow",label:"Index, Follow"},{value:"noindex,follow",label:"Noindex, Follow"},{value:"index,nofollow",label:"Index, Nofollow"},{value:"noindex,nofollow",label:"Noindex, Nofollow"}],r.robots||"index,follow")+
- cmsField("Open Graph image URL","sOgImage",r.og_image,"text")+cmsUploadField("Upload Open Graph image","sOgImage","seo",false,"set")+cmsField("Structured data JSON","sSchema",JSON.stringify(r.schema_json||{},null,2),"textarea","Valid JSON. Saved in CMS but not injected into live pages automatically.");
+ cmsField("Open Graph image URL","sOgImage",r.og_image,"text")+cmsUploadField("Upload Open Graph image","sOgImage","seo",false,"set","Recommended: 1200 × 630 px (1.91:1), WebP/JPG, ideally under 300 KB for link previews.")+cmsField("Structured data JSON","sSchema",JSON.stringify(r.schema_json||{},null,2),"textarea","Valid JSON. Saved in CMS but not injected into live pages automatically.");
  cmsEditorShell(id===null?"Add SEO Record":"Edit SEO Record","Set site-wide defaults or item metadata. Live publishing remains separate.",fields,"cmsSaveSeo("+(id===null?"null":Number(id))+")","seo");
  const sel=document.getElementById("sType");if(sel)sel.addEventListener("change",()=>refreshSeoTargets(null));await refreshSeoTargets(r.entity_id??null);
 }
