@@ -37,15 +37,53 @@
   const BASE='https://www.talhabilalstore.com/';
   const LOGO='/assets/TalhaBilalStore%20Logo.png';
   const links=[['Home','index.html'],['All Products','/products'],['Blog','/blog.html']];
-  const categoryLinks=[
+  let categoryLinks=[
+    {label:'Grocery & Beverages',slug:'grocery-beverages'},
     {label:'Beauty & Personal Care',slug:'beauty-personal-care'},
-    {label:'Kids & Oral Care',slug:'kids-oral-care'}
+    {label:'Baby & Kids Care',slug:'baby-kids-care'}
   ];
+  function escapeCategoryText(value){
+    return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function categoryMenuLinksHtml(desktop=false){
+    return categoryLinks.map(c=>'<a '+(desktop?'role="menuitem" ':'')+'href="/products?category='+encodeURIComponent(c.slug)+'">'+escapeCategoryText(c.label)+'</a>').join('');
+  }
   function categoryDropdownHtml(){
-    return '<div class="nav-category" id="navCategoryMenu"><button type="button" class="nav-category-toggle" id="navCategoryToggle" aria-haspopup="true" aria-expanded="false">Categories <span aria-hidden="true">⌄</span></button><div class="nav-category-menu" id="navCategoryDropdown" role="menu">'+categoryLinks.map(c=>'<a role="menuitem" href="/products?category='+encodeURIComponent(c.slug)+'">'+c.label+'</a>').join('')+'</div></div>';
+    return '<div class="nav-category" id="navCategoryMenu"><button type="button" class="nav-category-toggle" id="navCategoryToggle" aria-haspopup="true" aria-expanded="false">Categories <span aria-hidden="true">⌄</span></button><div class="nav-category-menu" id="navCategoryDropdown" role="menu">'+categoryMenuLinksHtml(true)+'</div></div>';
   }
   function mobileCategoryHtml(){
-    return '<details class="site-menu-category"><summary>Categories <span aria-hidden="true">⌄</span></summary><div class="site-menu-category-links">'+categoryLinks.map(c=>'<a href="/products?category='+encodeURIComponent(c.slug)+'">'+c.label+'</a>').join('')+'</div></details>';
+    return '<details class="site-menu-category"><summary>Categories <span aria-hidden="true">⌄</span></summary><div class="site-menu-category-links">'+categoryMenuLinksHtml(false)+'</div></details>';
+  }
+  async function refreshCategoryLinks(){
+    try{
+      let data=null;
+      if(window.CMS_SITE_READY && typeof window.CMS_SITE_READY.then==='function'){
+        try{data=await window.CMS_SITE_READY}catch{}
+      }
+      if(!data||data.ok!==true||!Array.isArray(data.categories)){
+        const response=await fetch('https://dxdjqeqlmyawqrzphzdb.supabase.co/functions/v1/cms-public',{
+          headers:{'Accept':'application/json'},
+          cache:'no-store'
+        });
+        if(!response.ok)return;
+        data=await response.json();
+      }
+      if(!data||data.ok!==true||!Array.isArray(data.categories))return;
+      const products=Array.isArray(data.products)?data.products:[];
+      const liveCategories=data.categories
+        .filter(category=>category && category.is_active!==false && products.some(product=>Number(product.category_id)===Number(category.id)))
+        .map(category=>({label:String(category.name||'').trim(),slug:String(category.slug||'').trim()}))
+        .filter(category=>category.label&&/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(category.slug));
+      if(!liveCategories.length)return;
+      categoryLinks=liveCategories;
+      const desktopMenu=document.getElementById('navCategoryDropdown');
+      if(desktopMenu)desktopMenu.innerHTML=categoryMenuLinksHtml(true);
+      const mobileMenu=document.querySelector('.site-menu-category-links');
+      if(mobileMenu)mobileMenu.innerHTML=categoryMenuLinksHtml(false);
+    }catch(error){
+      // Keep the last known working links if the public CMS API is unavailable.
+      console.warn('Could not refresh category navigation from CMS.',error);
+    }
   }
   const socials=[
     {label:'Facebook',className:'social-facebook',url:'https://www.facebook.com/Talhabilalstore/',icon:'<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M14 8h3V4h-3c-3.3 0-5 1.9-5 5v3H6v4h3v4h4v-4h3.2l.8-4H13V9c0-.7.3-1 1-1Z" fill="#ffffff"/></svg>'},
@@ -107,5 +145,5 @@
   function closeProductAccordions(){if(/\/product(?:\.html)?$/i.test(location.pathname)||productIdFromPath())document.querySelectorAll('.detail-accordions details').forEach(d=>{d.open=false})}
   function buildMenu(){const header=document.querySelector('.site-header .nav-wrap');if(!header||document.getElementById('siteMenuToggle'))return;const toggle=document.createElement('button');toggle.id='siteMenuToggle';toggle.className='mobile-menu-toggle';toggle.type='button';toggle.setAttribute('aria-label','Open menu');toggle.setAttribute('aria-expanded','false');toggle.innerHTML='<span></span><span></span><span></span>';header.insertBefore(toggle,header.firstElementChild);const overlay=document.createElement('div');overlay.id='siteMenuOverlay';overlay.className='site-menu-overlay';overlay.hidden=true;const drawer=document.createElement('aside');drawer.id='siteMenuDrawer';drawer.className='site-menu-drawer';drawer.setAttribute('aria-hidden','true');drawer.innerHTML=`<div class="site-menu-head"><strong>Talha Bilal Store</strong><button type="button" id="siteMenuClose" aria-label="Close menu">×</button></div><nav>${links.slice(0,2).map(([label,href])=>`<a href="${href}">${label}<span>→</span></a>`).join('')}${mobileCategoryHtml()}${links.slice(2).map(([label,href])=>`<a href="${href}">${label}<span>→</span></a>`).join('')}</nav>`;document.body.append(drawer,overlay);const close=()=>{drawer.classList.remove('open');overlay.hidden=true;toggle.setAttribute('aria-expanded','false');drawer.setAttribute('aria-hidden','true');document.body.classList.remove('menu-open')};const open=()=>{drawer.classList.add('open');overlay.hidden=false;toggle.setAttribute('aria-expanded','true');drawer.setAttribute('aria-hidden','false');document.body.classList.add('menu-open')};toggle.addEventListener('click',open);overlay.addEventListener('click',close);drawer.querySelector('#siteMenuClose').addEventListener('click',close);drawer.querySelectorAll('a').forEach(a=>a.addEventListener('click',close));document.addEventListener('keydown',e=>{if(e.key==='Escape')close()})}
   init();
-  function init(){ensureRootBase();ensureFavicon();loadShellStyles();loadMetaEvents();addCanonical();setOpenGraph();setRobots();standardizeHeader();standardizeAnnouncement();standardizeNav();standardizeFooter();normalizeProductLinks();useLogo();removeProductDescription();fixStandaloneCart();prefillTrackOrder();buildMenu();closeProductAccordions()}
+  function init(){ensureRootBase();ensureFavicon();loadShellStyles();loadMetaEvents();addCanonical();setOpenGraph();setRobots();standardizeHeader();standardizeAnnouncement();standardizeNav();standardizeFooter();normalizeProductLinks();useLogo();removeProductDescription();fixStandaloneCart();prefillTrackOrder();buildMenu();closeProductAccordions();refreshCategoryLinks()}
 })();
