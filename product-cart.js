@@ -154,7 +154,8 @@ function cartTotals(){
  return{weight,rawSubtotal,subtotal,delivery,total:subtotal+delivery}
 }
 function closeOrder(){if(!orderModal)return;orderModal.hidden=true;document.body.style.overflow='';orderForm?.reset();activeCheckout=null}
-function addToCart(id,variant={}){const p=findProduct(id);if(!p)return false;const chosen=normalizedVariant(variant),unitPrice=productVariantPrice(p,chosen),e=cart.find(i=>String(i.id)===String(id)&&variantKey(i.variant)===variantKey(chosen));if(e){e.quantity++;e.price=unitPrice}else cart.push({id:String(id),quantity:1,variant:chosen,price:unitPrice});persistCart();renderCart();try{if(typeof window.fbq==='function'){window.fbq('track','AddToCart',{content_ids:[p.id],content_type:'product',content_name:p.name,value:unitPrice,currency:'PKR'})}}catch(err){}if(cartDrawer)openCart();else alert(`${p.name} added to cart.`);return true}
+function readCurrentQuantity(element){const root=element?.closest(".detail-info")||document;const input=root.querySelector("#productQtyInput")||document.getElementById("productQtyInput");const val=parseInt(input?.value,10);return Number.isFinite(val)&&val>=1?Math.min(val,99):1}
+function addToCart(id,variant={},qty=1){const p=findProduct(id);if(!p)return false;const quantity=Math.max(1,parseInt(qty,10)||1);const chosen=normalizedVariant(variant),unitPrice=productVariantPrice(p,chosen),e=cart.find(i=>String(i.id)===String(id)&&variantKey(i.variant)===variantKey(chosen));if(e){e.quantity+=quantity;e.price=unitPrice}else cart.push({id:String(id),quantity,variant:chosen,price:unitPrice});persistCart();renderCart();try{if(typeof window.fbq==='function'){window.fbq('track','AddToCart',{content_ids:[p.id],content_type:'product',content_name:p.name,value:unitPrice*quantity,currency:'PKR'})}}catch(err){}if(cartDrawer)openCart();else alert(`${p.name} added to cart.`);return true}
 function renderCart(){
  const totals=cartTotals();
  const displayedCount=cart.reduce((s,i)=>s+i.quantity,0);
@@ -194,13 +195,15 @@ document.addEventListener('click',e=>{
  const add=target.closest('[data-add]'),buy=target.closest('[data-buy]');
  if(add){
   e.preventDefault();
-  addToCart(add.dataset.add,readSelectedVariations(add));
+  const qty=readCurrentQuantity(add);
+  addToCart(add.dataset.add,readSelectedVariations(add),qty);
   return;
  }
  if(buy){
   e.preventDefault();
   const product=findProduct(buy.dataset.buy);
-  if(product)openOrder(product,1,readSelectedVariations(buy));
+  const qty=readCurrentQuantity(buy);
+  if(product)openOrder(product,qty,readSelectedVariations(buy));
   return;
  }
 },true);

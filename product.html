@@ -12,7 +12,49 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
 <link rel="shortcut icon" href="/favicon.ico">
-<link rel="manifest" href="/site.webmanifest"><link rel="stylesheet" href="styles.css?v=20260901-3"><link rel="stylesheet" href="pages.css?v=20260901-3"><link rel="stylesheet" href="store-fixes.css?v=20260909-3"><link rel="stylesheet" href="store-shell.css?v=20261011-12">
+<link rel="manifest" href="/site.webmanifest"><link rel="stylesheet" href="styles.css?v=20261012-1"><link rel="stylesheet" href="pages.css?v=20261012-1"><link rel="stylesheet" href="store-fixes.css?v=20261012-1"><link rel="stylesheet" href="store-shell.css?v=20261012-1">
+<style>
+/* Critical inline styles: Guarantee small icon variations & professional quantity selector */
+.cms-modern-variant-selector{margin:16px 0 14px!important;padding:14px!important;border:1px solid #eadfd7!important;border-radius:14px!important;background:#fff8f2!important}
+.cms-var-title-row{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:10px!important;margin-bottom:10px!important;font-size:13px!important}
+.cms-var-title-row strong{color:var(--ink)!important;font-weight:800!important}
+.cms-active-var-name{background:#ff6a0015!important;color:var(--orange)!important;padding:3px 10px!important;border-radius:999px!important;font-size:12px!important;font-weight:750!important}
+.cms-var-options-grid{display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:center!important}
+.cms-var-option-card{display:inline-flex!important;align-items:center!important;gap:8px!important;padding:6px 12px!important;background:#fff!important;border:1.5px solid #e2e8f0!important;border-radius:10px!important;cursor:pointer!important;text-align:left!important;position:relative!important;transition:all .18s ease!important;outline:none!important;box-sizing:border-box!important;max-width:100%!important;min-height:42px!important}
+.cms-var-option-card:hover{border-color:#cbd5e1!important;transform:translateY(-1px)!important;box-shadow:0 3px 8px rgba(0,0,0,0.04)!important}
+.cms-var-option-card.active{border-color:var(--orange)!important;background:#fffdfa!important;box-shadow:0 0 0 2px rgba(255,106,0,0.18)!important}
+.cms-var-thumb{width:34px!important;height:34px!important;min-width:34px!important;max-width:34px!important;min-height:34px!important;max-height:34px!important;object-fit:cover!important;border-radius:6px!important;border:1px solid #edf2f7!important;flex-shrink:0!important;display:block!important}
+.cms-var-color-dot{width:16px!important;height:16px!important;min-width:16px!important;min-height:16px!important;border-radius:50%!important;border:2px solid #fff!important;box-shadow:0 0 0 1px #cbd5e1!important;flex-shrink:0!important;display:inline-block!important}
+.cms-var-option-text{display:flex!important;flex-direction:column!important;min-width:0!important;flex:0 1 auto!important}
+.cms-var-name{font-size:12.5px!important;font-weight:750!important;color:var(--ink)!important;white-space:nowrap!important}
+.cms-var-prices{font-size:11.5px!important;margin-top:1px!important;display:flex!important;align-items:baseline!important;gap:5px!important}
+.cms-var-price{color:var(--orange)!important;font-weight:800!important}
+.cms-var-old{color:var(--muted)!important;font-size:10.5px!important;text-decoration:line-through!important}
+.cms-var-check{display:none;width:15px;height:15px;background:var(--orange);color:#fff;border-radius:50%;font-size:9.5px;line-height:15px;text-align:center;font-weight:800;margin-left:4px;flex-shrink:0}
+.cms-var-option-card.active .cms-var-check{display:inline-block}
+
+/* Product Page Quantity Selector */
+.product-qty-row{margin:18px 0 16px!important;padding:14px 16px!important;border:1px solid #e6ded7!important;border-radius:14px!important;background:#fffdfa!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:14px!important;flex-wrap:wrap!important}
+.product-qty-label-wrap{display:flex!important;flex-direction:column!important;gap:2px!important}
+.product-qty-title{font-size:13px!important;font-weight:800!important;color:var(--ink)!important}
+.product-qty-subtotal-text{font-size:12px!important;color:var(--muted)!important}
+.product-qty-subtotal-text strong{color:var(--orange)!important;font-weight:800!important;font-size:13px!important}
+.product-qty-box{display:inline-flex!important;align-items:center!important;background:#fff!important;border:1.5px solid #d9d0c7!important;border-radius:10px!important;overflow:hidden!important;box-shadow:0 1px 3px rgba(0,0,0,.04)!important}
+.product-qty-btn{width:40px!important;height:40px!important;border:0!important;background:#f8f6f3!important;color:var(--ink)!important;font-size:18px!important;font-weight:800!important;cursor:pointer!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;transition:background .15s ease!important;user-select:none!important}
+.product-qty-btn:hover{background:#ede6df!important;color:var(--orange)!important}
+.product-qty-btn:active{background:#dfd7ce!important}
+.product-qty-field{width:54px!important;height:40px!important;border:0!important;border-left:1px solid #e7dfd6!important;border-right:1px solid #e7dfd6!important;text-align:center!important;font-size:15px!important;font-weight:800!important;color:var(--ink)!important;outline:none!important;background:#fff!important;-moz-appearance:textfield!important}
+.product-qty-field::-webkit-outer-spin-button,.product-qty-field::-webkit-inner-spin-button{-webkit-appearance:none!important;margin:0!important}
+@media(max-width:560px){
+  .cms-var-options-grid{gap:6px!important}
+  .cms-var-option-card{padding:5px 9px!important;min-height:38px!important}
+  .cms-var-thumb{width:28px!important;height:28px!important;min-width:28px!important;max-width:28px!important;min-height:28px!important;max-height:28px!important}
+  .cms-var-name{font-size:11.5px!important}
+  .product-qty-row{padding:12px 14px!important;margin:14px 0!important}
+  .product-qty-btn{width:36px!important;height:36px!important;font-size:16px!important}
+  .product-qty-field{width:46px!important;height:36px!important;font-size:14px!important}
+}
+</style>
 <!-- Meta Pixel Code -->
 <script>
 !function(f,b,e,v,n,t,s)
@@ -49,8 +91,14 @@ function yieldText(){const match=String(p.description||'').match(/makes\s+(?:app
 function setMeta(name,content){let meta=document.querySelector(`meta[name="${name}"]`);if(!meta){meta=document.createElement('meta');meta.name=name;document.head.appendChild(meta)}meta.content=content}
 function setProperty(property,content){let meta=document.querySelector(`meta[property="${property}"]`);if(!meta){meta=document.createElement('meta');meta.setAttribute('property',property);document.head.appendChild(meta)}meta.content=content}
 function setSeo(){const cleanUrl=`https://www.talhabilalstore.com/product/${encodeURIComponent(p.id)}`;const yieldInfo=yieldText();document.title=`${p.name} – ${currency(p.price)} | Makes ${yieldInfo} | Talha Bilal Store`;setMeta('description',`${p.name} for ${currency(p.price)}. This ${p.weight}kg Mango Pulp Drink Premix makes ${yieldInfo}. Cash on Delivery available across Pakistan with product details and customer reviews.`);setProperty('og:title',document.title);setProperty('og:description',`${p.name} for ${currency(p.price)} — makes ${yieldInfo}. Cash on Delivery across Pakistan.`);setProperty('og:type','product');setProperty('og:url',cleanUrl);setProperty('og:image',new URL(p.image,location.origin).href);let canonical=document.querySelector('link[rel="canonical"]');if(!canonical){canonical=document.createElement('link');canonical.rel='canonical';document.head.appendChild(canonical)}canonical.href=cleanUrl;document.querySelectorAll('script[data-product-schema]').forEach(s=>s.remove());const schema=document.createElement('script');schema.type='application/ld+json';schema.dataset.productSchema='true';schema.textContent=JSON.stringify({'@context':'https://schema.org','@type':'Product','name':p.name,'description':p.description,'image':[new URL(p.image,location.origin).href,new URL('assets/products/mango-pulp-product-image.webp',location.origin).href],'sku':p.id,'brand':{'@type':'Brand','name':'Talha Bilal Store'},'offers':{'@type':'Offer','url':cleanUrl,'priceCurrency':'PKR','price':Number(p.price),'availability':'https://schema.org/InStock','itemCondition':'https://schema.org/NewCondition'}});document.head.appendChild(schema)}
-function renderMangoProduct(){setSeo();const delivery=deliveryForWeight(p.weight);detail.innerHTML=`<div class="detail-breadcrumb"><a href="index.html">Home</a> / <a href="/products">All Products</a> / ${esc(p.name)}</div><section class="detail-top"><div>${gallery()}</div><div class="detail-info"><span class="eyebrow">${esc(p.tag||'MANGO PULP')}</span><h1>${esc(p.name)}</h1><p class="detail-description">${esc(p.description||'Mango Pulp Drink Premix for preparing refreshing mango juice at home.')}</p><div class="detail-price">${currency(p.price)} ${p.oldPrice?`<span class="old-price">${currency(p.oldPrice)}</span>`:''}</div><div class="variant-selector"><label for="mangoSize"><strong>Select Pack Size</strong><select id="mangoSize" aria-label="Select Mango Pulp pack size">${PRODUCTS.filter(x=>!x.isCmsProduct||x.isMangoPremix).map(x=>`<option value="${x.id}" ${x.id===p.id?'selected':''}>${x.weight}kg — ${currency(x.price)}</option>`).join('')}</select></label><p class="variant-delivery">Delivery fee for this pack: <strong>${currency(delivery)}</strong></p></div><p class="pack-info"><strong>Pack:</strong> ${p.weight}kg</p><div class="detail-actions"><a class="detail-cart" id="detailAdd" data-add="${p.id}" href="#">Add to Cart</a><a class="detail-buy" id="detailBuy" data-buy="${p.id}" href="#">Buy Now</a></div></div></section><section class="detail-accordions"><details><summary>How to Prepare Mango Juice <span>⌄</span></summary><div class="accordion-content"><div class="recipe-grid"><div class="recipe-box"><strong>For 1 kg Mango Pulp</strong><div>• 1 kg Mango Pulp<br>• 7 liters water<br>• 600 grams sugar (add more for extra sweetness)</div></div><div class="recipe-box"><strong>Method</strong><div>1️⃣ Add mango pulp, water, and sugar together.<br>2️⃣ Blend well using a juicer/blender — this is important, as mixing by hand can leave lumps.<br>3️⃣ Once fully blended and sugar is dissolved, your juice is ready — makes approximately 9.8–10 liters.<br>4️⃣ Add extra sugar to taste if you prefer a sweeter drink.</div></div></div><p class="note">💡 Tip: A juicer or blender gives a smooth, lump-free result.</p></div></details><details><summary>Delivery Information <span>⌄</span></summary><div class="accordion-content"><p>Cash on Delivery is available. The delivery fee for this pack is ${currency(delivery)}. If you order multiple items, your final delivery fee will be shown in the cart and checkout.</p></div></details><details><summary>Ingredients <span>⌄</span></summary><div class="accordion-content"><ul><li>Water</li><li>Sugar</li><li>Mango Pulp 60%</li><li>Acidity Regulators: Citric Acid, Sodium Citrate (E331)</li><li>Thickening Agents: Xanthan Gum, Guar Gum (E412)</li><li>Preservative: Sodium Benzoate (E211)</li><li>Permitted Food Colors: E102–E110, Beta Carotene (E160)</li><li>Artificial Flavor (Mango-SMC)</li><li>Titanium Dioxide (Color Enhancer E171)</li></ul><p class="note">Ingredients are transcribed from the product information provided for the store. Please follow the physical pack label for the latest ingredient information.</p></div></details><details><summary>Nutrition Information <span>⌄</span></summary><div class="accordion-content nutrition"><table><thead><tr><th>Per 100 ml</th><th>Amount</th></tr></thead><tbody><tr><td>Energy</td><td>122 kcal</td></tr><tr><td>Carbohydrate</td><td>30 g</td></tr><tr><td>of which sugar</td><td>10 g</td></tr><tr><td>Fat</td><td>0 g</td></tr><tr><td>Protein</td><td>0.53 g</td></tr></tbody></table><p class="note">Net weight when packed: 1000 g ± 50 g.</p></div></details></section><section class="detail-section customer-reviews-section"><div class="section-heading"><div><span class="eyebrow">CUSTOMER REVIEWS</span><h2>What Customers Say</h2></div><p>The same Mango Pulp feedback shown on the homepage is displayed across all pack sizes.</p></div><div id="productReviews"></div></section><div class="detail-bottom-link"><a class="detail-back" href="/products">← All Products</a></div>`;
-const size=document.getElementById('mangoSize');size?.addEventListener('change',()=>{selectedId=size.value;p=PRODUCTS.find(x=>x.id===selectedId)||PRODUCTS[0];history.replaceState({},'',`/product/${encodeURIComponent(p.id)}`);renderProduct();loadReviews()});document.querySelectorAll('[data-gallery-src]').forEach(btn=>btn.addEventListener('click',()=>{const main=document.getElementById('galleryMain');if(!main)return;main.src=btn.dataset.gallerySrc;main.alt=btn.dataset.galleryAlt;document.querySelectorAll('.gallery-thumb').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}))}
+function renderMangoProduct(){setSeo();const delivery=deliveryForWeight(p.weight);detail.innerHTML=`<div class="detail-breadcrumb"><a href="index.html">Home</a> / <a href="/products">All Products</a> / ${esc(p.name)}</div><section class="detail-top"><div>${gallery()}</div><div class="detail-info"><span class="eyebrow">${esc(p.tag||'MANGO PULP')}</span><h1>${esc(p.name)}</h1><p class="detail-description">${esc(p.description||'Mango Pulp Drink Premix for preparing refreshing mango juice at home.')}</p><div class="detail-price">${currency(p.price)} ${p.oldPrice?`<span class="old-price">${currency(p.oldPrice)}</span>`:''}</div><div class="variant-selector"><label for="mangoSize"><strong>Select Pack Size</strong><select id="mangoSize" aria-label="Select Mango Pulp pack size">${PRODUCTS.filter(x=>!x.isCmsProduct||x.isMangoPremix).map(x=>`<option value="${x.id}" ${x.id===p.id?'selected':''}>${x.weight}kg — ${currency(x.price)}</option>`).join('')}</select></label><p class="variant-delivery">Delivery fee for this pack: <strong>${currency(delivery)}</strong></p></div><p class="pack-info"><strong>Pack:</strong> ${p.weight}kg</p><div class="product-qty-row"><div class="product-qty-label-wrap"><span class="product-qty-title">Quantity:</span><span class="product-qty-subtotal-text" id="productQtySubtotal">Total: <strong data-cms-qty-total>${currency(p.price)}</strong></span></div><div class="product-qty-box"><button type="button" class="product-qty-btn" id="productQtyMinus" aria-label="Decrease quantity">−</button><input type="number" id="productQtyInput" class="product-qty-field" value="1" min="1" max="99" inputmode="numeric" aria-label="Quantity"><button type="button" class="product-qty-btn" id="productQtyPlus" aria-label="Increase quantity">+</button></div></div><div class="detail-actions"><a class="detail-cart" id="detailAdd" data-add="${p.id}" href="#">Add to Cart</a><a class="detail-buy" id="detailBuy" data-buy="${p.id}" href="#">Buy Now</a></div></div></section><section class="detail-accordions"><details><summary>How to Prepare Mango Juice <span>⌄</span></summary><div class="accordion-content"><div class="recipe-grid"><div class="recipe-box"><strong>For 1 kg Mango Pulp</strong><div>• 1 kg Mango Pulp<br>• 7 liters water<br>• 600 grams sugar (add more for extra sweetness)</div></div><div class="recipe-box"><strong>Method</strong><div>1️⃣ Add mango pulp, water, and sugar together.<br>2️⃣ Blend well using a juicer/blender — this is important, as mixing by hand can leave lumps.<br>3️⃣ Once fully blended and sugar is dissolved, your juice is ready — makes approximately 9.8–10 liters.<br>4️⃣ Add extra sugar to taste if you prefer a sweeter drink.</div></div></div><p class="note">💡 Tip: A juicer or blender gives a smooth, lump-free result.</p></div></details><details><summary>Delivery Information <span>⌄</span></summary><div class="accordion-content"><p>Cash on Delivery is available. The delivery fee for this pack is ${currency(delivery)}. If you order multiple items, your final delivery fee will be shown in the cart and checkout.</p></div></details><details><summary>Ingredients <span>⌄</span></summary><div class="accordion-content"><ul><li>Water</li><li>Sugar</li><li>Mango Pulp 60%</li><li>Acidity Regulators: Citric Acid, Sodium Citrate (E331)</li><li>Thickening Agents: Xanthan Gum, Guar Gum (E412)</li><li>Preservative: Sodium Benzoate (E211)</li><li>Permitted Food Colors: E102–E110, Beta Carotene (E160)</li><li>Artificial Flavor (Mango-SMC)</li><li>Titanium Dioxide (Color Enhancer E171)</li></ul><p class="note">Ingredients are transcribed from the product information provided for the store. Please follow the physical pack label for the latest ingredient information.</p></div></details><details><summary>Nutrition Information <span>⌄</span></summary><div class="accordion-content nutrition"><table><thead><tr><th>Per 100 ml</th><th>Amount</th></tr></thead><tbody><tr><td>Energy</td><td>122 kcal</td></tr><tr><td>Carbohydrate</td><td>30 g</td></tr><tr><td>of which sugar</td><td>10 g</td></tr><tr><td>Fat</td><td>0 g</td></tr><tr><td>Protein</td><td>0.53 g</td></tr></tbody></table><p class="note">Net weight when packed: 1000 g ± 50 g.</p></div></details></section><section class="detail-section customer-reviews-section"><div class="section-heading"><div><span class="eyebrow">CUSTOMER REVIEWS</span><h2>What Customers Say</h2></div><p>The same Mango Pulp feedback shown on the homepage is displayed across all pack sizes.</p></div><div id="productReviews"></div></section><div class="detail-bottom-link"><a class="detail-back" href="/products">← All Products</a></div>`;
+const size=document.getElementById('mangoSize');size?.addEventListener('change',()=>{selectedId=size.value;p=PRODUCTS.find(x=>x.id===selectedId)||PRODUCTS[0];history.replaceState({},'',`/product/${encodeURIComponent(p.id)}`);renderProduct();loadReviews()});
+const qInput=document.getElementById('productQtyInput'),qMinus=document.getElementById('productQtyMinus'),qPlus=document.getElementById('productQtyPlus'),qTotal=document.querySelector('[data-cms-qty-total]');
+function syncMangoQty(){let q=parseInt(qInput?.value,10);if(!Number.isFinite(q)||q<1)q=1;if(q>99)q=99;if(qInput)qInput.value=q;if(qTotal)qTotal.textContent=currency(Number(p.price)*q)}
+qMinus?.addEventListener('click',()=>{let q=parseInt(qInput?.value,10)||1;if(q>1){qInput.value=q-1;syncMangoQty()}});
+qPlus?.addEventListener('click',()=>{let q=parseInt(qInput?.value,10)||1;if(q<99){qInput.value=q+1;syncMangoQty()}});
+qInput?.addEventListener('input',syncMangoQty);qInput?.addEventListener('change',syncMangoQty);
+document.querySelectorAll('[data-gallery-src]').forEach(btn=>btn.addEventListener('click',()=>{const main=document.getElementById('galleryMain');if(!main)return;main.src=btn.dataset.gallerySrc;main.alt=btn.dataset.galleryAlt;document.querySelectorAll('.gallery-thumb').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}))}
 async function loadReviews(){const box=document.getElementById('productReviews');if(!box)return;if(p?.isCmsProduct&&!p.isMangoPremix){box.innerHTML='<div class="empty-reviews">No reviews for this product yet.</div>';return}box.innerHTML=reviewMarkup([]);if(!supabaseClient)return;try{const {data,error}=await supabaseClient.from('reviews').select('customer_name,rating,review_text,image_urls,created_at').eq('approved',true).order('created_at',{ascending:false});if(!error)box.innerHTML=reviewMarkup(data||[])}catch{}}
 function cmsDeliveryFee(weight,mode="weight",manualFee=0){
  if(mode==="manual")return Math.max(0,Number(manualFee)||0);
@@ -207,8 +255,8 @@ function renderCmsGenericProduct(){
   normVariants.map((v,i)=>{
    const pStr=v.price!=null?'<strong class="cms-var-price">'+currency(v.price)+'</strong>':'';
    const oldStr=v.old_price&&v.old_price>(v.price||0)?'<del class="cms-var-old">'+currency(v.old_price)+'</del>':'';
-   const thumb=v.image?'<img class="cms-var-thumb" src="'+esc(v.image)+'" alt="'+esc(v.name)+'">':'';
-   const dot=v.color_hex?'<span class="cms-var-color-dot" style="background:'+esc(v.color_hex)+'" title="'+esc(v.color||v.name)+'"></span>':'';
+   const thumb=v.image?'<img class="cms-var-thumb" src="'+esc(v.image)+'" alt="'+esc(v.name)+'" width="34" height="34" loading="lazy" style="width:34px!important;height:34px!important;min-width:34px!important;max-width:34px!important;min-height:34px!important;max-height:34px!important;object-fit:cover!important;border-radius:6px!important;border:1px solid #edf2f7!important;flex-shrink:0!important;display:block!important;">':'';
+   const dot=v.color_hex?'<span class="cms-var-color-dot" style="background:'+esc(v.color_hex)+';width:16px!important;height:16px!important;min-width:16px!important;min-height:16px!important;border-radius:50%!important;border:2px solid #fff!important;box-shadow:0 0 0 1px #cbd5e1!important;flex-shrink:0!important;display:inline-block!important;" title="'+esc(v.color||v.name)+'"></span>':'';
    return '<button type="button" class="cms-var-option-card '+(i===0?'active':'')+'" '+
     'data-var-index="'+i+'" '+
     'data-var-name="'+esc(v.name)+'" '+
@@ -222,7 +270,8 @@ function renderCmsGenericProduct(){
     'role="radio" aria-checked="'+(i===0?'true':'false')+'">'+
     thumb+dot+
     '<div class="cms-var-option-text"><span class="cms-var-name">'+esc(v.name)+'</span>'+
-    '<span class="cms-var-prices">'+pStr+oldStr+'</span></div>'+
+    (pStr||oldStr?'<span class="cms-var-prices">'+pStr+oldStr+'</span>':'')+
+    '</div>'+
     '<span class="cms-var-check">✓</span></button>';
   }).join('')+
   '</div></div>';
@@ -244,6 +293,13 @@ function renderCmsGenericProduct(){
  (showWeight?'<p class="pack-info" data-cms-weight-info><strong>Weight:</strong> <span data-cms-current-weight>'+displayWeight+'</span> kg</p>':'')+
  variationMarkup+
  '<p class="cms-detail-delivery">Delivery fee for this item: <strong data-cms-current-delivery>'+currency(itemDeliveryFee)+'</strong></p>'+
+ '<div class="product-qty-row">'+
+ '<div class="product-qty-label-wrap"><span class="product-qty-title">Quantity:</span><span class="product-qty-subtotal-text" id="productQtySubtotal">Total: <strong data-cms-qty-total>'+currency(displayPrice)+'</strong></span></div>'+
+ '<div class="product-qty-box">'+
+ '<button type="button" class="product-qty-btn" id="productQtyMinus" aria-label="Decrease quantity">−</button>'+
+ '<input type="number" id="productQtyInput" class="product-qty-field" value="1" min="1" max="99" inputmode="numeric" aria-label="Quantity">'+
+ '<button type="button" class="product-qty-btn" id="productQtyPlus" aria-label="Increase quantity">+</button>'+
+ '</div></div>'+
  '<div class="detail-actions"><a class="detail-cart" id="detailAdd" data-add="'+esc(p.id)+'" href="#">Add to Cart</a><a class="detail-buy" id="detailBuy" data-buy="'+esc(p.id)+'" href="#">Buy Now</a></div></div></section>'+
  '<section class="detail-accordions"><details open><summary>Product Details <span>⌄</span></summary><div class="accordion-content detail-rich-body">'+renderProductDescription(p.description)+'</div></details>'+
  '<details open><summary>Delivery Information <span>⌄</span></summary><div class="accordion-content"><p data-cms-delivery-copy>'+esc(deliveryCopy)+'</p></div></details></section>'+
@@ -251,6 +307,27 @@ function renderCmsGenericProduct(){
  '<div class="detail-bottom-link"><a class="detail-back" href="/products">← All Products</a></div>';
 
  document.querySelectorAll('[data-cms-gallery]').forEach(btn=>btn.addEventListener('click',()=>{const im=document.getElementById('cmsGalleryMain');if(im)im.src=btn.dataset.cmsGallery;document.querySelectorAll('[data-cms-gallery]').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}));
+
+ let activeUnitPrice=displayPrice,activeWeight=displayWeight;
+ const qInput=document.getElementById('productQtyInput'),qMinus=document.getElementById('productQtyMinus'),qPlus=document.getElementById('productQtyPlus'),qTotal=document.querySelector('[data-cms-qty-total]');
+ function syncCmsQty(){
+  let q=parseInt(qInput?.value,10);
+  if(!Number.isFinite(q)||q<1)q=1;
+  if(q>99)q=99;
+  if(qInput)qInput.value=q;
+  if(qTotal)qTotal.textContent=currency(activeUnitPrice*q);
+  const deliveryLabel=document.querySelector('[data-cms-current-delivery]');
+  const deliveryCopyEl=document.querySelector('[data-cms-delivery-copy]');
+  const activeCard=document.querySelector(".detail-info .cms-var-option-card.active");
+  const varDeliveryFee=activeCard&&activeCard.dataset.varDelivery!=null&&activeCard.dataset.varDelivery!==''?Number(activeCard.dataset.varDelivery):null;
+  const fee=varDeliveryFee!=null?varDeliveryFee:(p.deliveryMode==="manual"?(Number(p.manualDeliveryFee)||0):cmsDeliveryFee(activeWeight*q,p.deliveryMode,p.manualDeliveryFee));
+  if(deliveryLabel)deliveryLabel.textContent=currency(fee);
+  if(deliveryCopyEl)deliveryCopyEl.textContent='Cash on Delivery is available. The delivery fee for this item ('+q+' unit'+(q>1?'s':'')+') is '+currency(fee)+'. If you add other items, the final delivery fee will be shown in your cart before you place the order.';
+ }
+ qMinus?.addEventListener('click',()=>{let q=parseInt(qInput?.value,10)||1;if(q>1){qInput.value=q-1;syncCmsQty()}});
+ qPlus?.addEventListener('click',()=>{let q=parseInt(qInput?.value,10)||1;if(q<99){qInput.value=q+1;syncCmsQty()}});
+ qInput?.addEventListener('input',syncCmsQty);
+ qInput?.addEventListener('change',syncCmsQty);
 
  document.querySelectorAll('.cms-var-option-card').forEach(card=>{
   card.addEventListener('click',()=>{
@@ -265,16 +342,16 @@ function renderCmsGenericProduct(){
    const price=v.price!=null?v.price:(Number(p.price)||0);
    const oldPrice=v.old_price!=null?v.old_price:(Number(p.oldPrice)||0);
    const weight=v.weight_kg!=null?v.weight_kg:cmsVariantWeight(p,{});
-   const delivery=v.delivery_fee!=null?v.delivery_fee:cmsDeliveryFee(weight,p.deliveryMode,p.manualDeliveryFee);
-   const display=document.querySelector('[data-cms-current-price]'),old=document.querySelector('[data-cms-old-price]'),weightLabel=document.querySelector('[data-cms-current-weight]'),deliveryLabel=document.querySelector('[data-cms-current-delivery]'),deliveryCopyEl=document.querySelector('[data-cms-delivery-copy]');
+   activeUnitPrice=price;
+   activeWeight=weight;
+   const display=document.querySelector('[data-cms-current-price]'),old=document.querySelector('[data-cms-old-price]'),weightLabel=document.querySelector('[data-cms-current-weight]');
    if(display)display.textContent=currency(price);
    if(old){
     if(oldPrice>price){old.textContent=currency(oldPrice);old.hidden=false}
     else{old.hidden=true}
    }
    if(weightLabel)weightLabel.textContent=String(weight);
-   if(deliveryLabel)deliveryLabel.textContent=currency(delivery);
-   if(deliveryCopyEl)deliveryCopyEl.textContent='Cash on Delivery is available. The delivery fee for this item is '+currency(delivery)+'. If you add other items, the final delivery fee will be shown in your cart before you place the order.';
+   syncCmsQty();
    if(v.image){
     const main=document.getElementById('cmsGalleryMain');
     if(main)main.src=v.image;
@@ -283,13 +360,14 @@ function renderCmsGenericProduct(){
  });
 
  document.querySelectorAll('.detail-info [data-cms-variation]').forEach(select=>select.addEventListener('change',()=>{
-  const chosen=cmsCurrentVariant(),price=cmsPriceForVariant(p,chosen),weight=cmsVariantWeight(p,chosen),delivery=cmsDeliveryFee(weight,p.deliveryMode,p.manualDeliveryFee);
-  const display=document.querySelector('[data-cms-current-price]'),old=document.querySelector('[data-cms-old-price]'),weightLabel=document.querySelector('[data-cms-current-weight]'),deliveryLabel=document.querySelector('[data-cms-current-delivery]'),deliveryCopyEl=document.querySelector('[data-cms-delivery-copy]');
+  const chosen=cmsCurrentVariant(),price=cmsPriceForVariant(p,chosen),weight=cmsVariantWeight(p,chosen);
+  activeUnitPrice=price;
+  activeWeight=weight;
+  const display=document.querySelector('[data-cms-current-price]'),old=document.querySelector('[data-cms-old-price]'),weightLabel=document.querySelector('[data-cms-current-weight]');
   if(display)display.textContent=currency(price);
   if(old)old.hidden=!(Number(p.oldPrice)>price);
   if(weightLabel)weightLabel.textContent=String(weight);
-  if(deliveryLabel)deliveryLabel.textContent=currency(delivery);
-  if(deliveryCopyEl)deliveryCopyEl.textContent='Cash on Delivery is available. The delivery fee for this item is '+currency(delivery)+'. If you add other items, the final delivery fee will be shown in your cart before you place the order.';
+  syncCmsQty();
  }));
 }
 function renderProduct(){
