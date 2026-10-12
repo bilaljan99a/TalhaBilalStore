@@ -301,7 +301,7 @@ function renderCmsGenericProduct(){
  '<button type="button" class="product-qty-btn" id="productQtyPlus" aria-label="Increase quantity">+</button>'+
  '</div></div>'+
  '<div class="detail-actions"><a class="detail-cart" id="detailAdd" data-add="'+esc(p.id)+'" href="#">Add to Cart</a><a class="detail-buy" id="detailBuy" data-buy="'+esc(p.id)+'" href="#">Buy Now</a></div></div></section>'+
- '<section class="detail-accordions"><details open><summary>Product Details <span>⌄</span></summary><div class="accordion-content detail-rich-body">'+renderProductDescription(p.description)+'</div></details>'+
+ '<section class="detail-accordions"><details><summary>Product Details <span>⌄</span></summary><div class="accordion-content detail-rich-body">'+renderProductDescription(p.description)+'</div></details>'+
  '<details open><summary>Delivery Information <span>⌄</span></summary><div class="accordion-content"><p data-cms-delivery-copy>'+esc(deliveryCopy)+'</p></div></details></section>'+
  '<section class="detail-section customer-reviews-section"><div class="section-heading"><div><span class="eyebrow">CUSTOMER REVIEWS</span><h2>Reviews for this product</h2></div></div><div id="productReviews"><div class="empty-reviews">No reviews for this product yet.</div></div></section>'+
  '<div class="detail-bottom-link"><a class="detail-back" href="/products">← All Products</a></div>';
