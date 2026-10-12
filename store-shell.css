@@ -459,3 +459,43 @@
     line-height:1.25!important;
   }
 }
+
+
+/* Category catalogue loading state; never flash a misleading empty result while CMS is fetching. */
+.catalog-loading,.catalog-empty-state{
+  grid-column:1/-1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:11px;
+  min-height:160px;
+  padding:24px;
+  text-align:center;
+  color:var(--muted,#767676);
+  font-size:14px;
+  font-weight:650;
+}
+.catalog-spinner{
+  width:18px;
+  height:18px;
+  flex:0 0 18px;
+  border:2px solid rgba(255,106,0,.22);
+  border-top-color:#ff6a00;
+  border-radius:50%;
+  animation:catalog-spin .75s linear infinite;
+}
+@keyframes catalog-spin{to{transform:rotate(360deg)}}
+
+/* Keep every product detail title consistent, including legacy Mango Pulp products. */
+.detail-info h1,.cms-generic-detail .detail-info h1{
+  font-size:clamp(24px,2.05vw,31px)!important;
+  line-height:1.22!important;
+  letter-spacing:-.02em!important;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+@media(max-width:560px){
+  .detail-info h1,.cms-generic-detail .detail-info h1{font-size:24px!important;line-height:1.25!important}
+}
+@media(prefers-reduced-motion:reduce){.catalog-spinner{animation:none}}
+
