@@ -87,3 +87,98 @@
 }
 
 
+
+
+
+/* Compact item-by-item checkout summary shared by home, catalogue and product pages */
+.order-modal .selected-product{
+  display:block!important;
+  width:100%;
+  min-width:0;
+  margin:0 0 16px;
+  padding:0;
+  background:transparent;
+  border-radius:0;
+  font-size:12px;
+}
+.checkout-summary-card{
+  width:100%;
+  min-width:0;
+  padding:13px 14px;
+  margin:0;
+  border:1px solid #eadfd7;
+  border-radius:12px;
+  background:#fffaf6;
+  box-sizing:border-box;
+}
+.checkout-summary-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:10px;
+  margin:0 0 8px;
+  padding:0;
+  font-size:13px;
+  line-height:1.3;
+  font-weight:850;
+}
+.checkout-summary-count{color:var(--muted);font-size:10px;font-weight:650;text-align:right;white-space:nowrap}
+.checkout-summary-items{
+  display:grid;
+  gap:0;
+  max-height:240px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+.checkout-item-row{
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) auto;
+  gap:9px;
+  align-items:center;
+  min-width:0;
+  padding:8px 0;
+  border-top:1px solid rgba(0,0,0,.07);
+}
+.checkout-item-thumb{
+  display:block;
+  width:42px;
+  height:42px;
+  object-fit:contain;
+  border:1px solid #eee5dd;
+  border-radius:7px;
+  background:#fff;
+}
+.checkout-item-main{min-width:0}
+.checkout-item-name{
+  display:-webkit-box;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  line-clamp:2;
+  font-size:11px;
+  line-height:1.35;
+  font-weight:800;
+  overflow-wrap:anywhere;
+}
+.checkout-item-meta{margin-top:3px;color:var(--muted);font-size:10px;line-height:1.3}
+.checkout-item-line-total{align-self:center;padding-left:4px;font-size:11px;font-weight:850;white-space:nowrap}
+.checkout-summary-totals{margin-top:5px}
+.checkout-summary-totals .checkout-summary-row{padding:6px 0;font-size:11px}
+.checkout-summary-totals .checkout-summary-row strong{font-size:11px;white-space:nowrap}
+.checkout-summary-totals .checkout-summary-total{padding-top:9px;margin-top:5px}
+.checkout-summary-totals .checkout-summary-total span{font-size:12px}
+.checkout-summary-totals .checkout-summary-total strong{font-size:18px}
+.checkout-summary-adjustment strong{color:#0f766e}
+@media(max-width:560px){
+  .checkout-summary-card{padding:10px}
+  .checkout-summary-items{max-height:200px}
+  .checkout-item-row{grid-template-columns:36px minmax(0,1fr) auto;gap:7px}
+  .checkout-item-thumb{width:36px;height:36px}
+  .checkout-summary-title{font-size:12px}
+  .checkout-summary-count{font-size:9px}
+  .checkout-item-name{font-size:10.5px}
+  .checkout-item-meta{font-size:9.5px}
+  .checkout-item-line-total{font-size:10.5px}
+}
+
