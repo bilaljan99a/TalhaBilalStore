@@ -182,3 +182,8 @@
   .checkout-item-line-total{font-size:10.5px}
 }
 
+
+/* Static Product Details for non-mango CMS product pages */
+.detail-accordions .detail-static-product-details{border:1px solid #e7e7e7;border-radius:16px;background:#fff;margin-bottom:10px;overflow:hidden}
+.detail-accordions .detail-static-product-details .detail-static-title{list-style:none;display:block;margin:0;padding:20px 22px;font-size:18px;line-height:1.35;font-weight:900;color:var(--ink)}
+@media(max-width:900px){.detail-accordions .detail-static-product-details .detail-static-title{padding:17px 16px;font-size:15px}.detail-accordions .detail-static-product-details .accordion-content{padding:0 16px 18px}}
