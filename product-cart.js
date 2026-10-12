@@ -52,7 +52,7 @@ async function ensureCartProductsReady(){
 }
 function normalizedVariant(variant){if(!variant||typeof variant!=="object"||Array.isArray(variant))return{};return Object.keys(variant).sort().reduce((out,key)=>{const value=String(variant[key]??"").trim();if(value)out[key]=value;return out},{})}
 function variantKey(variant){return JSON.stringify(normalizedVariant(variant))}
-function variantLabel(variant){return Object.entries(normalizedVariant(variant)).filter(([k])=>!['price','weight','image','delivery_fee','sku'].includes(k.toLowerCase())).map(([key,value])=>key+": "+value).join(", ")}
+function variantLabel(variant){const hidden=new Set(["price","weight","image","image_url","delivery_fee","deliveryfee","sku","stock","id","variant_id","option_id","deliverymode","manualdeliveryfee"]);const entries=Object.entries(normalizedVariant(variant)).filter(([key])=>!hidden.has(String(key).toLowerCase().replace(/[\s_-]/g,"")));const seen=new Set();return entries.filter(([key,value])=>{const v=String(value??"").trim().toLowerCase();if(!v||seen.has(v))return false;seen.add(v);return true}).map(([key,value])=>key+": "+value).join(", ")}
 function orderItemName(product,variant){const label=variantLabel(variant);return label?product.name+" — "+label:product.name}
 function productVariantWeight(product,variant={}){
  if(variant&&variant.weight!=null&&Number.isFinite(Number(variant.weight)))return Math.max(0,Number(variant.weight));
@@ -217,7 +217,7 @@ function renderCart(){
   const unitPrice=Number(i.price??p.price)||0,unitWeight=productVariantWeight(p,i.variant);
   const details=[currency(unitPrice)+" each",choice,showWeight?unitWeight+"kg":""].filter(Boolean).join(" · ");
   const key=appEsc(variantKey(i.variant));
-  return '<div class="cart-item"><img class="cart-thumb-image" src="'+appEsc(p.image||"")+'" alt="'+appEsc(p.name)+'"><div><h4>'+appEsc(p.name)+'</h4><p>'+appEsc(details)+'</p><div class="cart-qty"><button data-dec="'+appEsc(p.id)+'" data-variant="'+key+'" type="button">−</button><strong>'+i.quantity+'</strong><button data-inc="'+appEsc(p.id)+'" data-variant="'+key+'" type="button">+</button><button class="cart-remove" data-remove="'+appEsc(p.id)+'" data-variant="'+key+'" type="button">Remove</button></div></div><strong>'+currency(unitPrice*i.quantity)+'</strong></div>';
+  return '<div class="cart-item"><img class="cart-thumb-image" src="'+appEsc(i.variant?.image||i.variant?.image_url||i.variant?.["Image URL"]||p.image||"")+'" alt="'+appEsc(p.name)+'"><div><h4>'+appEsc(p.name)+'</h4><p>'+appEsc(details)+'</p><div class="cart-qty"><button data-dec="'+appEsc(p.id)+'" data-variant="'+key+'" type="button">−</button><strong>'+i.quantity+'</strong><button data-inc="'+appEsc(p.id)+'" data-variant="'+key+'" type="button">+</button><button class="cart-remove" data-remove="'+appEsc(p.id)+'" data-variant="'+key+'" type="button">Remove</button></div></div><strong>'+currency(unitPrice*i.quantity)+'</strong></div>';
  }).join("");
  cartItems.innerHTML=html||'<div class="empty-cart">Loading products in your cart…</div>';
 }
