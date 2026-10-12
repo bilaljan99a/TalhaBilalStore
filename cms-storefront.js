@@ -12,8 +12,17 @@
   }
   function mapProduct(row, categories) {
     const cat = categories.find(x => Number(x.id) === Number(row.category_id));
-    const images = Array.isArray(row.images) ? row.images : [];
+    let images = Array.isArray(row.images) ? row.images : [];
+    if (!images.length && typeof row.images === "string" && row.images.trim()) {
+      try { images = JSON.parse(row.images); } catch { images = [row.images]; }
+    }
+    if (!images.length && row.image_url) images = [row.image_url];
+    if (!images.length && row.image) images = [row.image];
     const image = firstImage(images);
+    let variations = Array.isArray(row.variations) ? row.variations : [];
+    if (!variations.length && typeof row.variations === "string" && row.variations.trim()) {
+      try { variations = JSON.parse(row.variations); } catch { variations = []; }
+    }
     const price = row.sale_price != null ? Number(row.sale_price) : Number(row.price || 0);
     const was = row.old_price != null ? Number(row.old_price) : (row.sale_price != null ? Number(row.price || 0) : 0);
     const summarySource = String(row.short_description || "").replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
@@ -28,7 +37,7 @@
       deliveryMode:row.delivery_mode==="manual"?"manual":"weight",
       manualDeliveryFee:Math.max(0,Number(row.manual_delivery_fee)||0),
       showWeight:!!row.show_weight,
-      variations:Array.isArray(row.variations)?row.variations:[],
+      variations,
       image:image || "/assets/products/mango-pulp-product-image.webp",
       images:images.map(x => typeof x === "string" ? x : (x?.url || x?.src || "")).filter(Boolean),
       tag:String(row.tag || cat?.name || "NEW PRODUCT"), categoryId:Number(row.category_id || 0) || null,

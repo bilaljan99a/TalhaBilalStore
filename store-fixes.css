@@ -44,4 +44,29 @@
 .detail-rich-body hr{border:0;border-top:1px solid #e2e8f0;margin:20px 0}
 .detail-rich-body a{color:var(--orange);text-decoration:underline;font-weight:600}
 
+/* Modern Product Variations UI */
+.cms-modern-variant-selector{margin:18px 0 14px;padding:16px;border:1px solid #eadfd7;border-radius:14px;background:#fff8f2}
+.cms-var-title-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;font-size:13px}
+.cms-var-title-row strong{color:var(--ink);font-weight:800}
+.cms-active-var-name{background:#ff6a0015;color:var(--orange);padding:3px 10px;border-radius:999px;font-size:12px;font-weight:750}
+.cms-var-options-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.cms-var-option-card{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;cursor:pointer;text-align:left;position:relative;transition:all .18s ease;outline:none}
+.cms-var-option-card:hover{border-color:#cbd5e1;transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,0.04)}
+.cms-var-option-card.active{border-color:var(--orange);background:#fffdfa;box-shadow:0 0 0 2px rgba(255,106,0,0.2)}
+.cms-var-thumb{width:40px;height:40px;object-fit:cover;border-radius:8px;border:1px solid #edf2f7;flex-shrink:0}
+.cms-var-color-dot{width:18px;height:18px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #cbd5e1;flex-shrink:0}
+.cms-var-option-text{display:flex;flex-direction:column;min-width:0;flex:1}
+.cms-var-name{font-size:13px;font-weight:750;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cms-var-prices{font-size:12px;margin-top:2px;display:flex;align-items:baseline;gap:6px}
+.cms-var-price{color:var(--orange);font-weight:800}
+.cms-var-old{color:var(--muted);font-size:11px;text-decoration:line-through}
+.cms-var-check{display:none;position:absolute;top:5px;right:6px;width:16px;height:16px;background:var(--orange);color:#fff;border-radius:50%;font-size:10px;line-height:16px;text-align:center;font-weight:800}
+.cms-var-option-card.active .cms-var-check{display:block}
+@media(max-width:560px){
+  .cms-var-options-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .cms-var-option-card{padding:8px 10px}
+  .cms-var-thumb{width:34px;height:34px}
+  .cms-var-name{font-size:12px}
+}
+
 

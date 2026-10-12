@@ -37,18 +37,72 @@ body.cms-back-visible #backBtn{display:inline-block}
 .cms-upload-status{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.45}
 
 
-.cms-rich-toolbar{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0;background:#f4f6f8}
-.cms-rich-toolbar button{min-width:38px;padding:7px 10px;background:#fff;color:#17191d;border:1px solid #d4d8de;border-radius:6px;font-size:13px;cursor:pointer}
-.cms-rich-toolbar button:hover{background:#e9edf2}
-.cms-rich-editor{min-height:360px;max-height:65vh;overflow:auto;padding:16px;border:1px solid var(--line);border-radius:0 0 10px 10px;background:#fff;color:#20242a;font-size:15px;line-height:1.7;outline:none}
-.cms-rich-editor:focus{border-color:#7b9fe3;box-shadow:0 0 0 2px #dbeafe}
-.cms-rich-editor h2{font-size:26px;line-height:1.25;margin:24px 0 10px}
-.cms-rich-editor h3{font-size:21px;line-height:1.3;margin:20px 0 8px}
+/* Professional CMS Rich Text Editor */
+.cms-rich-field{margin-bottom:12px}
+.cms-rich-container{border:1px solid #d4d8de;border-radius:10px;background:#fff;overflow:hidden;margin-top:6px;box-shadow:0 1px 3px rgba(0,0,0,0.03)}
+.cms-rich-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #e5e7eb;background:#f8fafc}
+.cms-rich-grp{display:inline-flex;align-items:center;gap:4px;padding-right:6px;margin-right:4px;border-right:1px solid #e2e8f0}
+.cms-rich-grp:last-child{border-right:none}
+.cms-rich-select{height:34px;padding:0 8px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;font-size:13px;font-weight:600;color:#1e293b;outline:none;cursor:pointer}
+.cms-rich-select:focus{border-color:#ff6a00}
+.cms-tb-btn{height:34px;min-width:34px;padding:0 9px;background:#fff;color:#1e293b;border:1px solid #cbd5e1;border-radius:6px;font-size:12.5px;font-weight:650;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s ease}
+.cms-tb-btn:hover{background:#f1f5f9;border-color:#94a3b8;color:#0f172a}
+.cms-tb-btn:active{background:#e2e8f0}
+.cms-rich-editor{min-height:360px;max-height:65vh;overflow:auto;padding:18px;background:#fff;color:#1f2937;font-size:15px;line-height:1.75;outline:none}
+.cms-rich-editor:focus{box-shadow:inset 0 0 0 1px #ff6a0040}
+.cms-rich-editor h2{font-size:24px;font-weight:800;line-height:1.3;margin:22px 0 10px;color:#111827}
+.cms-rich-editor h3{font-size:19px;font-weight:750;line-height:1.35;margin:18px 0 8px;color:#111827}
+.cms-rich-editor h4{font-size:16px;font-weight:700;line-height:1.4;margin:14px 0 6px;color:#374151}
 .cms-rich-editor p{margin:0 0 14px}
-.cms-rich-editor ul,.cms-rich-editor ol{padding-left:24px;margin:10px 0 16px}
-.cms-rich-editor blockquote{margin:15px 0;padding:10px 16px;border-left:4px solid #f97316;background:#f8fafc;color:#4b5563}
-.cms-rich-editor img{max-width:100%;height:auto;border-radius:8px}
-.cms-rich-editor a{color:#1d4ed8;text-decoration:underline}
+.cms-rich-editor ul,.cms-rich-editor ol{padding-left:26px;margin:10px 0 16px}
+.cms-rich-editor li{margin:5px 0}
+.cms-rich-editor blockquote{margin:16px 0;padding:10px 16px;border-left:4px solid #ff6a00;background:#fff8f2;border-radius:0 8px 8px 0;font-style:italic;color:#4b5563}
+.cms-rich-editor figure{margin:18px 0;text-align:center}
+.cms-rich-editor figure img,.cms-rich-editor img{max-width:100%;height:auto;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid #e5e7eb}
+.cms-rich-editor hr{border:0;border-top:1px solid #e5e7eb;margin:20px 0}
+.cms-rich-editor a{color:#ff6a00;text-decoration:underline;font-weight:600}
+.cms-rich-footer{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:#f8fafc;border-top:1px solid #e5e7eb;font-size:11.5px;color:#64748b}
+.cms-rich-tip{font-weight:500}
+.cms-rich-stats{font-weight:700;color:#334155}
+
+/* Product Variations Manager */
+.cms-variations-box{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px;margin-top:6px}
+.cms-variations-header{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #e2e8f0}
+.cms-variations-header-copy h3{margin:0 0 4px;font-size:16px;font-weight:800;color:#0f172a}
+.cms-variations-header-copy p{margin:0;font-size:12.5px;color:#64748b;line-height:1.5}
+.cms-var-top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cms-var-preset-select{height:38px;padding:0 10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-size:13px;font-weight:650;color:#1e293b;cursor:pointer}
+.cms-btn-add-var{height:38px;padding:0 16px;background:#ff6a00;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:750;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s ease}
+.cms-btn-add-var:hover{background:#e05d00;transform:translateY(-1px)}
+.cms-variations-list{display:flex;flex-direction:column;gap:14px}
+.cms-var-empty{text-align:center;padding:28px 18px;background:#fff;border:1.5px dashed #cbd5e1;border-radius:12px;color:#64748b}
+.cms-var-empty p{margin:0 0 10px;font-size:13.5px}
+.cms-var-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);transition:border-color .15s ease}
+.cms-var-card:hover{border-color:#cbd5e1}
+.cms-var-card-head{background:#f1f5f9;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e2e8f0}
+.cms-var-card-title{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:750;color:#1e293b}
+.cms-var-card-badge{background:#e2e8f0;color:#475569;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:800}
+.cms-var-card-actions{display:flex;align-items:center;gap:6px}
+.cms-var-act-btn{height:28px;padding:0 9px;border:1px solid #cbd5e1;background:#fff;border-radius:6px;font-size:11.5px;font-weight:650;color:#475569;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:all .12s ease}
+.cms-var-act-btn:hover{background:#f8fafc;color:#0f172a;border-color:#94a3b8}
+.cms-var-act-del{color:#dc2626;border-color:#fecaca}
+.cms-var-act-del:hover{background:#fee2e2;border-color:#f87171;color:#b91c1c}
+.cms-var-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;padding:16px}
+.cms-var-field{display:flex;flex-direction:column;gap:5px}
+.cms-var-field label{font-size:11.5px;font-weight:750;color:#475569;text-transform:uppercase;letter-spacing:.02em}
+.cms-var-field input[type=text],.cms-var-field input[type=number],.cms-var-field select{height:38px;padding:0 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;color:#111827;box-sizing:border-box}
+.cms-var-field input:focus,.cms-var-field select:focus{border-color:#ff6a00;outline:none;box-shadow:0 0 0 2px rgba(255,106,0,0.15)}
+.cms-color-row{display:flex;align-items:center;gap:6px}
+.cms-color-row select{flex:1}
+.cms-color-picker{width:38px;height:38px;padding:2px;border:1px solid #cbd5e1;border-radius:8px;cursor:pointer;background:#fff}
+.cms-var-img-row{display:flex;align-items:center;gap:8px}
+.cms-var-thumb-preview{width:38px;height:38px;border-radius:6px;border:1px solid #e2e8f0;object-fit:cover;background:#fafafa;flex-shrink:0;display:grid;place-items:center;color:#94a3b8;font-size:10px}
+.cms-var-upload-btn{white-space:nowrap;height:38px;padding:0 10px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;font-size:12px;font-weight:700;color:#334155;cursor:pointer}
+.cms-var-upload-btn:hover{background:#e2e8f0}
+.cms-sku-row{display:flex;align-items:center;gap:6px}
+.cms-sku-row input{flex:1}
+.cms-btn-mini{height:38px;padding:0 10px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;font-size:11.5px;font-weight:750;color:#475569;cursor:pointer}
+
 .category-search-wrap{display:block;margin:5px 0 8px}
 .category-search-wrap input{width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid var(--line);border-radius:8px}
 
@@ -463,38 +517,523 @@ async function cmsUploadFiles(input,targetId,folder,mode){
 }
 
 function cmsPreviewImage(input,boxId){const x=document.getElementById(input),box=document.getElementById(boxId);if(!x||!box)return;const value=x.value.trim().split(/\r?\n/).map(v=>v.trim()).filter(Boolean)[0]||"";box.innerHTML=value?'<img src="'+esc(value)+'" alt="Preview">':'<span class="hint">Image preview appears here.</span>'}
-function cmsVariationsToText(value){
- return (Array.isArray(value)?value:[]).map(v=>{
-  const name=String(v?.name||v?.label||"").trim();
-  const options=(Array.isArray(v?.options)?v.options:[]).map(o=>{
-   const label=String(typeof o==="object"?(o.value??o.label??o.name??""):o).trim();
-   const price=typeof o==="object"&&o.price!==null&&o.price!==undefined&&o.price!==""?Number(o.price):null;
-   return label+(Number.isFinite(price)&&price>=0?" = "+price:"");
-  }).filter(Boolean);
-  return name&&options.length?name+": "+options.join(", "):"";
- }).filter(Boolean).join("\n");
-}
-function cmsParseVariations(input){
- const lines=String(input||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
- const variations=[];
- for(const line of lines){
-  const colon=line.indexOf(":");
-  if(colon<=0||colon===line.length-1)throw new Error("Each variation needs a name and options, e.g. Color: Black, Pink.");
-  const name=line.slice(0,colon).trim();
-  if(!name)throw new Error("Variation name cannot be blank.");
-  const tokens=line.slice(colon+1).split(",").map(x=>x.trim()).filter(Boolean);
-  const options=tokens.map(token=>{
-   const match=token.match(/^(.*?)\s*=\s*([0-9]+(?:\.[0-9]{1,2})?)$/);
-   if(!match)return {label:token,value:token};
-   const label=match[1].trim(),price=Number(match[2]);
-   if(!label||!Number.isFinite(price)||price<0)throw new Error("Invalid variation price in: "+token);
-   return {label,value:label,price};
+// --- CMS Safe HTML Sanitizer ---
+function cmsEditorSafeHtml(value){
+ const raw=String(value||"").trim();
+ if(!raw)return "";
+ const hasMarkup=/<(?:h[1-6]|p|div|img|ul|ol|li|section|header|figure|table|blockquote|a|hr|br|strong|b|em|i|u|span)\b/i.test(raw);
+ const initial=hasMarkup?raw:raw.split(/\n\s*\n+/).map(x=>x.trim()).filter(Boolean).map(x=>"<p>"+esc(x).replace(/\n/g,"<br>")+"</p>").join("");
+ const template=document.createElement("template");template.innerHTML=initial;
+ template.content.querySelectorAll("script,iframe,object,embed,form,input,button").forEach(x=>x.remove());
+ template.content.querySelectorAll("*").forEach(el=>{
+  [...el.attributes].forEach(attr=>{
+   const name=attr.name.toLowerCase();
+   if(/^on/i.test(name))el.removeAttribute(attr.name);
+   if(["href","src","xlink:href"].includes(name)&&/^\s*javascript:/i.test(attr.value))el.removeAttribute(attr.name);
   });
-  if(!options.length)throw new Error("Add at least one option for "+name+".");
-  if(variations.some(v=>v.name.toLowerCase()===name.toLowerCase()))throw new Error("Variation names must be unique: "+name);
-  variations.push({name,options});
+  if(el.tagName==="IMG"){
+   el.setAttribute("loading","lazy");
+  }
+ });
+ return template.innerHTML;
+}
+
+// --- CMS Multi-Instance Rich Text Editor Suite ---
+function cmsRichExec(targetId, command, value = null){
+ const editor = document.getElementById(targetId);
+ if(!editor) return;
+ editor.focus();
+ try{
+  if(command==="formatBlock") document.execCommand("formatBlock", false, value);
+  else document.execCommand(command, false, value || null);
+ }catch(e){console.warn("Rich text command failed", e)}
+ cmsRememberRichSelection(targetId);
+ cmsUpdateRichStats(targetId);
+}
+
+function cmsRichLink(targetId){
+ const url = window.prompt("Enter a web link (https://...) or relative URL:");
+ if(!url) return;
+ if(/^\s*javascript:/i.test(url)){alert("JavaScript links are not allowed.");return}
+ cmsRichExec(targetId, "createLink", url.trim());
+}
+
+function cmsRichPromptImage(targetId){
+ const url = window.prompt("Enter image URL (https://...):");
+ if(!url) return;
+ if(!/^https?:\/\//i.test(url) && !url.startsWith("/")){
+  alert("Enter a valid image URL starting with http:// or https://");
+  return;
  }
- return variations;
+ const alt = window.prompt("Enter image alt text / caption (optional):") || "";
+ const editor = document.getElementById(targetId);
+ if(!editor) return;
+ editor.focus();
+ const figure = document.createElement("figure");
+ const img = document.createElement("img");
+ img.src = url.trim();
+ img.alt = alt.trim();
+ img.loading = "lazy";
+ figure.appendChild(img);
+ const sel = window.getSelection();
+ if(sel && sel.rangeCount && editor.contains(sel.getRangeAt(0).commonAncestorContainer)){
+  const range = sel.getRangeAt(0);
+  range.deleteContents();
+  range.insertNode(figure);
+  range.collapse(false);
+ } else {
+  editor.appendChild(figure);
+ }
+ cmsUpdateRichStats(targetId);
+}
+
+function cmsUpdateRichStats(targetId){
+ const editor = document.getElementById(targetId);
+ const stats = document.getElementById("stats-" + targetId);
+ if(!editor || !stats) return;
+ const text = editor.innerText.trim();
+ const words = text ? text.split(/\s+/).length : 0;
+ const chars = text.length;
+ stats.textContent = words + " word" + (words === 1 ? "" : "s") + " • " + chars + " characters";
+}
+
+function cmsRenderRichEditor(targetId, initialContent, label, helpText){
+ const safe = cmsEditorSafeHtml(initialContent || "");
+ const toolbar =
+  '<div class="cms-rich-toolbar" role="toolbar" aria-label="Rich text editor toolbar">' +
+   '<div class="cms-rich-grp">' +
+    '<select class="cms-rich-select" onchange="cmsRichExec(\'' + targetId + '\', \'formatBlock\', this.value); this.selectedIndex=0;" title="Text Format">' +
+     '<option value="" disabled selected>Format Style ▾</option>' +
+     '<option value="P">Normal Paragraph</option>' +
+     '<option value="H2">Heading 2 (Main Title)</option>' +
+     '<option value="H3">Heading 3 (Sub-heading)</option>' +
+     '<option value="H4">Heading 4 (Minor title)</option>' +
+     '<option value="BLOCKQUOTE">Blockquote / Callout</option>' +
+    '</select>' +
+   '</div>' +
+   '<div class="cms-rich-grp">' +
+    '<button type="button" class="cms-tb-btn" title="Bold (Ctrl+B)" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'bold\')"><strong>B</strong></button>' +
+    '<button type="button" class="cms-tb-btn" title="Italic (Ctrl+I)" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'italic\')"><em>I</em></button>' +
+    '<button type="button" class="cms-tb-btn" title="Underline (Ctrl+U)" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'underline\')"><u>U</u></button>' +
+    '<button type="button" class="cms-tb-btn" title="Strikethrough" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'strikeThrough\')"><del>S</del></button>' +
+   '</div>' +
+   '<div class="cms-rich-grp">' +
+    '<button type="button" class="cms-tb-btn" title="Bulleted List" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'insertUnorderedList\')">• List</button>' +
+    '<button type="button" class="cms-tb-btn" title="Numbered List" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'insertOrderedList\')">1. List</button>' +
+    '<button type="button" class="cms-tb-btn" title="Horizontal Divider" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'insertHorizontalRule\')">— Divider</button>' +
+   '</div>' +
+   '<div class="cms-rich-grp">' +
+    '<button type="button" class="cms-tb-btn" title="Insert Link" onmousedown="event.preventDefault()" onclick="cmsRichLink(\'' + targetId + '\')">🔗 Link</button>' +
+    '<button type="button" class="cms-tb-btn" title="Insert Image by URL" onmousedown="event.preventDefault()" onclick="cmsRichPromptImage(\'' + targetId + '\')">🖼️ Image URL</button>' +
+   '</div>' +
+   '<div class="cms-rich-grp">' +
+    '<button type="button" class="cms-tb-btn" title="Clear Formatting" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'removeFormat\')">Clear</button>' +
+    '<button type="button" class="cms-tb-btn" title="Undo" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'undo\')">↩ Undo</button>' +
+    '<button type="button" class="cms-tb-btn" title="Redo" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'redo\')">↪ Redo</button>' +
+   '</div>' +
+  '</div>';
+
+ return (
+  '<div class="field full cms-rich-field">' +
+   '<label for="' + targetId + '">' + esc(label) + '</label>' +
+   (helpText ? '<p class="field-help">' + esc(helpText) + '</p>' : '') +
+   '<div class="cms-rich-container">' +
+    toolbar +
+    '<div id="' + targetId + '" class="cms-rich-editor" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="true" ' +
+     'onmouseup="cmsRememberRichSelection(\'' + targetId + '\'); cmsUpdateRichStats(\'' + targetId + '\')" ' +
+     'onkeyup="cmsRememberRichSelection(\'' + targetId + '\'); cmsUpdateRichStats(\'' + targetId + '\')" ' +
+     'oninput="cmsUpdateRichStats(\'' + targetId + '\')">' + safe + '</div>' +
+    '<div class="cms-rich-footer">' +
+     '<span class="cms-rich-tip">💡 Tip: Use Heading 2 for main headers, Bold for key points, and upload photos below to insert them right into the content.</span>' +
+     '<span id="stats-' + targetId + '" class="cms-rich-stats">0 words • 0 characters</span>' +
+    '</div>' +
+   '</div>' +
+  '</div>'
+ );
+}
+
+// --- Product Variations Manager Suite ---
+const CMS_COLOR_PRESETS = [
+ { name: "", hex: "", label: "No color / General" },
+ { name: "Pink", hex: "#ff69b4", label: "🌸 Pink (#ff69b4)" },
+ { name: "Rose Gold", hex: "#b76e79", label: "✨ Rose Gold (#b76e79)" },
+ { name: "Black", hex: "#111827", label: "⬛ Black (#111827)" },
+ { name: "White", hex: "#f9fafb", label: "⬜ White (#f9fafb)" },
+ { name: "Silver", hex: "#9ca3af", label: "🔘 Silver (#9ca3af)" },
+ { name: "Gold", hex: "#eab308", label: "🟡 Gold (#eab308)" },
+ { name: "Red", hex: "#ef4444", label: "🔴 Red (#ef4444)" },
+ { name: "Blue", hex: "#3b82f6", label: "🔵 Blue (#3b82f6)" },
+ { name: "Green", hex: "#22c55e", label: "🟢 Green (#22c55e)" },
+ { name: "Purple", hex: "#a855f7", label: "🟣 Purple (#a855f7)" },
+ { name: "Yellow", hex: "#facc15", label: "⭐ Yellow (#facc15)" },
+ { name: "Brown", hex: "#78350f", label: "🟫 Brown (#78350f)" },
+ { name: "Grey", hex: "#6b7280", label: "⚪ Grey (#6b7280)" }
+];
+
+let cmsCurrentVariations = [];
+let cmsCurrentParentProduct = null;
+
+function cmsInitVariations(variations, product) {
+ cmsCurrentVariations = [];
+ cmsCurrentParentProduct = product || {};
+ const raw = Array.isArray(variations) ? variations : [];
+ for (let i = 0; i < raw.length; i++) {
+  const v = raw[i];
+  if (!v) continue;
+  if (Array.isArray(v.options)) {
+   for (const opt of v.options) {
+    const val = typeof opt === "object" ? (opt.value ?? opt.label ?? opt.name ?? "") : String(opt);
+    const price = typeof opt === "object" && opt.price != null ? Number(opt.price) : null;
+    cmsCurrentVariations.push({
+     id: "v_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+     name: val,
+     color: /^(black|white|pink|red|blue|green|gold|silver|purple|yellow|grey|gray)/i.test(val) ? val : "",
+     color_hex: "",
+     weight_kg: product?.weight_kg ?? 1,
+     price: price ?? (product?.sale_price ?? product?.price ?? 0),
+     sale_price: price ?? (product?.sale_price ?? product?.price ?? 0),
+     old_price: product?.old_price ?? "",
+     sku: "",
+     delivery_fee: "",
+     image: "",
+     stock: ""
+    });
+   }
+  } else if (v.name || v.label || v.title) {
+   cmsCurrentVariations.push({
+    id: v.id || ("v_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6)),
+    name: String(v.name || v.label || v.title || ("Option " + (i + 1))),
+    color: String(v.color || ""),
+    color_hex: String(v.color_hex || ""),
+    weight_kg: v.weight_kg != null ? Number(v.weight_kg) : (v.weight != null ? Number(v.weight) : (product?.weight_kg ?? 1)),
+    price: v.sale_price != null ? Number(v.sale_price) : (v.price != null ? Number(v.price) : (product?.price ?? 0)),
+    sale_price: v.sale_price != null ? Number(v.sale_price) : (v.price != null ? Number(v.price) : (product?.sale_price ?? product?.price ?? 0)),
+    old_price: v.old_price != null && v.old_price !== "" ? Number(v.old_price) : (product?.old_price ?? ""),
+    sku: String(v.sku || ""),
+    delivery_fee: v.delivery_fee != null && v.delivery_fee !== "" ? Number(v.delivery_fee) : "",
+    image: String(v.image || v.image_url || ""),
+    stock: v.stock != null ? v.stock : ""
+   });
+  }
+ }
+}
+
+function cmsRenderVariationsManager(variations, product) {
+ cmsInitVariations(variations, product);
+ return '<div class="field full">' +
+  '<div class="cms-variations-box">' +
+   '<div class="cms-variations-header">' +
+    '<div class="cms-variations-header-copy">' +
+     '<h3>Product Variations &amp; Options (Optional)</h3>' +
+     '<p>Add variations if this product comes in different pack sizes, weights, colors, or options. Each variation can have its own name, color, pack weight, price, SKU, delivery fee, and photo.</p>' +
+    '</div>' +
+    '<div class="cms-var-top-actions">' +
+     '<select class="cms-var-preset-select" onchange="cmsApplyVariationPreset(this.value); this.selectedIndex=0;" title="Quick variation templates">' +
+      '<option value="" disabled selected>⚡ Quick Variation Presets ▾</option>' +
+      '<option value="pack_sizes">Pack Sizes (Pack of 1, 2, 3)</option>' +
+      '<option value="weights">Weights (250g, 500g, 1kg, 2kg)</option>' +
+      '<option value="colors">Colors (Pink, Black, Silver, Gold)</option>' +
+      '<option value="sizes">Apparel Sizes (S, M, L, XL)</option>' +
+     '</select>' +
+     '<button type="button" class="cms-btn-add-var" onclick="cmsAddVariationRow()">' +
+      '+ Add Variation' +
+     '</button>' +
+    '</div>' +
+   '</div>' +
+   '<div id="cmsVariationsList" class="cms-variations-list">' +
+    cmsBuildVariationsHtml() +
+   '</div>' +
+  '</div>' +
+ '</div>';
+}
+
+function cmsBuildVariationsHtml() {
+ if (!cmsCurrentVariations.length) {
+  return (
+   '<div class="cms-var-empty">' +
+    '<p><strong>No variations added.</strong> This product will use its main single price and weight.</p>' +
+    '<p style="font-size:12.5px;color:#64748b;margin-bottom:14px">To offer pack sizes (e.g. Pack of 1, Pack of 2), different weights (500g, 1kg), or colors (Pink, Black), click below or choose a template above.</p>' +
+    '<button type="button" class="cms-btn-add-var" style="display:inline-flex" onclick="cmsAddVariationRow()">+ Add First Variation</button>' +
+   '</div>'
+  );
+ }
+ return cmsCurrentVariations.map((v, i) => cmsSingleVariationCard(v, i)).join('');
+}
+
+function cmsSingleVariationCard(v, i) {
+ const colorOptions = CMS_COLOR_PRESETS.map(c =>
+  '<option value="' + esc(c.name) + '" data-hex="' + esc(c.hex) + '" ' + (String(v.color||'').toLowerCase() === c.name.toLowerCase() ? 'selected' : '') + '>' + esc(c.label) + '</option>'
+ ).join('');
+
+ const thumb = v.image
+  ? '<img src="' + esc(v.image) + '" class="cms-var-thumb-preview" alt="Thumb" id="vThumb_' + i + '">'
+  : '<div class="cms-var-thumb-preview" id="vThumb_' + i + '">No img</div>';
+
+ return (
+  '<div class="cms-var-card" data-var-index="' + i + '">' +
+   '<div class="cms-var-card-head">' +
+    '<div class="cms-var-card-title">' +
+     '<span class="cms-var-card-badge">#' + (i + 1) + '</span>' +
+     '<span id="vTitle_' + i + '"><strong>' + esc(v.name || 'New Variation') + '</strong>' + (v.sale_price ? ' • Rs. ' + Number(v.sale_price).toLocaleString('en-PK') : '') + '</span>' +
+    '</div>' +
+    '<div class="cms-var-card-actions">' +
+     '<button type="button" class="cms-var-act-btn" onclick="cmsDuplicateVariation(' + i + ')" title="Duplicate variation">⎘ Duplicate</button>' +
+     '<button type="button" class="cms-var-act-btn cms-var-act-del" onclick="cmsRemoveVariation(' + i + ')" title="Delete variation">✕ Remove</button>' +
+    '</div>' +
+   '</div>' +
+   '<div class="cms-var-fields">' +
+    '<div class="cms-var-field">' +
+     '<label>Variation Name / Label *</label>' +
+     '<input type="text" id="vName_' + i + '" value="' + esc(v.name) + '" placeholder="e.g. Pack of 1, 500g, Pink, Large" oninput="cmsUpdateVarTitle(' + i + ')" required>' +
+    '</div>' +
+    '<div class="cms-var-field">' +
+     '<label>Color (Optional)</label>' +
+     '<div class="cms-color-row">' +
+      '<select id="vColor_' + i + '" onchange="cmsOnColorChange(' + i + ')">' +
+       colorOptions +
+      '</select>' +
+      '<input type="color" id="vColorHex_' + i + '" class="cms-color-picker" value="' + (v.color_hex || '#ff69b4') + '" title="Color Hex" onchange="cmsOnHexChange(' + i + ')">' +
+     '</div>' +
+    '</div>' +
+    '<div class="cms-var-field">' +
+     '<label>Pack Weight (kg)</label>' +
+     '<input type="number" id="vWeight_' + i + '" step="0.01" min="0" value="' + (v.weight_kg ?? '') + '" placeholder="e.g. 0.25, 0.5, 1">' +
+    '</div>' +
+    '<div class="cms-var-field">' +
+     '<label>Sale / Selling Price (PKR) *</label>' +
+     '<input type="number" id="vPrice_' + i + '" min="0" value="' + (v.sale_price ?? v.price ?? '') + '" placeholder="e.g. 650" oninput="cmsUpdateVarTitle(' + i + ')" required>' +
+    '</div>' +
+    '<div class="cms-var-field">' +
+     '<label>Old / Crossed Price (PKR)</label>' +
+     '<input type="number" id="vOldPrice_' + i + '" min="0" value="' + (v.old_price ?? '') + '" placeholder="e.g. 950 (optional)">' +
+    '</div>' +
+    '<div class="cms-var-field">' +
+     '<label>SKU (Stock ID)</label>' +
+     '<div class="cms-sku-row">' +
+      '<input type="text" id="vSku_' + i + '" value="' + esc(v.sku) + '" placeholder="e.g. TB-EPIL-1">' +
+      '<button type="button" class="cms-btn-mini" onclick="cmsAutoSku(' + i + ')" title="Auto generate SKU">Auto</button>' +
+     '</div>' +
+    '</div>' +
+    '<div class="cms-var-field">' +
+     '<label>Fixed Delivery Fee (PKR)</label>' +
+     '<input type="number" id="vDelivery_' + i + '" min="0" value="' + (v.delivery_fee ?? '') + '" placeholder="Blank = use store rate">' +
+    '</div>' +
+    '<div class="cms-var-field" style="grid-column: span 2">' +
+     '<label>Variation Photo</label>' +
+     '<div class="cms-var-img-row">' +
+      thumb +
+      '<input type="text" id="vImage_' + i + '" value="' + esc(v.image) + '" placeholder="Paste image URL or click Upload" oninput="cmsPreviewVarThumb(' + i + ')" style="flex:1">' +
+      '<label class="cms-var-upload-btn" title="Upload variation image">' +
+       '📁 Upload Image' +
+       '<input type="file" accept="image/*" style="display:none" onchange="cmsUploadVariationImage(this, ' + i + ')">' +
+      '</label>' +
+     '</div>' +
+    '</div>' +
+   '</div>' +
+  '</div>'
+ );
+}
+
+function cmsSyncCurrentVariationsFromDom() {
+ const count = cmsCurrentVariations.length;
+ for (let i = 0; i < count; i++) {
+  const g = id => document.getElementById(id + "_" + i);
+  if (!g("vName")) continue;
+  cmsCurrentVariations[i] = {
+   id: cmsCurrentVariations[i]?.id || ("v_" + Date.now() + "_" + i),
+   name: g("vName")?.value.trim() || "",
+   color: g("vColor")?.value || "",
+   color_hex: g("vColorHex")?.value || "",
+   weight_kg: g("vWeight")?.value ? Number(g("vWeight").value) : null,
+   price: g("vPrice")?.value ? Number(g("vPrice").value) : 0,
+   sale_price: g("vPrice")?.value ? Number(g("vPrice").value) : 0,
+   old_price: g("vOldPrice")?.value ? Number(g("vOldPrice").value) : null,
+   sku: g("vSku")?.value.trim() || "",
+   delivery_fee: g("vDelivery")?.value !== "" && g("vDelivery")?.value != null ? Number(g("vDelivery").value) : null,
+   image: g("vImage")?.value.trim() || "",
+   stock: null
+  };
+ }
+}
+
+function cmsUpdateVarTitle(i) {
+ const name = document.getElementById("vName_" + i)?.value.trim() || "New Variation";
+ const price = document.getElementById("vPrice_" + i)?.value;
+ const titleEl = document.getElementById("vTitle_" + i);
+ if (titleEl) {
+  titleEl.innerHTML = "<strong>" + esc(name) + "</strong>" + (price ? " • Rs. " + Number(price).toLocaleString("en-PK") : "");
+ }
+}
+
+function cmsOnColorChange(i) {
+ const sel = document.getElementById("vColor_" + i);
+ const hexInput = document.getElementById("vColorHex_" + i);
+ if (!sel || !hexInput) return;
+ const opt = sel.options[sel.selectedIndex];
+ const hex = opt?.dataset.hex;
+ if (hex) hexInput.value = hex;
+}
+
+function cmsOnHexChange(i) {
+ const hexInput = document.getElementById("vColorHex_" + i);
+ const sel = document.getElementById("vColor_" + i);
+ if (!hexInput || !sel) return;
+ const match = CMS_COLOR_PRESETS.find(c => c.hex && c.hex.toLowerCase() === hexInput.value.toLowerCase());
+ if (match) sel.value = match.name;
+}
+
+function cmsPreviewVarThumb(i) {
+ const val = document.getElementById("vImage_" + i)?.value.trim() || "";
+ const thumb = document.getElementById("vThumb_" + i);
+ if (!thumb) return;
+ if (val) {
+  thumb.outerHTML = '<img src="' + esc(val) + '" class="cms-var-thumb-preview" alt="Thumb" id="vThumb_' + i + '">';
+ } else {
+  thumb.outerHTML = '<div class="cms-var-thumb-preview" id="vThumb_' + i + '">No img</div>';
+ }
+}
+
+async function cmsUploadVariationImage(input, index) {
+ if (!input || !input.files || !input.files.length) return;
+ const file = input.files[0];
+ try {
+  const result = await supabaseClient.auth.getSession(), session = result?.data?.session;
+  if (!session) throw new Error("Please log in to upload images.");
+  const nonce = (window.crypto && typeof window.crypto.randomUUID === "function") ? window.crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+  const cleanName = file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(-100) || "image";
+  const path = "products/variants/" + Date.now() + "-" + nonce + "-" + cleanName;
+  const uploaded = await supabaseClient.storage.from("cms-assets").upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
+  if (uploaded.error) throw new Error(uploaded.error.message || "Upload failed.");
+  const publicUrl = supabaseClient.storage.from("cms-assets").getPublicUrl(uploaded.data.path).data.publicUrl;
+  if (!publicUrl) throw new Error("Could not get public URL.");
+  const imgInput = document.getElementById("vImage_" + index);
+  if (imgInput) {
+   imgInput.value = publicUrl;
+   cmsPreviewVarThumb(index);
+  }
+ } catch (err) {
+  alert("Image upload failed: " + err.message);
+ } finally {
+  input.value = "";
+ }
+}
+
+function cmsAutoSku(i) {
+ const prodName = document.getElementById("pName")?.value.trim() || "PROD";
+ const varName = document.getElementById("vName_" + i)?.value.trim() || String(i + 1);
+ const slug = (prodName + "-" + varName).toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 30);
+ const skuInput = document.getElementById("vSku_" + i);
+ if (skuInput) skuInput.value = slug;
+}
+
+function cmsAddVariationRow(presetData = null) {
+ cmsSyncCurrentVariationsFromDom();
+ const parentPrice = document.getElementById("pPrice")?.value ? Number(document.getElementById("pPrice").value) : 0;
+ const parentOld = document.getElementById("pOldPrice")?.value ? Number(document.getElementById("pOldPrice").value) : null;
+ const parentWeight = document.getElementById("pWeight")?.value ? Number(document.getElementById("pWeight").value) : 1;
+ const item = Object.assign({
+  id: "v_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+  name: "Option " + (cmsCurrentVariations.length + 1),
+  color: "",
+  color_hex: "",
+  weight_kg: parentWeight,
+  price: parentPrice,
+  sale_price: parentPrice,
+  old_price: parentOld,
+  sku: "",
+  delivery_fee: "",
+  image: "",
+  stock: ""
+ }, presetData || {});
+ cmsCurrentVariations.push(item);
+ const container = document.getElementById("cmsVariationsList");
+ if (container) container.innerHTML = cmsBuildVariationsHtml();
+}
+
+function cmsDuplicateVariation(index) {
+ cmsSyncCurrentVariationsFromDom();
+ const src = cmsCurrentVariations[index];
+ if (!src) return;
+ const copy = Object.assign({}, src, {
+  id: "v_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+  name: src.name + " (Copy)",
+  sku: src.sku ? src.sku + "-COPY" : ""
+ });
+ cmsCurrentVariations.splice(index + 1, 0, copy);
+ const container = document.getElementById("cmsVariationsList");
+ if (container) container.innerHTML = cmsBuildVariationsHtml();
+}
+
+function cmsRemoveVariation(index) {
+ cmsSyncCurrentVariationsFromDom();
+ cmsCurrentVariations.splice(index, 1);
+ const container = document.getElementById("cmsVariationsList");
+ if (container) container.innerHTML = cmsBuildVariationsHtml();
+}
+
+function cmsApplyVariationPreset(type) {
+ cmsSyncCurrentVariationsFromDom();
+ const parentPrice = document.getElementById("pPrice")?.value ? Number(document.getElementById("pPrice").value) : 0;
+ const parentWeight = document.getElementById("pWeight")?.value ? Number(document.getElementById("pWeight").value) : 1;
+ let presets = [];
+ if (type === "pack_sizes") {
+  presets = [
+   { name: "Pack of 1", weight_kg: parentWeight, sale_price: parentPrice, old_price: parentPrice ? Math.round(parentPrice * 1.35) : null },
+   { name: "Pack of 2 (Save More)", weight_kg: parentWeight * 2, sale_price: parentPrice ? Math.round(parentPrice * 1.85) : null, old_price: parentPrice ? Math.round(parentPrice * 2.7) : null },
+   { name: "Pack of 3 (Best Value)", weight_kg: parentWeight * 3, sale_price: parentPrice ? Math.round(parentPrice * 2.65) : null, old_price: parentPrice ? Math.round(parentPrice * 4) : null }
+  ];
+ } else if (type === "weights") {
+  presets = [
+   { name: "250g Pack", weight_kg: 0.25, sale_price: Math.round(parentPrice * 0.3) || parentPrice },
+   { name: "500g Pack", weight_kg: 0.5, sale_price: Math.round(parentPrice * 0.55) || parentPrice },
+   { name: "1 kg Pack", weight_kg: 1, sale_price: parentPrice || 500 },
+   { name: "2 kg Pack", weight_kg: 2, sale_price: Math.round(parentPrice * 1.9) || 950 }
+  ];
+ } else if (type === "colors") {
+  presets = [
+   { name: "Pink", color: "Pink", color_hex: "#ff69b4", weight_kg: parentWeight, sale_price: parentPrice },
+   { name: "Black", color: "Black", color_hex: "#111827", weight_kg: parentWeight, sale_price: parentPrice },
+   { name: "Silver", color: "Silver", color_hex: "#9ca3af", weight_kg: parentWeight, sale_price: parentPrice },
+   { name: "Gold", color: "Gold", color_hex: "#eab308", weight_kg: parentWeight, sale_price: parentPrice }
+  ];
+ } else if (type === "sizes") {
+  presets = [
+   { name: "Small (S)", weight_kg: parentWeight, sale_price: parentPrice },
+   { name: "Medium (M)", weight_kg: parentWeight, sale_price: parentPrice },
+   { name: "Large (L)", weight_kg: parentWeight, sale_price: parentPrice },
+   { name: "Extra Large (XL)", weight_kg: parentWeight, sale_price: parentPrice }
+  ];
+ }
+ if (presets.length) {
+  cmsCurrentVariations = presets.map((p, i) => Object.assign({
+   id: "v_" + Date.now() + "_" + i,
+   price: p.sale_price,
+   sku: "",
+   delivery_fee: "",
+   image: "",
+   stock: ""
+  }, p));
+  const container = document.getElementById("cmsVariationsList");
+  if (container) container.innerHTML = cmsBuildVariationsHtml();
+ }
+}
+
+function cmsCollectVariations() {
+ cmsSyncCurrentVariationsFromDom();
+ return cmsCurrentVariations.filter(v => v && v.name && v.name.trim()).map(v => ({
+  id: v.id,
+  name: v.name.trim(),
+  color: v.color || null,
+  color_hex: v.color_hex || null,
+  weight_kg: v.weight_kg != null && Number.isFinite(Number(v.weight_kg)) ? Number(v.weight_kg) : null,
+  price: v.sale_price != null && Number.isFinite(Number(v.sale_price)) ? Number(v.sale_price) : (Number(v.price) || 0),
+  sale_price: v.sale_price != null && Number.isFinite(Number(v.sale_price)) ? Number(v.sale_price) : (Number(v.price) || 0),
+  old_price: v.old_price != null && Number.isFinite(Number(v.old_price)) ? Number(v.old_price) : null,
+  sku: v.sku ? v.sku.trim() : null,
+  delivery_fee: v.delivery_fee != null && Number.isFinite(Number(v.delivery_fee)) ? Number(v.delivery_fee) : null,
+  image: v.image ? v.image.trim() : null,
+  stock: v.stock != null && Number.isFinite(Number(v.stock)) ? Number(v.stock) : null
+ }));
 }
 
 async function cmsEditProduct(r,id){
@@ -523,8 +1062,9 @@ async function cmsEditProduct(r,id){
  cmsField("Stock (optional)","pStock",r.stock,"number")+
  cmsSelect("Publish status","pStatus",[{value:"draft",label:"Draft — not shown on website"},{value:"active",label:"Active — publish to website"},{value:"archived",label:"Archived — hidden"}],r.status||"draft")+
  cmsField("Short description (max 135 characters)","pShort",r.short_description,"textarea-135","Short summary shown on the product detail page. Product cards show only image, title, price and buttons.")+
- cmsField("Full description","pDescription",r.description,"textarea","Shown inside Product Details on the product page, not on product cards.")+
- cmsField("Variations (one per line)","pVariations",cmsVariationsToText(r.variations),"textarea","Examples: Color: Black, Pink, Blue — or Size: Small = 300, Medium = 450, Large = 600. Option prices are optional; if supplied, they override this product's price when selected.")+
+ cmsRenderRichEditor("pDescription",r.description,"Full description (Product Details)","Shown inside Product Details on the product page. Use bold text, headings, bullet points and images to build an attractive, high-converting product description.")+
+ cmsUploadField("Upload image inside product description","pDescription","products/description",false,"inline","Upload photos to insert them directly into the description at your cursor.")+
+ cmsRenderVariationsManager(r.variations, r)+
  cmsField("Image URL(s), one per line","pImages",imgs.join("\n"),"textarea","Paste existing image URLs or upload files below.")+
  cmsUploadField("Upload product image(s)","pImages","products",true,"append-lines","Select multiple images. The first image is the main photo.")+
  '<div class="field full"><label>Image preview</label><div class="preview-frame" id="pPreview">'+(imgs[0]?'<img src="'+esc(imgs[0])+'" alt="Product preview">':'<span class="hint">Add an image URL above.</span>')+'</div></div>'+
@@ -578,8 +1118,10 @@ async function cmsSaveProduct(id){
   const oldPrice=num("pOldPrice"),salePrice=num("pSale"),fixedDelivery=num("pManualDeliveryFee")??0;
   if(oldPrice!==null&&salePrice!==null&&salePrice>=oldPrice)throw new Error("Sale price should be lower than old price.");
   if(fixedDelivery<0)throw new Error("Fixed delivery fee cannot be negative.");
-  const variations=cmsParseVariations(g("pVariations").value);
-  const data={name,slug,sku:g("pSku").value.trim()||null,category_id:g("pCat").value?Number(g("pCat").value):null,price:num("pPrice")??0,old_price:oldPrice,sale_price:salePrice,weight_kg:weight,delivery_mode:g("pDeliveryMode").value,manual_delivery_fee:fixedDelivery,show_weight:g("pShowWeight").checked,variations,tag:g("pTag").value.trim()||null,cost:num("pCost"),stock:num("pStock"),status:g("pStatus").value,short_description:shortDescription||null,description:g("pDescription").value.trim()||null,images,seo,featured:g("pFeatured").checked,best_seller:g("pBestSeller").checked,is_new:g("pNew").checked};
+  const descEl=g("pDescription");
+  const description=descEl?(descEl.isContentEditable?cmsEditorSafeHtml(descEl.innerHTML):descEl.value.trim()):"";
+  const variations=typeof cmsCollectVariations==="function"?cmsCollectVariations():(g("pVariations")?cmsParseVariations(g("pVariations").value):[]);
+  const data={name,slug,sku:g("pSku").value.trim()||null,category_id:g("pCat").value?Number(g("pCat").value):null,price:num("pPrice")??0,old_price:oldPrice,sale_price:salePrice,weight_kg:weight,delivery_mode:g("pDeliveryMode").value,manual_delivery_fee:fixedDelivery,show_weight:g("pShowWeight").checked,variations,tag:g("pTag").value.trim()||null,cost:num("pCost"),stock:num("pStock"),status:g("pStatus").value,short_description:shortDescription||null,description:description||null,images,seo,featured:g("pFeatured").checked,best_seller:g("pBestSeller").checked,is_new:g("pNew").checked};
   const saved=await cmsRequest("cms_products",id===null?"POST":"PATCH",id,data);
   if(saved?.id)await cmsSyncProductAssignments(Number(saved.id),data.category_id,data.featured,selectedPageIds);
   await cmsManage("products");
@@ -672,16 +1214,7 @@ async function cmsEditBlog(r,id){
  const products=await cmsRequest("cms_products");cmsCache.products=products;
  const selected=Array.isArray(r.related_product_ids)?r.related_product_ids.map(Number):[],seo=Object.assign({},cmsFormSeo);
  const list=products.map(p=>'<label class="assignment-item"><input type="checkbox" data-blog-product value="'+Number(p.id)+'" '+(selected.includes(Number(p.id))?"checked":"")+'><span class="assignment-copy"><strong>'+esc(p.name)+'</strong><small>'+esc(p.slug||"")+'</small></span></label>').join("");
- const toolbar='<div class="cms-rich-toolbar" role="toolbar" aria-label="Article formatting">'+
- cmsRichButton('<strong>B</strong>','bold',null,'Bold')+cmsRichButton('<em>I</em>','italic',null,'Italic')+cmsRichButton('<u>U</u>','underline',null,'Underline')+
- cmsRichButton('H2','formatBlock','H2','Heading 2')+cmsRichButton('H3','formatBlock','H3','Heading 3')+cmsRichButton('¶','formatBlock','P','Paragraph')+
- cmsRichButton('• List','insertUnorderedList',null,'Bulleted list')+cmsRichButton('1. List','insertOrderedList',null,'Numbered list')+
- cmsRichButton('Quote','formatBlock','BLOCKQUOTE','Block quote')+
- '<button type="button" onmousedown="event.preventDefault()" onclick="cmsRichLink()">Link</button>'+
- cmsRichButton('Undo','undo',null,'Undo')+cmsRichButton('Redo','redo',null,'Redo')+'</div>';
- const editor='<div class="field full"><label for="blogContent">Article content</label>'+toolbar+
- '<div id="blogContent" class="cms-rich-editor" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="true" onmouseup="cmsRememberRichSelection(&quot;blogContent&quot;)" onkeyup="cmsRememberRichSelection(&quot;blogContent&quot;)">'+cmsEditorSafeHtml(r.content||"")+'</div>'+
- '<p class="field-help">Select text and use the toolbar for headings, bold/italic, lists, quotes and links. Insert images with the upload control below.</p></div>';
+ const editor=cmsRenderRichEditor("blogContent",r.content||"","Article content","Select text and use the toolbar for headings, bold/italic, lists, quotes, dividers and links. Insert images with the upload control below.");
  const fields=cmsField("Post title","blTitle",r.title,"text")+cmsField("URL slug","blSlug",r.slug,"text","Keep the current slug to preserve the public URL.")+
  cmsField("Excerpt / meta summary","blExcerpt",r.excerpt,"textarea")+
  cmsField("Featured image URL","blImage",r.featured_image_url,"text")+cmsUploadField("Upload featured image","blImage","blog/featured",false,"set")+

@@ -72,7 +72,62 @@ function cmsBuyProductNow(id){
  console.warn("Product Buy Now control is not ready yet.");
  return false;
 }
+function renderProductDescription(content){
+ if(!content)return '<p>More product details will be added soon.</p>';
+ const raw=String(content).trim();
+ const hasMarkup=/<(?:h[1-6]|p|div|img|ul|ol|li|figure|table|blockquote|a|hr|br|strong|b|em|i|u|span)\b/i.test(raw);
+ const initial=hasMarkup?raw:raw.split(/\n\s*\n+/).map(x=>'<p>'+esc(x).replace(/\n/g,'<br>')+'</p>').join('');
+ const template=document.createElement('template');
+ template.innerHTML=initial;
+ template.content.querySelectorAll('script,iframe,object,embed,form,input,button').forEach(x=>x.remove());
+ template.content.querySelectorAll('*').forEach(el=>{
+  [...el.attributes].forEach(attr=>{
+   const name=attr.name.toLowerCase();
+   if(/^on/i.test(name))el.removeAttribute(attr.name);
+   if(['href','src','xlink:href'].includes(name)&&/^\s*javascript:/i.test(attr.value))el.removeAttribute(attr.name);
+  });
+  if(el.tagName==='IMG'){
+   el.setAttribute('loading','lazy');
+   el.classList.add('cms-desc-img');
+  }
+ });
+ return template.innerHTML||'<p>More product details will be added soon.</p>';
+}
+
+function cmsNormalizeProductVariations(variations){
+ if(!Array.isArray(variations))return [];
+ const list=[];
+ for(let i=0;i<variations.length;i++){
+  const v=variations[i];if(!v)continue;
+  if(Array.isArray(v.options)){
+   for(const opt of v.options){
+    const optVal=typeof opt==="object"?(opt.value??opt.label??opt.name??""):String(opt);
+    const optPrice=typeof opt==="object"&&opt.price!=null?Number(opt.price):null;
+    list.push({id:'var_'+i+'_'+optVal,name:optVal,groupName:v.name||'Option',price:optPrice,sale_price:optPrice,old_price:null,weight_kg:null,color:'',color_hex:'',sku:'',image:'',delivery_fee:null});
+   }
+  }else if(v.name||v.label||v.title){
+   list.push({
+    id:v.id||('var_'+i),
+    name:String(v.name||v.label||v.title||('Option '+(i+1))),
+    color:String(v.color||''),
+    color_hex:String(v.color_hex||''),
+    weight_kg:v.weight_kg!=null?Number(v.weight_kg):(v.weight!=null?Number(v.weight):null),
+    price:v.sale_price!=null?Number(v.sale_price):(v.price!=null?Number(v.price):null),
+    sale_price:v.sale_price!=null?Number(v.sale_price):(v.price!=null?Number(v.price):null),
+    old_price:v.old_price!=null?Number(v.old_price):null,
+    sku:String(v.sku||''),
+    image:String(v.image||v.image_url||''),
+    delivery_fee:v.delivery_fee!=null&&v.delivery_fee!==''?Number(v.delivery_fee):null,
+    stock:v.stock!=null?Number(v.stock):null
+   });
+  }
+ }
+ return list;
+}
+
 function cmsInitialVariant(variations){
+ const norm=cmsNormalizeProductVariations(variations);
+ if(norm.length)return norm[0];
  const chosen={};
  for(const rule of (Array.isArray(variations)?variations:[])){
   const name=String(rule?.name||rule?.label||"").trim(),options=Array.isArray(rule?.options)?rule.options:[];
@@ -83,6 +138,7 @@ function cmsInitialVariant(variations){
  return chosen;
 }
 function cmsPriceForVariant(product,chosen){
+ if(chosen&&chosen.price!=null&&Number.isFinite(Number(chosen.price)))return Math.max(0,Number(chosen.price));
  let price=Number(product?.price)||0;
  for(const [name,value] of Object.entries(chosen||{})){
   const rule=(Array.isArray(product?.variations)?product.variations:[]).find(v=>String(v?.name||v?.label||"").trim().toLowerCase()===String(name).trim().toLowerCase());
@@ -92,9 +148,22 @@ function cmsPriceForVariant(product,chosen){
  return Math.max(0,price);
 }
 function cmsCurrentVariant(){
+ const activeCard=document.querySelector(".detail-info .cms-var-option-card.active");
+ if(activeCard){
+  const values={Option:activeCard.dataset.varName||""};
+  if(activeCard.dataset.varColor)values.Color=activeCard.dataset.varColor;
+  if(activeCard.dataset.varSku)values.SKU=activeCard.dataset.varSku;
+  if(activeCard.dataset.varPrice)values.price=Number(activeCard.dataset.varPrice);
+  if(activeCard.dataset.varWeight)values.weight=Number(activeCard.dataset.varWeight);
+  if(activeCard.dataset.varImage)values.image=activeCard.dataset.varImage;
+  if(activeCard.dataset.varDelivery)values.delivery_fee=Number(activeCard.dataset.varDelivery);
+  return values;
+ }
  const chosen={};document.querySelectorAll(".detail-info [data-cms-variation]").forEach(select=>{if(select.value)chosen[select.dataset.cmsVariation||"Option"]=select.value});return chosen;
 }
 function cmsVariantWeight(product,chosen){
+ if(chosen&&chosen.weight!=null&&Number.isFinite(Number(chosen.weight)))return Math.max(0,Number(chosen.weight));
+ if(chosen&&chosen.weight_kg!=null&&Number.isFinite(Number(chosen.weight_kg)))return Math.max(0,Number(chosen.weight_kg));
  let weight=Math.max(0,Number(product?.weight)||0);
  for(const [name,value] of Object.entries(chosen||{})){
   if(!/^(weight|pack\s*weight|product\s*weight)$/i.test(String(name).trim()))continue;
@@ -109,7 +178,7 @@ function renderCmsGenericProduct(){
  detail.classList.add("cms-generic-detail");
  const images=(Array.isArray(p.images)&&p.images.length?p.images:[p.image]).filter(Boolean).slice(0,8);
  const title=(p.seo?.meta_title||p.seo?.title)||(p.name+" | Talha Bilal Store");
- const description=(p.seo?.meta_description||p.seo?.description)||p.description||p.name;
+ const description=(p.seo?.meta_description||p.seo?.description)||p.shortDescription||p.name;
  document.title=title;
  const meta=document.querySelector('meta[name="description"]');if(meta)meta.setAttribute('content',description);
  const og=document.querySelector('meta[property="og:image"]');if(og&&images[0])og.setAttribute('content',new URL(images[0],location.origin).href);
@@ -121,33 +190,98 @@ function renderCmsGenericProduct(){
  const mainImage=images[0]||'/assets/products/mango-pulp-product-image.webp';
  const thumbs=images.map((src,i)=>'<button class="gallery-thumb '+(i===0?'active':'')+'" type="button" data-cms-gallery="'+esc(src)+'" aria-label="View image '+(i+1)+'"><img src="'+esc(src)+'" alt="" loading="lazy"></button>').join('');
  const showWeight=!!p.showWeight||!!p.isMangoPremix;
- const defaultVariant=cmsInitialVariant(p.variations);
- const displayPrice=cmsPriceForVariant(p,defaultVariant);
- const displayWeight=cmsVariantWeight(p,defaultVariant);
- const itemDeliveryFee=cmsDeliveryFee(displayWeight,p.deliveryMode,p.manualDeliveryFee);
- const oldPriceMarkup=Number(p.oldPrice)>displayPrice?'<span class="old-price" data-cms-old-price>'+currency(p.oldPrice)+'</span>':(p.oldPrice?'<span class="old-price" data-cms-old-price hidden>'+currency(p.oldPrice)+'</span>':'');
- const variationMarkup=(Array.isArray(p.variations)?p.variations:[]).map((v,index)=>{
-  const name=String(v?.name||v?.label||("Option "+(index+1)));
-  const options=Array.isArray(v?.options)?v.options:[];
-  if(!options.length)return "";
-  return '<label class="cms-variation-label"><span>'+esc(name)+'</span><select data-cms-variation="'+esc(name)+'" aria-label="'+esc(name)+'">'+options.map((option,i)=>{const value=String(typeof option==="object"?(option.value??option.label??option.name??""):option);return '<option value="'+esc(value)+'" '+(i===0?'selected':'')+'>'+esc(value)+'</option>'}).join('')+'</select></label>';
- }).join('');
+ 
+ const normVariants=cmsNormalizeProductVariations(p.variations);
+ const defaultVariant=normVariants[0]||null;
+ const displayPrice=defaultVariant&&defaultVariant.price!=null?defaultVariant.price:(Number(p.price)||0);
+ const displayOldPrice=defaultVariant&&defaultVariant.old_price!=null?defaultVariant.old_price:(Number(p.oldPrice)||0);
+ const displayWeight=defaultVariant&&defaultVariant.weight_kg!=null?defaultVariant.weight_kg:cmsVariantWeight(p,{});
+ const itemDeliveryFee=defaultVariant&&defaultVariant.delivery_fee!=null?defaultVariant.delivery_fee:cmsDeliveryFee(displayWeight,p.deliveryMode,p.manualDeliveryFee);
+ const oldPriceMarkup=displayOldPrice>displayPrice?'<span class="old-price" data-cms-old-price>'+currency(displayOldPrice)+'</span>':(displayOldPrice?'<span class="old-price" data-cms-old-price hidden>'+currency(displayOldPrice)+'</span>':'');
+
+ let variationMarkup="";
+ if(normVariants.length){
+  variationMarkup='<div class="variant-selector cms-modern-variant-selector">'+
+  '<div class="cms-var-title-row"><strong>Select Option / Variation:</strong><span class="cms-active-var-name" id="cmsActiveVarLabel">'+esc(defaultVariant.name)+'</span></div>'+
+  '<div class="cms-var-options-grid" role="radiogroup">'+
+  normVariants.map((v,i)=>{
+   const pStr=v.price!=null?'<strong class="cms-var-price">'+currency(v.price)+'</strong>':'';
+   const oldStr=v.old_price&&v.old_price>(v.price||0)?'<del class="cms-var-old">'+currency(v.old_price)+'</del>':'';
+   const thumb=v.image?'<img class="cms-var-thumb" src="'+esc(v.image)+'" alt="'+esc(v.name)+'">':'';
+   const dot=v.color_hex?'<span class="cms-var-color-dot" style="background:'+esc(v.color_hex)+'" title="'+esc(v.color||v.name)+'"></span>':'';
+   return '<button type="button" class="cms-var-option-card '+(i===0?'active':'')+'" '+
+    'data-var-index="'+i+'" '+
+    'data-var-name="'+esc(v.name)+'" '+
+    (v.color?'data-var-color="'+esc(v.color)+'" ':'')+
+    (v.sku?'data-var-sku="'+esc(v.sku)+'" ':'')+
+    (v.price!=null?'data-var-price="'+v.price+'" ':'')+
+    (v.old_price!=null?'data-var-old-price="'+v.old_price+'" ':'')+
+    (v.weight_kg!=null?'data-var-weight="'+v.weight_kg+'" ':'')+
+    (v.image?'data-var-image="'+esc(v.image)+'" ':'')+
+    (v.delivery_fee!=null?'data-var-delivery="'+v.delivery_fee+'" ':'')+
+    'role="radio" aria-checked="'+(i===0?'true':'false')+'">'+
+    thumb+dot+
+    '<div class="cms-var-option-text"><span class="cms-var-name">'+esc(v.name)+'</span>'+
+    '<span class="cms-var-prices">'+pStr+oldStr+'</span></div>'+
+    '<span class="cms-var-check">✓</span></button>';
+  }).join('')+
+  '</div></div>';
+ }else if(Array.isArray(p.variations)&&p.variations.length){
+  variationMarkup=p.variations.map((v,index)=>{
+   const name=String(v?.name||v?.label||("Option "+(index+1)));
+   const options=Array.isArray(v?.options)?v.options:[];
+   if(!options.length)return "";
+   return '<label class="cms-variation-label"><span>'+esc(name)+'</span><select data-cms-variation="'+esc(name)+'" aria-label="'+esc(name)+'">'+options.map((option,i)=>{const value=String(typeof option==="object"?(option.value??option.label??option.name??""):option);return '<option value="'+esc(value)+'" '+(i===0?'selected':'')+'>'+esc(value)+'</option>'}).join('')+'</select></label>';
+  }).join('');
+  if(variationMarkup)variationMarkup='<div class="variant-selector cms-variation-selector"><strong>Select options</strong>'+variationMarkup+'</div>';
+ }
+
  const deliveryCopy='Cash on Delivery is available. The delivery fee for this item is '+currency(itemDeliveryFee)+'. If you add other items, the final delivery fee will be shown in your cart before you place the order.';
  detail.innerHTML='<div class="detail-breadcrumb"><a href="/">Home</a> / <a href="/products">All Products</a> / '+esc(p.name)+'</div>'+
  '<section class="detail-top"><div><div class="product-gallery"><div class="gallery-main"><img id="cmsGalleryMain" src="'+esc(mainImage)+'" alt="'+esc(p.name)+'"></div><div class="gallery-thumbs" role="list">'+thumbs+'</div></div></div>'+
  '<div class="detail-info" data-product-id="'+esc(p.id)+'"><span class="eyebrow">'+esc(p.categoryName||p.tag||'PRODUCT')+'</span><h1>'+esc(p.name)+'</h1><p class="detail-description">'+esc(p.shortDescription||'')+'</p>'+
  '<div class="detail-price"><span data-cms-current-price>'+currency(displayPrice)+'</span>'+oldPriceMarkup+'</div>'+
  (showWeight?'<p class="pack-info" data-cms-weight-info><strong>Weight:</strong> <span data-cms-current-weight>'+displayWeight+'</span> kg</p>':'')+
- (variationMarkup?'<div class="variant-selector cms-variation-selector"><strong>Select options</strong>'+variationMarkup+'</div>':'')+
+ variationMarkup+
  '<p class="cms-detail-delivery">Delivery fee for this item: <strong data-cms-current-delivery>'+currency(itemDeliveryFee)+'</strong></p>'+
  '<div class="detail-actions"><a class="detail-cart" id="detailAdd" data-add="'+esc(p.id)+'" href="#">Add to Cart</a><a class="detail-buy" id="detailBuy" data-buy="'+esc(p.id)+'" href="#">Buy Now</a></div></div></section>'+
- '<section class="detail-accordions"><details><summary>Product Details <span>⌄</span></summary><div class="accordion-content">'+(p.description?'<p>'+esc(p.description)+'</p>':'<p>More product details will be added soon.</p>')+'</div></details>'+
+ '<section class="detail-accordions"><details open><summary>Product Details <span>⌄</span></summary><div class="accordion-content detail-rich-body">'+renderProductDescription(p.description)+'</div></details>'+
  '<details open><summary>Delivery Information <span>⌄</span></summary><div class="accordion-content"><p data-cms-delivery-copy>'+esc(deliveryCopy)+'</p></div></details></section>'+
  '<section class="detail-section customer-reviews-section"><div class="section-heading"><div><span class="eyebrow">CUSTOMER REVIEWS</span><h2>Reviews for this product</h2></div></div><div id="productReviews"><div class="empty-reviews">No reviews for this product yet.</div></div></section>'+
  '<div class="detail-bottom-link"><a class="detail-back" href="/products">← All Products</a></div>';
- // Let the catalogue page add this product after its CMS catalogue has loaded.
- // This avoids opening an empty cart while the CMS request is still in flight.
+
  document.querySelectorAll('[data-cms-gallery]').forEach(btn=>btn.addEventListener('click',()=>{const im=document.getElementById('cmsGalleryMain');if(im)im.src=btn.dataset.cmsGallery;document.querySelectorAll('[data-cms-gallery]').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}));
+
+ document.querySelectorAll('.cms-var-option-card').forEach(card=>{
+  card.addEventListener('click',()=>{
+   document.querySelectorAll('.cms-var-option-card').forEach(c=>{c.classList.remove('active');c.setAttribute('aria-checked','false')});
+   card.classList.add('active');
+   card.setAttribute('aria-checked','true');
+   const idx=Number(card.dataset.varIndex);
+   const v=normVariants[idx];
+   if(!v)return;
+   const label=document.getElementById('cmsActiveVarLabel');
+   if(label)label.textContent=v.name;
+   const price=v.price!=null?v.price:(Number(p.price)||0);
+   const oldPrice=v.old_price!=null?v.old_price:(Number(p.oldPrice)||0);
+   const weight=v.weight_kg!=null?v.weight_kg:cmsVariantWeight(p,{});
+   const delivery=v.delivery_fee!=null?v.delivery_fee:cmsDeliveryFee(weight,p.deliveryMode,p.manualDeliveryFee);
+   const display=document.querySelector('[data-cms-current-price]'),old=document.querySelector('[data-cms-old-price]'),weightLabel=document.querySelector('[data-cms-current-weight]'),deliveryLabel=document.querySelector('[data-cms-current-delivery]'),deliveryCopyEl=document.querySelector('[data-cms-delivery-copy]');
+   if(display)display.textContent=currency(price);
+   if(old){
+    if(oldPrice>price){old.textContent=currency(oldPrice);old.hidden=false}
+    else{old.hidden=true}
+   }
+   if(weightLabel)weightLabel.textContent=String(weight);
+   if(deliveryLabel)deliveryLabel.textContent=currency(delivery);
+   if(deliveryCopyEl)deliveryCopyEl.textContent='Cash on Delivery is available. The delivery fee for this item is '+currency(delivery)+'. If you add other items, the final delivery fee will be shown in your cart before you place the order.';
+   if(v.image){
+    const main=document.getElementById('cmsGalleryMain');
+    if(main)main.src=v.image;
+   }
+  });
+ });
+
  document.querySelectorAll('.detail-info [data-cms-variation]').forEach(select=>select.addEventListener('change',()=>{
   const chosen=cmsCurrentVariant(),price=cmsPriceForVariant(p,chosen),weight=cmsVariantWeight(p,chosen),delivery=cmsDeliveryFee(weight,p.deliveryMode,p.manualDeliveryFee);
   const display=document.querySelector('[data-cms-current-price]'),old=document.querySelector('[data-cms-old-price]'),weightLabel=document.querySelector('[data-cms-current-weight]'),deliveryLabel=document.querySelector('[data-cms-current-delivery]'),deliveryCopyEl=document.querySelector('[data-cms-delivery-copy]');

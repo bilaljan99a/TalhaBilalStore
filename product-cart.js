@@ -28,9 +28,14 @@ function persistCart(){localStorage.setItem(CART_KEY,JSON.stringify(cart))}
 function findProduct(id){return PRODUCTS.find(p=>String(p.id)===String(id))}
 function normalizedVariant(variant){if(!variant||typeof variant!=="object"||Array.isArray(variant))return{};return Object.keys(variant).sort().reduce((out,key)=>{const value=String(variant[key]??"").trim();if(value)out[key]=value;return out},{})}
 function variantKey(variant){return JSON.stringify(normalizedVariant(variant))}
-function variantLabel(variant){return Object.entries(normalizedVariant(variant)).map(([key,value])=>key+": "+value).join(", ")}
+function variantLabel(variant){return Object.entries(normalizedVariant(variant)).filter(([k])=>!['price','weight','image','delivery_fee','sku'].includes(k.toLowerCase())).map(([key,value])=>key+": "+value).join(", ")}
 function orderItemName(product,variant){const label=variantLabel(variant);return label?product.name+" — "+label:product.name}
 function productVariantWeight(product,variant={}){
+ if(variant&&variant.weight!=null&&Number.isFinite(Number(variant.weight)))return Math.max(0,Number(variant.weight));
+ if(variant?.Option && Array.isArray(product?.variations)){
+  const match = product.variations.find(v=>String(v.name||v.label||"").trim().toLowerCase()===String(variant.Option).trim().toLowerCase());
+  if(match&&match.weight_kg!=null&&Number.isFinite(Number(match.weight_kg)))return Math.max(0,Number(match.weight_kg));
+ }
  let weight=Math.max(0,Number(product?.weight)||0);
  for(const [name,value] of Object.entries(normalizedVariant(variant))){
   if(!/^(weight|pack\s*weight|product\s*weight)$/i.test(String(name).trim()))continue;
@@ -42,13 +47,39 @@ function productVariantWeight(product,variant={}){
  }
  return weight;
 }
-function productVariantPrice(product,variant){let price=Number(product?.price)||0;for(const [name,value] of Object.entries(normalizedVariant(variant))){const rule=(Array.isArray(product?.variations)?product.variations:[]).find(v=>String(v?.name||v?.label||"").trim().toLowerCase()===String(name).trim().toLowerCase());const option=(Array.isArray(rule?.options)?rule.options:[]).find(o=>String(typeof o==="object"?(o.value??o.label??o.name??""):o)===String(value));if(option&&typeof option==="object"&&option.price!==null&&option.price!==undefined&&Number.isFinite(Number(option.price)))price=Number(option.price)}return Math.max(0,price)}
-function productDeliveryFee(product,quantity=1){
+function productVariantPrice(product,variant){
+ if(variant&&variant.price!=null&&Number.isFinite(Number(variant.price)))return Math.max(0,Number(variant.price));
+ if(variant?.Option && Array.isArray(product?.variations)){
+  const match = product.variations.find(v=>String(v.name||v.label||"").trim().toLowerCase()===String(variant.Option).trim().toLowerCase());
+  if(match&&(match.sale_price!=null||match.price!=null))return Math.max(0,Number(match.sale_price??match.price));
+ }
+ let price=Number(product?.price)||0;
+ for(const [name,value] of Object.entries(normalizedVariant(variant))){
+  const rule=(Array.isArray(product?.variations)?product.variations:[]).find(v=>String(v?.name||v?.label||"").trim().toLowerCase()===String(name).trim().toLowerCase());
+  const option=(Array.isArray(rule?.options)?rule.options:[]).find(o=>String(typeof o==="object"?(o.value??o.label??o.name??""):o)===String(value));
+  if(option&&typeof option==="object"&&option.price!==null&&option.price!==undefined&&Number.isFinite(Number(option.price)))price=Number(option.price)
+ }
+ return Math.max(0,price);
+}
+function productDeliveryFee(product,quantity=1,variant={}){
+ if(variant&&variant.delivery_fee!=null&&Number.isFinite(Number(variant.delivery_fee)))return Math.max(0,Number(variant.delivery_fee));
  if(product?.deliveryMode==="manual")return Math.max(0,Number(product.manualDeliveryFee)||0);
  return deliveryForWeight(Number(product?.weight||0)*Math.max(1,Number(quantity)||1));
 }
 function readSelectedVariations(element){
  const root=element?.closest(".detail-info")||document,values={};
+ const activeCard=root.querySelector(".cms-var-option-card.active");
+ if(activeCard){
+  const vName=activeCard.dataset.varName||"";
+  if(vName)values["Option"]=vName;
+  if(activeCard.dataset.varColor)values["Color"]=activeCard.dataset.varColor;
+  if(activeCard.dataset.varSku)values["SKU"]=activeCard.dataset.varSku;
+  if(activeCard.dataset.varPrice)values["price"]=Number(activeCard.dataset.varPrice);
+  if(activeCard.dataset.varWeight)values["weight"]=Number(activeCard.dataset.varWeight);
+  if(activeCard.dataset.varImage)values["image"]=activeCard.dataset.varImage;
+  if(activeCard.dataset.varDelivery)values["delivery_fee"]=Number(activeCard.dataset.varDelivery);
+  return values;
+ }
  root.querySelectorAll("[data-cms-variation]").forEach(select=>{if(select.value)values[select.dataset.cmsVariation||"Option"]=select.value});
  return normalizedVariant(values);
 }
