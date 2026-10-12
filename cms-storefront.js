@@ -167,6 +167,7 @@
       const data = await res.json(); if (!data || !data.ok) throw new Error("Invalid CMS response");
       for (const key of ["products","categories","pages","banners","blog_posts","seo"]) if (!Array.isArray(data[key])) data[key]=[];
       window.CMS_SITE_DATA = data;
+      window.CMS_SITE_STATUS = "ready";
       if (Array.isArray(window.PRODUCTS)) {
         const list=window.PRODUCTS, hidden=new Set(data.hidden_static_product_ids||[]);
         for(let i=list.length-1;i>=0;i--)if(hidden.has(list[i].id))list.splice(i,1);
@@ -177,10 +178,13 @@
       document.dispatchEvent(new CustomEvent("cms-site-data-ready",{detail:data}));
       return data;
     } catch (error) {
+      window.CMS_SITE_STATUS = "error";
       window.CMS_SITE_DATA = window.CMS_SITE_DATA || null;
+      document.dispatchEvent(new CustomEvent("cms-site-data-error", {detail:{error:String(error)}}));
       return {ok:false,error:String(error)};
     }
   }
+  window.CMS_SITE_STATUS = "loading";
   window.CMS_SITE_READY = load();
   // app.js may finish loading before or after this catalogue request. Explicitly
   // refresh it once the CMS promise resolves so newly published items appear in
