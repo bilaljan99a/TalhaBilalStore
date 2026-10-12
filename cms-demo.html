@@ -106,6 +106,33 @@ body.cms-back-visible #backBtn{display:inline-block}
 .category-search-wrap{display:block;margin:5px 0 8px}
 .category-search-wrap input{width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid var(--line);border-radius:8px}
 
+
+.cms-product-editor-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,340px);gap:18px;align-items:start;width:100%;margin-top:18px}
+.cms-product-editor-layout>.cms-editor{margin:0;min-width:0;max-width:none}
+.cms-product-preview{position:sticky;top:88px;min-width:0;padding:16px;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:0 5px 20px rgba(17,24,39,.045)}
+.cms-product-preview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:14px}
+.cms-product-preview-head strong{display:block;font-size:15px;margin-top:3px}
+.cms-product-preview-kicker{font-size:10px;letter-spacing:.12em;font-weight:850;color:#b45309}
+.cms-product-preview-state{display:inline-flex;align-items:center;gap:5px;border-radius:999px;background:#f3f4f6;color:#4b5563;padding:5px 8px;font-size:10px;font-weight:800;white-space:nowrap}
+.cms-product-preview-state.is-active{background:#eaf8ef;color:#167342}
+.cms-product-preview-card{max-width:360px;margin:0 auto;border:1px solid #e4e4e7;border-radius:13px;overflow:hidden;background:#fff;color:#17191d}
+.cms-product-preview-image{position:relative;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;background:#f7f7f7;overflow:hidden;padding:12px}
+.cms-product-preview-image img{display:block;width:100%;height:100%;object-fit:contain}
+.cms-product-preview-image .preview-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;color:#6b7280;font-size:12px;line-height:1.5;padding:16px}
+.cms-product-preview-tag{position:absolute;left:10px;top:10px;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#202124;color:#fff;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:850}
+.cms-product-preview-info{padding:13px}
+.cms-product-preview-category{font-size:10px;font-weight:750;color:#b45309;margin-bottom:6px}
+.cms-product-preview-info h3{font-size:15px!important;line-height:1.35!important;font-weight:800!important;color:#17191d!important;margin:0 0 10px!important;overflow-wrap:anywhere}
+.cms-product-preview-prices{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.cms-product-preview-prices strong{font-size:20px;color:#17191d}
+.cms-product-preview-prices del{font-size:11px;color:#888}
+.cms-product-preview-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.cms-product-preview-actions button{width:100%;border:1px solid #d4d4d8;border-radius:7px;padding:9px 4px;background:#fff;color:#202124;font-size:10px;font-weight:800;opacity:1;cursor:default}
+.cms-product-preview-actions button:last-child{background:#ff6a00;border-color:#ff6a00;color:#fff}
+.cms-product-preview-hint{font-size:11px;color:var(--muted);line-height:1.5;margin:13px 0 0}
+@media(max-width:1150px){.cms-product-editor-layout{grid-template-columns:minmax(0,1fr)}.cms-product-preview{position:static;max-width:520px;width:100%;margin:0 auto;grid-row:1}.cms-product-editor-layout>.cms-editor{grid-row:2}}
+@media(max-width:600px){.cms-product-editor-layout{gap:12px}.cms-product-preview{padding:12px}.cms-product-editor-layout>.cms-editor{padding:14px}.cms-product-preview-card{max-width:340px}}
+
 </style>
 </head>
 <body>
@@ -1036,6 +1063,47 @@ function cmsCollectVariations() {
  }));
 }
 
+function cmsAttachProductPreview(){
+ const panel=app.querySelector(".cms-editor");if(!panel)return;
+ const layout=document.createElement("div");layout.className="cms-product-editor-layout";
+ const preview=document.createElement("aside");preview.id="cmsProductLivePreview";preview.className="cms-product-preview";preview.setAttribute("aria-label","Live product card preview");
+ preview.innerHTML='<div class="cms-product-preview-head"><div><span class="cms-product-preview-kicker">LIVE PREVIEW</span><strong>Product card</strong></div><span class="cms-product-preview-state" id="cmsPreviewStatus">Draft</span></div>'+
+ '<article class="cms-product-preview-card"><div class="cms-product-preview-image"><span class="cms-product-preview-tag" id="cmsPreviewTag">PRODUCT</span><img id="cmsPreviewImage" alt="Product preview" hidden><div class="preview-placeholder" id="cmsPreviewImagePlaceholder"><span style="font-size:30px">▧</span><span>Upload a product image<br>to see it here</span></div></div>'+
+ '<div class="cms-product-preview-info"><div class="cms-product-preview-category" id="cmsPreviewCategory">Select a category</div><h3 id="cmsPreviewName">Your product title</h3><div class="cms-product-preview-prices"><strong id="cmsPreviewPrice">Rs. 0</strong><del id="cmsPreviewOldPrice" hidden></del></div><div class="cms-product-preview-actions"><button type="button" disabled>Add to Cart</button><button type="button" disabled>Buy Now</button></div></div></article>'+
+ '<p class="cms-product-preview-hint">Preview updates as you edit. The real listing uses the saved product image, title and current selling price. The existing homepage stays unchanged.</p>';
+ panel.parentNode.insertBefore(layout,panel);layout.appendChild(panel);layout.appendChild(preview);
+}
+function cmsRenderProductLivePreview(){
+ const preview=document.getElementById("cmsProductLivePreview");if(!preview)return;
+ const get=id=>document.getElementById(id);
+ const val=id=>String(get(id)?.value??"").trim();
+ const name=val("pName")||"Your product title";
+ const tag=val("pTag")||"PRODUCT";
+ const image=val("pImages").split(/\r?\n/).map(x=>x.trim()).filter(Boolean)[0]||"";
+ const basePrice=Number(val("pPrice"))||0;
+ const saleText=val("pSale");
+ const sellingPrice=saleText!==""?(Number(saleText)||0):basePrice;
+ const oldInput=Number(val("pOldPrice"))||0;
+ const oldPrice=oldInput>0?oldInput:(saleText!==""&&basePrice>sellingPrice?basePrice:0);
+ const status=val("pStatus")||"draft";
+ const category=get("pCat");
+ const categoryId=category?.value||"";
+ const categoryText=category&&category.selectedIndex>=0?category.options[category.selectedIndex].textContent.replace(/\s+\([^)]*\)$/,"").trim():"";
+ const title=get("cmsPreviewName"),tagNode=get("cmsPreviewTag"),categoryNode=get("cmsPreviewCategory"),priceNode=get("cmsPreviewPrice"),oldNode=get("cmsPreviewOldPrice"),img=get("cmsPreviewImage"),placeholder=get("cmsPreviewImagePlaceholder"),state=get("cmsPreviewStatus");
+ if(title)title.textContent=name;
+ if(tagNode){tagNode.textContent=tag;tagNode.hidden=!tag}
+ if(categoryNode)categoryNode.textContent=categoryId?categoryText:"Unassigned category";
+ if(priceNode)priceNode.textContent="Rs. "+sellingPrice.toLocaleString("en-PK");
+ if(oldNode){oldNode.textContent="Rs. "+oldPrice.toLocaleString("en-PK");oldNode.hidden=!(oldPrice>sellingPrice)}
+ if(state){state.textContent=status==="active"?"Active • Website":status==="archived"?"Archived":"Draft • Hidden";state.classList.toggle("is-active",status==="active")}
+ if(img){
+  img.onerror=()=>{img.hidden=true;if(placeholder)placeholder.hidden=false};
+  img.onload=()=>{img.hidden=false;if(placeholder)placeholder.hidden=true};
+  if(image){if(img.getAttribute("src")!==image)img.src=image;else{img.hidden=false;if(placeholder)placeholder.hidden=true}}
+  else{img.removeAttribute("src");img.hidden=true;if(placeholder)placeholder.hidden=false}
+ }
+}
+
 async function cmsEditProduct(r,id){
  const cats=await cmsRequest("cms_categories");cmsCache.categories=cats;
  const pages=await cmsRequest("cms_pages");cmsCache.pages=pages;
@@ -1074,7 +1142,13 @@ async function cmsEditProduct(r,id){
  cmsField("SEO keywords","pSeoKeywords",Array.isArray(cmsFormSeo.keywords)?cmsFormSeo.keywords.join(", "):"","text")+
  '<div class="field full"><label>Product listing flags</label><p class="field-help">New products are not added to the homepage from this panel.</p>'+cmsCheck("Featured flag (homepage unchanged)","pFeatured",!!r.featured)+cmsCheck("Best seller","pBestSeller",!!r.best_seller)+cmsCheck("New product","pNew",!!r.is_new)+'</div>';
  cmsEditorShell(id===null?"Add Product":"Edit Product","Add product details, select a category, set delivery handling, optional variations and publish status.",fields,"cmsSaveProduct("+(id===null?"null":Number(id))+")","products");
- const img=document.getElementById("pImages");if(img)img.addEventListener("input",()=>cmsPreviewImage("pImages","pPreview"));
+ cmsAttachProductPreview();
+ const previewFields=["pName","pTag","pPrice","pOldPrice","pSale","pImages","pStatus"];
+ previewFields.forEach(id=>{const node=document.getElementById(id);if(node){node.addEventListener("input",cmsRenderProductLivePreview);node.addEventListener("change",cmsRenderProductLivePreview)}});
+ const categorySelect=document.getElementById("pCat");if(categorySelect)categorySelect.addEventListener("change",cmsRenderProductLivePreview);
+ const imageInput=document.getElementById("pImages");
+ if(imageInput)imageInput.addEventListener("input",()=>{cmsPreviewImage("pImages","pPreview");cmsRenderProductLivePreview()});
+ cmsRenderProductLivePreview();
 }
 
 async function cmsSyncProductAssignments(productId,categoryId,featured,customPageIds){
