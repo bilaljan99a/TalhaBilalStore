@@ -188,11 +188,17 @@ document.addEventListener('click',async e=>{
  const add=target.closest('[data-add]'),buy=target.closest('[data-buy]');
  if(!add&&!buy)return;
  e.preventDefault();e.stopPropagation();
- const id=add?add.dataset.add:buy.dataset.buy;
+ const control=add||buy;
+ const id=String(add?add.dataset.add:buy.dataset.buy||"");
  const product=await waitForProduct(id);
  if(!product){alert("This product is still loading. Please refresh the page and try again. Your cart and existing orders have not been changed.");return}
- const qty=readCurrentQuantity(add||buy);
- const variant=readSelectedVariations(add||buy);
+ // Read quantity from the active product detail first; this avoids falling back to 1
+ // when a product template has its own quantity control.
+ const detailRoot=control.closest(".detail-info");
+ const quantityInput=detailRoot?.querySelector("#productQtyInput")||document.getElementById("productQtyInput");
+ const rawQuantity=Number.parseInt(quantityInput?.value,10);
+ const qty=Number.isFinite(rawQuantity)&&rawQuantity>=1?Math.min(rawQuantity,99):readCurrentQuantity(control);
+ const variant=readSelectedVariations(control);
  if(add){
   const added=addToCart(id,variant,qty);
   if(!added)alert("Could not add this item. Please refresh and try again.");
