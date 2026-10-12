@@ -52,7 +52,60 @@ async function ensureCartProductsReady(){
 }
 function normalizedVariant(variant){if(!variant||typeof variant!=="object"||Array.isArray(variant))return{};return Object.keys(variant).sort().reduce((out,key)=>{const value=String(variant[key]??"").trim();if(value)out[key]=value;return out},{})}
 function variantKey(variant){return JSON.stringify(normalizedVariant(variant))}
-function variantLabel(variant){const hidden=new Set(["price","weight","image","image_url","delivery_fee","deliveryfee","sku","stock","id","variant_id","option_id","deliverymode","manualdeliveryfee"]);const entries=Object.entries(normalizedVariant(variant)).filter(([key])=>!hidden.has(String(key).toLowerCase().replace(/[\s_-]/g,"")));const seen=new Set();return entries.filter(([key,value])=>{const v=String(value??"").trim().toLowerCase();if(!v||seen.has(v))return false;seen.add(v);return true}).map(([key,value])=>key+": "+value).join(", ")}
+function cleanVariantValue(value){
+ if(value==null||typeof value==="object")return "";
+ const raw=String(value).trim();
+ if(!raw)return "";
+ return raw.split(/\s*,\s*(?=(?:sku|stock|price|old[\s_-]?price|weight(?:[\s_-]?kg)?|delivery[\s_-]?fee|delivery[\s_-]?mode|image(?:\s*url|[\s_-]?url)?|color[\s_-]?hex|barcode|inventory|variant[\s_-]?id|id)\s*:|https?:\/\/)/i)[0].replace(/[ ,;|]+$/,"").trim();
+}
+function variantLabel(variant){
+ const hidden=new Set(["price","oldprice","weight","weightkg","weightg","image","imageurl","deliveryfee","deliverymode","sku","stock","id","variantid","optionid","productid","categoryid","colorhex","barcode","inventory","stockquantity","manualdeliveryfee","createdat","updatedat"]);
+ const entries=Object.entries(normalizedVariant(variant)).filter(([key])=>!hidden.has(String(key).toLowerCase().replace(/[\s_-]/g,"")));
+ const seen=new Set();
+ return entries.map(([key,value])=>({key,value:cleanVariantValue(value)})).filter(({value})=>{const v=value.toLowerCase();if(!v||seen.has(v))return false;seen.add(v);return true}).map(({key,value})=>key+": "+value).join(", ");
+}
+function cartVariantRecord(product,variant={}){
+ const sku=cleanVariantValue(variant?.SKU??variant?.sku??"").toLowerCase();
+ const selectedNames=["Option","Color","Size","Style","Pattern","Material","Model","Pack","Variant"].map(key=>cleanVariantValue(variant?.[key])).filter(Boolean).map(value=>value.toLowerCase());
+ const candidates=[];
+ for(const item of (Array.isArray(product?.variations)?product.variations:[])){
+  if(!item||typeof item!=="object")continue;
+  if(Array.isArray(item.options)){
+   for(const option of item.options){
+    if(option&&typeof option==="object")candidates.push({...option,name:option.name||option.label||option.title||option.value||"",groupName:item.name||item.label||""});
+    else candidates.push({name:String(option??""),groupName:item.name||item.label||""});
+   }
+  }else candidates.push(item);
+ }
+ if(sku){
+  const bySku=candidates.find(item=>cleanVariantValue(item.sku??item.SKU??"").toLowerCase()===sku);
+  if(bySku)return bySku;
+ }
+ return candidates.find(item=>{
+  const name=cleanVariantValue(item.name??item.label??item.title??item.value??item.option??"").toLowerCase();
+  return name&&selectedNames.includes(name);
+ })||null;
+}
+function cleanCartImageUrl(value){
+ if(value==null||typeof value==="object")return "";
+ let raw=String(value).trim();
+ if(!raw)return "";
+ raw=raw.split(/\s*,\s*(?=(?:price|old[\s_-]?price|weight|sku|stock|delivery[\s_-]?fee)\s*:)/i)[0].trim();
+ const found=raw.match(/https?:\/\/[^\s"'<>]+/i);
+ if(found)return found[0].replace(/[),;]+$/,"");
+ if(/^(?:\/|assets\/)/i.test(raw))return raw.replace(/[),;]+$/,"");
+ return "";
+}
+function cartVariantImage(product,variant={},record=null){
+ const images=Array.isArray(product?.images)?product.images:[];
+ const sources=[
+  record?.image,record?.image_url,record?.imageUrl,record?.["Image URL"],
+  variant?.image,variant?.image_url,variant?.imageUrl,variant?.["Image URL"],
+  product?.image,...images.map(item=>typeof item==="string"?item:(item?.url||item?.src||""))
+ ];
+ for(const source of sources){const url=cleanCartImageUrl(source);if(url)return url}
+ return "/assets/products/mango-pulp-product-image.webp";
+}
 function orderItemName(product,variant){const label=variantLabel(variant);return label?product.name+" — "+label:product.name}
 function productVariantWeight(product,variant={}){
  if(variant&&variant.weight!=null&&Number.isFinite(Number(variant.weight)))return Math.max(0,Number(variant.weight));
@@ -212,12 +265,17 @@ function renderCart(){
  if(!cart.length){cartItems.innerHTML='<div class="empty-cart">Your cart is empty.<br>Choose a product to get started.</div>';return}
  const html=cart.map(i=>{
   const p=findProduct(i.id);if(!p)return "";
+  const variantRecord=cartVariantRecord(p,i.variant);
   const choice=variantLabel(i.variant);
   const showWeight=!!p.showWeight||!!p.isMangoPremix||/^mango-/.test(String(p.id||""));
-  const unitPrice=Number(i.price??p.price)||0,unitWeight=productVariantWeight(p,i.variant);
+  const fallbackPrice=variantRecord?.sale_price??variantRecord?.price??p.price;
+  const rawPrice=i.price??fallbackPrice;
+  const unitPrice=Number.isFinite(Number(rawPrice))?Math.max(0,Number(rawPrice)):0;
+  const unitWeight=productVariantWeight(p,{...variantRecord,...i.variant});
+  const image=cartVariantImage(p,i.variant,variantRecord);
   const details=[currency(unitPrice)+" each",choice,showWeight?unitWeight+"kg":""].filter(Boolean).join(" · ");
   const key=appEsc(variantKey(i.variant));
-  return '<div class="cart-item"><img class="cart-thumb-image" src="'+appEsc(i.variant?.image||i.variant?.image_url||i.variant?.["Image URL"]||p.image||"")+'" alt="'+appEsc(p.name)+'"><div><h4>'+appEsc(p.name)+'</h4><p>'+appEsc(details)+'</p><div class="cart-qty"><button data-dec="'+appEsc(p.id)+'" data-variant="'+key+'" type="button">−</button><strong>'+i.quantity+'</strong><button data-inc="'+appEsc(p.id)+'" data-variant="'+key+'" type="button">+</button><button class="cart-remove" data-remove="'+appEsc(p.id)+'" data-variant="'+key+'" type="button">Remove</button></div></div><strong>'+currency(unitPrice*i.quantity)+'</strong></div>';
+  return '<div class="cart-item"><img class="cart-thumb-image" src="'+appEsc(image)+'" alt="'+appEsc(p.name)+'"><div><h4>'+appEsc(p.name)+'</h4><p>'+appEsc(details)+'</p><div class="cart-qty"><button data-dec="'+appEsc(p.id)+'" data-variant="'+key+'" type="button">−</button><strong>'+i.quantity+'</strong><button data-inc="'+appEsc(p.id)+'" data-variant="'+key+'" type="button">+</button><button class="cart-remove" data-remove="'+appEsc(p.id)+'" data-variant="'+key+'" type="button">Remove</button></div></div><strong>'+currency(unitPrice*i.quantity)+'</strong></div>';
  }).join("");
  cartItems.innerHTML=html||'<div class="empty-cart">Loading products in your cart…</div>';
 }
