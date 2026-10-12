@@ -29,7 +29,7 @@
     const shortDescription = summarySource.length > 135 ? summarySource.slice(0,134).replace(/\s+\S*$/,"").trim()+"…" : summarySource;
     return {
       id:String(row.slug), cmsRecordId:Number(row.id), isCmsProduct:true,
-      isMangoPremix:cat?.slug === "mango-pulp-premix" || /^mango-/.test(String(row.slug)),
+      isMangoPremix:cat?.slug === "mango-pulp-premix" || /mango\s+pulp/i.test(String(row.name || "")),
       name:String(row.name || "Product"), description:String(row.description || row.short_description || ""),
       shortDescription,
       price, oldPrice:was > price ? was : undefined,
