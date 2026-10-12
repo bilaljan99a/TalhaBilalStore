@@ -112,7 +112,19 @@ function productCardSummary(product){
 function renderProducts(){
  if(!grid)return;
  const list=productList(),homeOnly=!!homeProductGrid&&!productGrid;
- if(!list.length){grid.innerHTML='<div class="empty-cart">No products are available in this category yet.</div>';return}
+ if(!list.length){
+  const cmsStatus=window.CMS_SITE_STATUS||(window.CMS_SITE_DATA?"ready":"loading");
+  if(cmsStatus==="loading"){
+   grid.innerHTML='<div class="catalog-loading" role="status" aria-live="polite"><span class="catalog-spinner" aria-hidden="true"></span><span>Loading products…</span></div>';
+   return;
+  }
+  if(cmsStatus==="error"){
+   grid.innerHTML='<div class="catalog-empty-state" role="status">Products could not be loaded just now. Please refresh the page in a moment.</div>';
+   return;
+  }
+  grid.innerHTML='<div class="catalog-empty-state">There are no products in this category yet.</div>';
+  return;
+ }
  grid.innerHTML=list.map(p=>{
   const url="/product/"+encodeURIComponent(p.id);
   const sellingPrice=Number(p.price)||0;
@@ -227,6 +239,7 @@ function refreshFromCms(){
 }
 window.refreshFromCms=refreshFromCms;
 document.addEventListener("cms-site-data-ready",refreshFromCms);
+document.addEventListener("cms-site-data-error",()=>{renderProducts();});
 // Handle both script-load orders, including a CMS response that finished before app.js executed.
 if(window.CMS_SITE_DATA)refreshFromCms();
 if(window.CMS_SITE_READY&&typeof window.CMS_SITE_READY.then==="function"){
