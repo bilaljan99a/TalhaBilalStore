@@ -135,10 +135,28 @@ function renderProducts(){
  }).join("");
 }
 function checkoutSummary(items,totalWeight,productTotal,delivery,total){
- const itemTitle=items.map(i=>i.name+" × "+i.quantity).join(", ");
- const showWeight=items.length>0&&items.every(i=>{const p=findProduct(i.id);return !!p&&(p.showWeight||p.isMangoPremix||/^mango-/.test(String(p.id||"")))});
- const weightRow=showWeight?'<div class="checkout-summary-row"><span>Total weight</span><strong>'+totalWeight+'kg</strong></div>':"";
- return '<div class="checkout-summary-card"><div class="checkout-summary-title">'+itemTitle+'</div><div class="checkout-summary-row"><span>Quantity</span><strong>'+items.reduce((s,i)=>s+i.quantity,0)+'</strong></div>'+weightRow+'<div class="checkout-summary-row"><span>Delivery fee</span><strong>'+currency(delivery)+'</strong></div><div class="checkout-summary-total"><span>Payable total</span><strong>'+currency(total)+'</strong></div></div>';
+ const safeItems=Array.isArray(items)?items:[];
+ const unitCount=safeItems.reduce((sum,item)=>sum+Math.max(1,Number(item.quantity)||1),0);
+ const lineItems=safeItems.map(item=>{
+  const product=findProduct(item.id)||{};
+  const quantity=Math.max(1,Number(item.quantity)||1);
+  const unitPrice=Math.max(0,Number(item.price??product.price)||0);
+  const lineTotal=unitPrice*quantity;
+  const image=item.variant?.image||item.variant?.image_url||product.image||(Array.isArray(product.images)?product.images[0]:"")||"/assets/products/mango-pulp-product-image.webp";
+  const name=String(item.name||product.name||"Product");
+  const meta=currency(unitPrice)+" each · Qty "+quantity;
+  return {name,image,meta,quantity,unitPrice,lineTotal};
+ });
+ const lineSum=lineItems.reduce((sum,item)=>sum+item.lineTotal,0);
+ const delta=Number(productTotal||0)-lineSum;
+ const adjustment=Math.abs(delta)>0.5?'<div class="checkout-summary-row checkout-summary-adjustment"><span>Pack pricing adjustment</span><strong>'+ (delta<0?"−":"+") +currency(Math.abs(delta))+'</strong></div>':"";
+ const showWeight=safeItems.length>0&&safeItems.every(item=>{
+  const product=findProduct(item.id);
+  return !!product&&(product.showWeight||product.isMangoPremix||/^mango-/.test(String(product.id||"")));
+ });
+ const weightRow=showWeight?'<div class="checkout-summary-row"><span>Total weight</span><strong>'+Number(totalWeight||0)+' kg</strong></div>':"";
+ const rows=lineItems.map(item=>'<div class="checkout-item-row"><img class="checkout-item-thumb" src="'+appEsc(item.image)+'" alt="" loading="lazy"><div class="checkout-item-main"><div class="checkout-item-name" title="'+appEsc(item.name)+'">'+appEsc(item.name)+'</div><div class="checkout-item-meta">'+appEsc(item.meta)+'</div></div><strong class="checkout-item-line-total">'+currency(item.lineTotal)+'</strong></div>').join("");
+ return '<section class="checkout-summary-card" aria-label="Order summary"><div class="checkout-summary-title"><span>Order items</span><span class="checkout-summary-count">'+safeItems.length+' product'+(safeItems.length===1?"":"s")+' · '+unitCount+' unit'+(unitCount===1?"":"s")+'</span></div><div class="checkout-summary-items">'+rows+'</div><div class="checkout-summary-totals"><div class="checkout-summary-row"><span>Products subtotal</span><strong>'+currency(productTotal)+'</strong></div>'+adjustment+weightRow+'<div class="checkout-summary-row"><span>Delivery fee</span><strong>'+currency(delivery)+'</strong></div><div class="checkout-summary-total"><span>Payable total</span><strong>'+currency(total)+'</strong></div></div></section>';
 }
 function openOrder(p,q=1,variant={}){if(!orderModal||!orderForm)return;const quantity=Math.max(1,Number(q)||1),chosen=normalizedVariant(variant),unitPrice=productVariantPrice(p,chosen),unitWeight=productVariantWeight(p,chosen),weight=unitWeight*quantity,isMango=!!p.isMangoPremix||/^mango-/.test(String(p.id||"")),productTotal=isMango?(bundlePriceForWeight(weight)||unitPrice*quantity):unitPrice*quantity,delivery=productDeliveryFee(Object.assign({},p,{weight:unitWeight}),quantity),total=productTotal+delivery;activeCheckout={items:[{id:p.id||null,name:orderItemName(p,chosen),quantity,price:unitPrice,weight:unitWeight,variant:chosen}],weight,productTotal,delivery};document.getElementById('orderProduct').value=orderItemName(p,chosen);document.getElementById('orderPrice').value=productTotal;document.getElementById('orderQuantity').value=quantity;if(selectedProduct)selectedProduct.innerHTML=checkoutSummary(activeCheckout.items,weight,productTotal,delivery,total);if(checkoutProductTotal)checkoutProductTotal.textContent=currency(productTotal);if(checkoutDelivery)checkoutDelivery.textContent=currency(delivery);if(checkoutGrandTotal)checkoutGrandTotal.textContent=currency(total);orderModal.hidden=false;document.body.style.overflow='hidden';setTimeout(()=>document.getElementById('fullName')?.focus(),50)}
 function openCartOrder(){if(!cart.length||!orderModal||!orderForm)return;if(cart.some(i=>!findProduct(i.id))){alert("One or more cart items are still loading. Please wait for the catalogue to finish loading and try again.");return}const totals=cartTotals();activeCheckout={items:cart.map(i=>{const p=findProduct(i.id);return{id:p.id,name:orderItemName(p,i.variant),quantity:i.quantity,price:Number(i.price??p.price),weight:productVariantWeight(p,i.variant),variant:normalizedVariant(i.variant)}}).filter(i=>i.id),weight:totals.weight,productTotal:totals.subtotal,delivery:totals.delivery};document.getElementById('orderProduct').value=activeCheckout.items.map(i=>`${i.name} × ${i.quantity}`).join(', ');document.getElementById('orderPrice').value=totals.subtotal;document.getElementById('orderQuantity').value=cart.reduce((s,i)=>s+i.quantity,0);if(selectedProduct)selectedProduct.innerHTML=checkoutSummary(activeCheckout.items,totals.weight,totals.subtotal,totals.delivery,totals.total);if(checkoutProductTotal)checkoutProductTotal.textContent=currency(totals.subtotal);if(checkoutDelivery)checkoutDelivery.textContent=currency(totals.delivery);if(checkoutGrandTotal)checkoutGrandTotal.textContent=currency(totals.total);orderModal.hidden=false;document.body.style.overflow='hidden';closeCart();setTimeout(()=>document.getElementById('fullName')?.focus(),50)}
