@@ -24,6 +24,9 @@ const checkoutGrandTotal=document.getElementById('checkoutGrandTotal');
 const CART_KEY='tb_cart_v2';
 function loadCart(){try{const parsed=JSON.parse(localStorage.getItem(CART_KEY)||'[]');return Array.isArray(parsed)?parsed.filter(i=>i&&typeof i.id==='string'&&i.id.length>0&&Number(i.quantity)>0).map(i=>({id:i.id,quantity:Math.max(1,Math.floor(Number(i.quantity))),variant:i.variant&&typeof i.variant==='object'&&!Array.isArray(i.variant)?i.variant:{},price:i.price!==null&&i.price!==undefined&&Number.isFinite(Number(i.price))?Math.max(0,Number(i.price)):null})):[]}catch{return[]}}
 const cart=loadCart();
+// Checkout state must be local to this script's strict-mode IIFE.
+// Without this declaration Buy Now and cart checkout throw ReferenceError.
+let activeCheckout=null;
 function persistCart(){localStorage.setItem(CART_KEY,JSON.stringify(cart))}
 function findProduct(id){
  const list=Array.isArray(window.PRODUCTS)?window.PRODUCTS:PRODUCTS;
