@@ -11,7 +11,7 @@ const reply = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: cors });
 
 const TABLES: Record<string, { fields: string[]; order: string }> = {
-  cms_products: { fields: ["name","slug","sku","short_description","description","category_id","price","sale_price","cost","stock","status","featured","best_seller","is_new","attributes","images","seo","weight_kg","old_price","tag","delivery_mode","manual_delivery_fee","show_weight","variations"], order: "updated_at" },
+  cms_products: { fields: ["name","slug","sku","short_description","description","category_id","price","sale_price","cost","stock","status","featured","best_seller","is_new","attributes","images","seo","weight_kg","old_price","tag","delivery_mode","delivery_fee","manual_delivery_fee","show_weight","variations","video_url"], order: "updated_at" },
   cms_categories: { fields: ["name","slug","description","image_url","parent_id","sort_order","is_active","seo"], order: "sort_order" },
   cms_pages: { fields: ["title","slug","status","sections","seo"], order: "updated_at" },
   cms_banners: { fields: ["title","subtitle","image_url","mobile_image_url","button_text","button_url","placement","sort_order","starts_at","ends_at","is_active"], order: "sort_order" },
@@ -35,6 +35,16 @@ function clean(input: unknown, allowed: string[]) {
   if (!Object.keys(result).length) throw new Error("No editable fields were supplied.");
   return result;
 }
+function validateRecord(table: string, values: Record<string, unknown>) {
+  if (table !== "cms_products" || !Object.hasOwn(values, "video_url")) return values;
+  const value = values.video_url;
+  if (value === null || value === "") { values.video_url = null; return values; }
+  const prefix = "https://www.youtube-nocookie.com/embed/";
+  if (typeof value !== "string" || !value.startsWith(prefix) || !/^[A-Za-z0-9_-]{11}$/.test(value.slice(prefix.length))) {
+    throw new Error("Use a valid YouTube video link or leave the field blank.");
+  }
+  return values;
+}
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
@@ -51,7 +61,14 @@ Deno.serve(async (req) => {
     if (!Object.hasOwn(TABLES, table)) return reply({ error: "Unsupported CMS table." }, 400);
     const spec = TABLES[table];
     if (req.method === "GET") {
-      const { data, error } = await db.from(table).select("*").order(spec.order, { ascending: true }).limit(1000);
+      const requestedOffset = Number(u.searchParams.get("offset") || "0");
+      const requestedLimit = Number(u.searchParams.get("limit") || "1000");
+      const offset = Number.isFinite(requestedOffset) ? Math.max(0, Math.floor(requestedOffset)) : 0;
+      const pageSize = Number.isFinite(requestedLimit) ? Math.min(1000, Math.max(1, Math.floor(requestedLimit))) : 1000;
+      const { data, error } = await db.from(table).select("*")
+        .order(spec.order, { ascending: true })
+        .order("id", { ascending: true })
+        .range(offset, offset + pageSize - 1);
       if (error) return reply({ error: error.message }, 500);
       return reply({ ok: true, data: data || [] });
     }
@@ -62,7 +79,7 @@ Deno.serve(async (req) => {
     const id = u.searchParams.get("id") || String(body.id || "");
     let before: unknown = null, after: unknown = null, action = "";
     if (req.method === "POST") {
-      const values = clean(body.data, spec.fields);
+      const values = validateRecord(table, clean(body.data, spec.fields));
       const { data, error } = await db.from(table).insert(values).select("*").single();
       if (error) return reply({ error: error.message }, 400);
       after = data; action = "create";
@@ -72,7 +89,7 @@ Deno.serve(async (req) => {
       if (readError || !oldRow) return reply({ error: readError?.message || "Record not found." }, 404);
       before = oldRow;
       if (req.method === "PATCH") {
-        const values = clean(body.data, spec.fields);
+        const values = validateRecord(table, clean(body.data, spec.fields));
         const { data, error } = await db.from(table).update(values).eq("id", id).select("*").single();
         if (error) return reply({ error: error.message }, 400);
         after = data; action = "update";
