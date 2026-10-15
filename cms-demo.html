@@ -400,11 +400,27 @@ const CMS_SCHEMAS = {
 async function cmsRequest(table, method="GET", id=null, data=null){
  const {data:{session}}=await supabaseClient.auth.getSession();
  if(!session) throw new Error("Please sign in again.");
- const u=SUPABASE_URL+"/functions/v1/cms-manage?table="+encodeURIComponent(table)+(id!==null?"&id="+encodeURIComponent(id):"");
- const response=await fetch(u,{method,headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_KEY,"Content-Type":"application/json"},...(method==="GET"||method==="DELETE"?{}:{body:JSON.stringify({data})})});
- const payload=await response.json().catch(()=>({error:"Invalid server response"}));
- if(!response.ok||!payload.ok) throw new Error(payload.error||("Request failed: "+response.status));
- return payload.data;
+ const base=SUPABASE_URL+"/functions/v1/cms-manage?table="+encodeURIComponent(table)+(id!==null?"&id="+encodeURIComponent(id):"");
+ const fetchChunk=async(offset=null)=>{
+  const u=base+(offset!==null?"&offset="+encodeURIComponent(offset)+"&limit=1000":"");
+  const response=await fetch(u,{method,headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_KEY,"Content-Type":"application/json"},...(method==="GET"||method==="DELETE"?{}:{body:JSON.stringify({data})})});
+  const payload=await response.json().catch(()=>({error:"Invalid server response"}));
+  if(!response.ok||!payload.ok) throw new Error(payload.error||("Request failed: "+response.status));
+  return payload.data;
+ };
+ if(method==="GET"&&table==="cms_products"&&id===null){
+  const all=[];let offset=0;
+  while(true){
+   const batch=await fetchChunk(offset);
+   if(!Array.isArray(batch))throw new Error("Invalid CMS product list response.");
+   all.push(...batch);
+   if(batch.length<1000)break;
+   offset+=batch.length;
+   if(offset>1000000)throw new Error("Product catalogue is too large to load safely.");
+  }
+  return all;
+ }
+ return fetchChunk(null);
 }
 function cmsValueText(v){if(v===null||v===undefined)return "—";if(typeof v==="object")return JSON.stringify(v);return String(v)}
 async function cmsManage(page){
