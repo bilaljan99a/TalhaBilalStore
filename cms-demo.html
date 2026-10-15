@@ -371,7 +371,7 @@ function dashboard(){
 
 const CMS_SCHEMAS = {
  products:{table:"cms_products",title:"Products",fields:[
-  ["name","Product name","text"],["slug","URL slug","text"],["sku","SKU","text"],["short_description","Short description","textarea"],["description","Description","textarea"],["category_id","Category ID","number"],["price","Price (PKR)","number"],["sale_price","Sale price (PKR)","number"],["cost","Product cost (PKR)","number"],["stock","Stock quantity","number"],["status","Status: draft/active/archived","text"],["featured","Featured (true/false)","boolean"],["best_seller","Best seller (true/false)","boolean"],["is_new","New product (true/false)","boolean"],["attributes","Attributes JSON","json"],["images","Image URLs JSON array","json"],["seo","SEO JSON","json"],["weight_kg","Weight (kg)","number"],["old_price","Old price (PKR)","number"],["tag","Tag / badge","text"],["delivery_mode","Delivery method","text"],["manual_delivery_fee","Fixed delivery fee","number"],["show_weight","Show weight","boolean"],["variations","Variations JSON","json"]],summary:["name","category_id","price","status"]},
+  ["name","Product name","text"],["slug","URL slug","text"],["sku","SKU","text"],["short_description","Short description","textarea"],["description","Description","textarea"],["video_url","YouTube video URL","text"],["category_id","Category ID","number"],["price","Price (PKR)","number"],["sale_price","Sale price (PKR)","number"],["cost","Product cost (PKR)","number"],["stock","Stock quantity","number"],["status","Status: draft/active/archived","text"],["featured","Featured (true/false)","boolean"],["best_seller","Best seller (true/false)","boolean"],["is_new","New product (true/false)","boolean"],["attributes","Attributes JSON","json"],["images","Image URLs JSON array","json"],["seo","SEO JSON","json"],["weight_kg","Weight (kg)","number"],["old_price","Old price (PKR)","number"],["tag","Tag / badge","text"],["delivery_mode","Delivery method","text"],["manual_delivery_fee","Fixed delivery fee","number"],["show_weight","Show weight","boolean"],["variations","Variations JSON","json"]],summary:["name","category_id","price","status"]},
  categories:{table:"cms_categories",title:"Categories",fields:[["name","Category name","text"],["slug","Slug","text"],["description","Description","textarea"],["image_url","Image URL","text"],["parent_id","Parent category ID","number"],["sort_order","Sort order","number"],["is_active","Active (true/false)","boolean"],["seo","SEO JSON","json"]],summary:["name","slug","parent_id","is_active"]},
  pages:{table:"cms_pages",title:"Website Pages",fields:[["title","Page title","text"],["slug","Slug","text"],["status","Status: draft/published","text"],["sections","Sections JSON","json"],["seo","SEO JSON","json"]],summary:["title","slug","status","sections"]},
  banners:{table:"cms_banners",title:"Banners / Sliders",fields:[["title","Title","text"],["subtitle","Subtitle","text"],["image_url","Desktop image URL","text"],["mobile_image_url","Mobile image URL","text"],["button_text","Button text","text"],["button_url","Button URL","text"],["placement","Placement","text"],["sort_order","Sort order","number"],["starts_at","Start time (ISO)","text"],["ends_at","End time (ISO)","text"],["is_active","Active (true/false)","boolean"]],summary:["title","placement","is_active","sort_order"]},
@@ -1106,6 +1106,23 @@ function cmsRenderProductLivePreview(){
  }
 }
 
+function cmsNormalizeYoutubeUrl(value){
+ const input=String(value||"").trim();
+ if(!input)return null;
+ let url;
+ try{url=new URL(/^https?:/i.test(input)?input:"https://"+input)}catch{throw new Error("Enter a valid YouTube video link.")}
+ const rawHost=url.hostname.toLowerCase();
+ const host=rawHost.startsWith("www.")?rawHost.slice(4):rawHost;
+ const parts=url.pathname.split("/").filter(Boolean);
+ let id="";
+ if(host==="youtu.be")id=parts[0]||"";
+ else if(["youtube.com","m.youtube.com","music.youtube.com","youtube-nocookie.com"].includes(host)){
+  if(url.pathname==="/watch")id=url.searchParams.get("v")||"";
+  else if(["embed","shorts","live"].includes(parts[0]))id=parts[1]||"";
+ }
+ if(!/^[A-Za-z0-9_-]{11}$/.test(id))throw new Error("Use a valid YouTube watch, youtu.be, Shorts or embed link.");
+ return "https://www.youtube-nocookie.com/embed/"+id;
+}
 async function cmsEditProduct(r,id){
  const cats=await cmsRequest("cms_categories");cmsCache.categories=cats;
  const pages=await cmsRequest("cms_pages");cmsCache.pages=pages;
@@ -1133,6 +1150,7 @@ async function cmsEditProduct(r,id){
  cmsSelect("Publish status","pStatus",[{value:"draft",label:"Draft — not shown on website"},{value:"active",label:"Active — publish to website"},{value:"archived",label:"Archived — hidden"}],r.status||"draft")+
  cmsField("Short description (max 135 characters)","pShort",r.short_description,"textarea-135","Short summary shown on the product detail page. Product cards show only image, title, price and buttons.")+
  cmsRenderRichEditor("pDescription",r.description,"Full description (Product Details)","Shown inside Product Details on the product page. Use bold text, headings, bullet points and images to build an attractive, high-converting product description.")+
+ cmsField("Product video link (optional)","pVideoUrl",r.video_url,"text","Paste a YouTube watch, youtu.be, Shorts or embed link. The player appears on this product page; the actual video remains on YouTube and does not use Supabase Storage.")+
  cmsUploadField("Upload image inside product description","pDescription","products/description",false,"inline","Recommended: 1200 px wide, proportional height, WebP/JPG, ideally 150–300 KB. Use this for in-article illustrations, not the main product gallery.")+
  cmsRenderVariationsManager(r.variations, r)+
  cmsField("Image URL(s), one per line","pImages",imgs.join("\n"),"textarea","Paste existing image URLs or upload files below.")+
@@ -1190,7 +1208,7 @@ async function cmsSaveProduct(id){
   const images=g("pImages").value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
   const seo=Object.assign({},cmsFormSeo,{title:g("pSeoTitle").value.trim()||null,description:g("pSeoDesc").value.trim()||null,keywords:g("pSeoKeywords").value.split(",").map(x=>x.trim()).filter(Boolean)});
   const selectedPageIds=[...document.querySelectorAll("[data-product-page]:checked")].map(x=>Number(x.value)).filter(Number.isFinite);
-  const shortDescription=g("pShort").value.trim();if(shortDescription.length>135)throw new Error("Short description must be 135 characters or fewer.");
+  const shortDescription=g("pShort").value.trim();if(shortDescription.length>135)throw new Error("Short description must be 135 characters or fewer.");const videoUrl=cmsNormalizeYoutubeUrl(g("pVideoUrl").value);
   const oldPrice=num("pOldPrice"),salePrice=num("pSale"),fixedDelivery=num("pManualDeliveryFee")??0;
   if(oldPrice!==null&&salePrice!==null&&salePrice>=oldPrice)throw new Error("Sale price should be lower than old price.");
   if(fixedDelivery<0)throw new Error("Fixed delivery fee cannot be negative.");
@@ -1198,7 +1216,7 @@ async function cmsSaveProduct(id){
   const description=descEl?(descEl.isContentEditable?cmsEditorSafeHtml(descEl.innerHTML):descEl.value.trim()):"";
   const variations=typeof cmsCollectVariations==="function"?cmsCollectVariations():(g("pVariations")?cmsParseVariations(g("pVariations").value):[]);
   if(g("pDeliveryMode").value==="weight"&&Array.isArray(variations))for(const variation of variations){if(variation&&typeof variation==="object")delete variation.delivery_fee;}
-  const data={name,slug,sku:g("pSku").value.trim()||null,category_id:g("pCat").value?Number(g("pCat").value):null,price:num("pPrice")??0,old_price:oldPrice,sale_price:salePrice,weight_kg:weight,delivery_mode:g("pDeliveryMode").value,manual_delivery_fee:fixedDelivery,show_weight:g("pShowWeight").checked,variations,tag:g("pTag").value.trim()||null,cost:num("pCost"),stock:num("pStock"),status:g("pStatus").value,short_description:shortDescription||null,description:description||null,images,seo,featured:g("pFeatured").checked,best_seller:g("pBestSeller").checked,is_new:g("pNew").checked};
+  const data={name,slug,sku:g("pSku").value.trim()||null,video_url:videoUrl,category_id:g("pCat").value?Number(g("pCat").value):null,price:num("pPrice")??0,old_price:oldPrice,sale_price:salePrice,weight_kg:weight,delivery_mode:g("pDeliveryMode").value,manual_delivery_fee:fixedDelivery,show_weight:g("pShowWeight").checked,variations,tag:g("pTag").value.trim()||null,cost:num("pCost"),stock:num("pStock"),status:g("pStatus").value,short_description:shortDescription||null,description:description||null,images,seo,featured:g("pFeatured").checked,best_seller:g("pBestSeller").checked,is_new:g("pNew").checked};
   const saved=await cmsRequest("cms_products",id===null?"POST":"PATCH",id,data);
   if(saved?.id)await cmsSyncProductAssignments(Number(saved.id),data.category_id,data.featured,selectedPageIds);
   await cmsManage("products");
