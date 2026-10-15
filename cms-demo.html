@@ -405,7 +405,7 @@ async function cmsManage(page){
  try{
   const rows=await cmsRequest(cfg.table);cmsCache[page]=rows;
   if(page==="products"||page==="categories")cmsCache.categories=page==="categories"?rows:await cmsRequest("cms_categories");
-  if(page==="pages"||page==="blog"){cmsCache.products=await cmsRequest("cms_products");cmsCache.pages=page==="pages"?rows:await cmsRequest("cms_pages")}
+  if(page==="pages"||page==="blog"){cmsCache.products=await cmsRequest("cms_products");cmsCache.pages=page==="pages"?rows:await cmsRequest("cms_pages")}\n  if(page==="pages")cmsCache.categories=await cmsRequest("cms_categories");
   if(page==="seo"){const d=await Promise.all([cmsRequest("cms_products"),cmsRequest("cms_categories"),cmsRequest("cms_pages"),cmsRequest("cms_blog_posts"),cmsRequest("cms_banners")]);cmsCache.products=d[0];cmsCache.categories=d[1];cmsCache.pages=d[2];cmsCache.blog=d[3];cmsCache.banners=d[4]}
   const target=document.getElementById("cmsRecords");if(target)target.innerHTML=cmsRowsMarkup(page,rows);
  }catch(e){const target=document.getElementById("cmsRecords");if(target)target.innerHTML='<p class="live-error">'+esc(e.message)+'</p><button class="btn" onclick="cmsManage(&quot;'+page+'&quot;)">Retry</button>'}
@@ -422,8 +422,36 @@ function cmsRowsMarkup(page,rows){
   return '<div class="table-wrap"><table class="table"><thead><tr><th>Category</th><th>Slug</th><th>Parent</th><th>Status</th><th>Sort</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">Assign products to a category from the Products screen.</p>';
  }
  if(page==="pages"){
-  body=rows.map(r=>{const n=cmsPageProductIds(r).length,slug=(r.slug==="home"||r.slug==="homepage")?"/":(r.slug==="products"?"/products":"/page/"+String(r.slug).replace(/^\/+/, ""));return '<tr><td><div class="record-title">'+esc(r.title)+'</div></td><td><code>'+esc(slug)+'</code></td><td>'+esc(r.status)+'</td><td>'+n+' products</td><td>'+actions(r.id)+'</td></tr>'}).join("");
-  return '<div class="table-wrap"><table class="table"><thead><tr><th>Page</th><th>Draft path</th><th>Status</th><th>Products assigned</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">Published pages are available at the path shown above. Page content and assigned product grids update automatically when status is Published.</p>';
+  const staticPages=[
+   ["Homepage","/","Built-in storefront template"],["All Products","/products","Catalogue and category filters"],
+   ["Customer Reviews","/reviews","Built-in HTML page"],["Policies & Contact","/policies","Built-in information page"],
+   ["Track Order","/track-order","Order tracking page"],["Why Choose Us","/why-us","Built-in HTML page"],
+   ["How to Order","/how-to-order","Built-in HTML page"],["Contact Us","/contact.html","Built-in HTML page"],
+   ["Privacy Policy","/privacy.html","Built-in HTML page"],["Return Policy","/return-policy.html","Built-in HTML page"],
+   ["Shipping Policy","/shipping.html","Built-in HTML page"],["Write for Us","/write-for-us.html","Built-in HTML page"],
+   ["Blog","/blog.html","Blog index"],["How to Make Mango Drink","/blog/how-to-make-mango-drink-from-mango-pulp-premix.html","Blog article"],
+   ["Where to Buy Mango Pulp","/blog/where-to-buy-mango-pulp-in-pakistan.html","Blog article"],
+   ["Pakistani Mango Varieties","/blog/pakistani-mango-varieties-guide.html","Blog article"]
+  ];
+  const inventory=[
+   ...staticPages.map(([title,path,type])=>({title,path,type})),
+   ...(cmsCache.products||[]).filter(p=>p.status==="active").map(p=>({title:p.name,path:"/product/"+p.slug,type:"Published product page"})),
+   ...(cmsCache.categories||[]).filter(x=>x.is_active).map(x=>({title:"Category: "+x.name,path:"/products?category="+encodeURIComponent(x.slug),type:"Category filter"})),
+   ...rows.filter(p=>p.status==="published"&&!["home","homepage","products"].includes(String(p.slug||""))).map(p=>({title:p.title,path:"/page/"+p.slug,type:"Published CMS custom page"}))
+  ];
+  const seen=new Set();
+  const inventoryRows=inventory.filter(p=>{if(seen.has(p.path))return false;seen.add(p.path);return true}).map(p=>'<tr><td><div class="record-title">'+esc(p.title)+'</div></td><td><code>'+esc(p.path)+'</code></td><td>'+esc(p.type)+'</td><td><a href="'+esc(p.path)+'" target="_blank" rel="noopener">Open ↗</a></td></tr>').join("");
+  body=rows.map(r=>{
+   const n=cmsPageProductIds(r).length,slug=String(r.slug||"");
+   const path=(slug==="home"||slug==="homepage")?"/":(slug==="products"?"/products":"/page/"+slug);
+   const type=["home","homepage"].includes(slug)?"Homepage product assignment":slug==="products"?"All Products registry":"Custom CMS page";
+   return '<tr><td><div class="record-title">'+esc(r.title)+'</div><div class="record-meta">'+esc(type)+'</div></td><td><code>'+esc(path)+'</code></td><td>'+esc(r.status)+'</td><td>'+n+' products</td><td>'+actions(r.id)+'</td></tr>';
+  }).join("");
+  return '<div class="module-note"><strong>Why the previous list showed only 2 entries:</strong> CMS Page Records are settings and product-assignment records, not a complete list of every website page. Homepage and All Products are special registry entries. Existing built-in page copy/layout remains in the storefront files; new custom CMS pages publish at <code>/page/your-slug</code>.</div>'+
+   '<h2 style="margin:22px 0 8px">Existing Website Pages <span class="record-meta">('+inventory.length+')</span></h2><p class="hint">Read-only inventory of known public routes, active CMS product pages, categories and published custom pages. Choose Open to review them.</p>'+
+   '<div class="table-wrap"><table class="table"><thead><tr><th>Page</th><th>URL path</th><th>Type</th><th>Preview</th></tr></thead><tbody>'+inventoryRows+'</tbody></table></div>'+
+   '<h2 style="margin:26px 0 8px">CMS Page Records <span class="record-meta">('+rows.length+')</span></h2><p class="hint">These records control CMS status, product assignments and SEO; they are separate from the built-in pages above.</p>'+
+   '<div class="table-wrap"><table class="table"><thead><tr><th>CMS record</th><th>URL path</th><th>Status</th><th>Products assigned</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div>';
  }
  if(page==="banners"){
   body=rows.map(r=>'<tr><td>'+(r.image_url?'<img class="record-thumb" src="'+esc(r.image_url)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.title||"Untitled banner")+'</div><div class="record-meta">'+esc(r.subtitle||"")+'</div></td><td>'+esc(r.placement)+'</td><td>'+esc(r.is_active?"Active":"Off")+'</td><td>'+Number(r.sort_order||0)+'</td><td>'+actions(r.id)+'</td></tr>').join("");
@@ -1243,7 +1271,7 @@ async function cmsEditPage(r,id){
  const products=await cmsRequest("cms_products");cmsCache.products=products;const sections=Array.isArray(r.sections)?r.sections:[],content=sections.find(x=>x&&x.key==="cms-page-content")?.content||"",selected=cmsPageProductIds(r);
  const list=products.map(p=>'<label class="assignment-item"><input type="checkbox" data-page-product value="'+Number(p.id)+'" '+(selected.includes(Number(p.id))?"checked":"")+'><span class="assignment-copy"><strong>'+esc(p.name)+'</strong><small>'+esc(p.status||"draft")+' • '+esc(p.slug||"")+'</small></span></label>').join("");
  const fields=cmsField("Page title","pgTitle",r.title,"text")+cmsField("URL slug","pgSlug",r.slug,"text","Use home for the homepage assignment, products for the catalogue, or a custom slug such as kids-care (published at /page/kids-care).")+
- cmsSelect("CMS status","pgStatus",[{value:"draft",label:"Draft"},{value:"published",label:"Prepared in CMS"}],r.status||"draft")+cmsField("Page content / intro","pgContent",content,"textarea","Plain text or HTML for this draft.")+
+ cmsSelect("CMS status","pgStatus",[{value:"draft",label:"Draft — not public"},{value:"published",label:"Published"}],r.status||"draft")+cmsField("Page content / intro","pgContent",content,"textarea",["home","homepage","products"].includes(String(r.slug||"").toLowerCase())?"Template-managed route: text here does not replace the live Home/All Products template.":"This content is rendered on a published custom CMS page.")+
  '<div class="field full"><label>Assign products to this page</label><p class="field-help">A product can belong to more than one page.</p><div class="assignment-list">'+(list||'<p class="hint">Add products first, then return here.</p>')+'</div></div>'+
  cmsField("SEO title","pgSeoTitle",cmsFormSeo.title||r.seo?.title||"","text")+cmsField("SEO meta description","pgSeoDesc",cmsFormSeo.description||r.seo?.description||"","textarea");
  cmsEditorShell(id===null?"Add Website Page":"Edit Website Page","Select products for this page. Save with Published status to make the page available at its URL.",fields,"cmsSavePage("+(id===null?"null":Number(id))+")","pages");
