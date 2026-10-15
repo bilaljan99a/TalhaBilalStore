@@ -143,8 +143,18 @@ function productList(){
  if(productGrid){
   const category=params.get("category");
   if(category)list=list.filter(p=>p.categorySlug===category);
+  const assigned=assignedCmsProductIds("products");
   if(view==="best-sellers")list.sort((a,b)=>(a.bestSellerRank||99)-(b.bestSellerRank||99));
-  if(view==="new-products")list.sort((a,b)=>(b.newProductRank||0)-(a.newProductRank||0));
+  else if(view==="new-products")list.sort((a,b)=>(b.newProductRank||0)-(a.newProductRank||0));
+  else if(assigned.length){
+   const rankById=new Map(assigned.map((id,index)=>[Number(id),index]));
+   list=list.map((product,index)=>({product,index,rank:rankById.get(Number(product.cmsRecordId))}))
+    .sort((a,b)=>{
+     const ar=a.rank===undefined?Infinity:a.rank,br=b.rank===undefined?Infinity:b.rank;
+     if(ar!==br)return ar<br?-1:1;
+     return a.index-b.index;
+    }).map(entry=>entry.product);
+  }
   return list;
  }
  const customPage=location.pathname.match(/^\/page\/([^/]+)\/?$/i);
