@@ -17,7 +17,7 @@ body.cms-authenticated #logoutBtn{display:inline-block}
 .field-help{font-size:12px;color:var(--muted);margin:5px 0 0;line-height:1.45}
 .record-thumb{width:66px;height:58px;object-fit:cover;border-radius:8px;border:1px solid var(--line);background:#f3f4f6;display:block}
 .record-title{font-weight:750}.record-meta{font-size:12px;color:var(--muted);margin-top:4px}
-.preview-frame{margin-top:8px;padding:10px;border:1px dashed var(--line);border-radius:9px;background:#f8fafc}
+.preview-frame{margin-top:8px;padding:10px;border:1px dashed var(--line);border-radius:9px;background:#f8fafc}.banner-preview-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}.banner-preview-grid .preview-frame img{display:block;width:100%;height:auto;max-height:250px;object-fit:contain;border-radius:7px}.banner-preview-grid .mobile-preview img{max-width:220px;max-height:280px;margin:0 auto}.banner-preview-grid .field-help{margin-bottom:5px}@media(max-width:650px){.banner-preview-grid{grid-template-columns:1fr}}
 .preview-frame img{max-width:100%;max-height:220px;object-fit:contain;display:block;border-radius:6px}
 .assignment-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:10px}
 .assignment-item{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:9px;padding:10px;background:#fff;min-width:0}
@@ -1290,9 +1290,9 @@ async function cmsEditBanner(r,id){
  cmsSelect("Placement","bPlacement",[{value:"homepage",label:"Homepage hero"},{value:"category",label:"Category page"},{value:"product",label:"Product page"},{value:"blog",label:"Blog / editorial"},{value:"campaign",label:"Campaign / promotion"},{value:"sitewide",label:"Site-wide"}],r.placement||"homepage")+
  cmsField("Button text","bButtonText",r.button_text,"text")+cmsField("Button URL","bButtonUrl",r.button_url,"text")+cmsField("Sort order","bSort",r.sort_order??0,"number")+cmsField("Start time (optional)","bStart",cmsLocalDatetime(r.starts_at),"datetime-local")+cmsField("End time (optional)","bEnd",cmsLocalDatetime(r.ends_at),"datetime-local")+
  cmsSelect("CMS status","bActive",[{value:"true",label:"Active in CMS"},{value:"false",label:"Disabled"}],String(r.is_active!==false))+
- '<div class="field full"><label>Image preview</label><div class="preview-frame" id="bPreview">'+(r.image_url?'<img src="'+esc(r.image_url)+'" alt="Banner preview">':'<span class="hint">Add an image URL above.</span>')+'</div></div>';
- cmsEditorShell(id===null?"Add Banner / Slider":"Edit Banner / Slider","Prepare desktop/mobile creative, CTA, placement, sorting and schedule. Live slider is unchanged.",fields,"cmsSaveBanner("+(id===null?"null":Number(id))+")","banners");
- const im=document.getElementById("bImage");if(im)im.addEventListener("input",()=>cmsPreviewImage("bImage","bPreview"));
+ '<div class="field full"><label>Image previews</label><div class="banner-preview-grid"><div><div class="field-help">Desktop creative</div><div class="preview-frame" id="bPreview">'+(r.image_url?'<img src="'+esc(r.image_url)+'" alt="Desktop banner preview">':'<span class="hint">Add a desktop image.</span>')+'</div></div><div><div class="field-help">Mobile creative (optional)</div><div class="preview-frame mobile-preview" id="bMobilePreview">'+(r.mobile_image_url?'<img src="'+esc(r.mobile_image_url)+'" alt="Mobile banner preview">':'<span class="hint">Add a mobile image.</span>')+'</div></div></div></div>';
+ cmsEditorShell(id===null?"Add Banner / Slider":"Edit Banner / Slider","Preview both creative sizes, choose placement, set the CTA and schedule, then activate to publish. Existing page design is preserved when no active banner is published.",fields,"cmsSaveBanner("+(id===null?"null":Number(id))+")","banners");
+ const im=document.getElementById("bImage");if(im)im.addEventListener("input",()=>cmsPreviewImage("bImage","bPreview"));const mobile=document.getElementById("bMobileImage");if(mobile)mobile.addEventListener("input",()=>cmsPreviewImage("bMobileImage","bMobilePreview"));
 }
 async function cmsSaveBanner(id){const g=x=>document.getElementById(x);try{
  const dt=x=>g(x).value?new Date(g(x).value).toISOString():null,start=dt("bStart"),end=dt("bEnd");if(start&&end&&new Date(end)<new Date(start))throw new Error("End time must be after start time.");
