@@ -19,11 +19,20 @@ body.cms-authenticated #logoutBtn{display:inline-block}
 .record-title{font-weight:750}.record-meta{font-size:12px;color:var(--muted);margin-top:4px}
 .preview-frame{margin-top:8px;padding:10px;border:1px dashed var(--line);border-radius:9px;background:#f8fafc}.banner-preview-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}.banner-preview-grid .preview-frame img{display:block;width:100%;height:auto;max-height:250px;object-fit:contain;border-radius:7px}.banner-preview-grid .mobile-preview img{max-width:220px;max-height:280px;margin:0 auto}.banner-preview-grid .field-help{margin-bottom:5px}@media(max-width:650px){.banner-preview-grid{grid-template-columns:1fr}}
 .preview-frame img{max-width:100%;max-height:220px;object-fit:contain;display:block;border-radius:6px}
-.assignment-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:10px}
+.assignment-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:10px;max-height:460px;overflow:auto;align-content:start;padding:2px 5px 2px 0}
 .assignment-item{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:9px;padding:10px;background:#fff;min-width:0}
 .assignment-item input{width:17px;height:17px;flex:0 0 auto}.assignment-item .assignment-copy{min-width:0}
 .assignment-item strong{display:block;font-size:13px}
 .assignment-item small{display:block;color:var(--muted);font-size:11px;margin-top:3px;overflow-wrap:anywhere}
+.cms-assignment-filters{display:grid;grid-template-columns:minmax(200px,2fr) minmax(150px,1fr) minmax(125px,.8fr);gap:10px;margin-top:12px}
+.cms-assignment-filters label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
+.cms-assignment-filters input,.cms-assignment-filters select{box-sizing:border-box;width:100%;min-width:0;min-height:40px;border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:var(--panel);color:var(--text)}
+.cms-assignment-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 8px}
+.cms-assignment-summary{font-size:12px;color:var(--muted);margin:8px 0}
+.cms-assignment-pagination{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+.cms-assignment-pagination span{font-size:12px;color:var(--muted)}
+@media(max-width:750px){.cms-assignment-filters{grid-template-columns:1fr 1fr}.cms-assignment-filters>div:first-child{grid-column:1/-1}}
+@media(max-width:480px){.cms-assignment-filters{grid-template-columns:1fr}.cms-assignment-filters>div:first-child{grid-column:auto}.cms-assignment-pagination{flex-wrap:wrap}}
 .module-note{padding:12px 14px;border:1px solid #e4e7ec;background:#f9fafb;border-radius:10px;color:#505864;font-size:12px;line-height:1.55;margin-bottom:14px}
 .module-note strong{color:#20242a}.cms-editor textarea#blogContent{min-height:340px}.table .item-actions{white-space:nowrap}
 @media(max-width:900px){.topbar-tools{justify-content:flex-end}.topbar{gap:10px}.assignment-list{grid-template-columns:1fr 1fr}}
@@ -258,6 +267,10 @@ let cmsSavedRichRange=null;
 let cmsNavHistory=[];
 let cmsCurrentModule="dashboard";
 let cmsEditorBackModule=null;
+let cmsPageAssignmentProducts=[];
+let cmsPageSelectedIds=new Set();
+let cmsPageAssignmentCurrentPage=1;
+const CMS_PAGE_ASSIGNMENT_PAGE_SIZE=40;
 function cmsUpdateBackButton(){document.body.classList.toggle("cms-back-visible",document.body.classList.contains("cms-authenticated")&&!!(cmsEditorBackModule||cmsNavHistory.length));}
 function cmsGoBack(){
  if(cmsEditorBackModule){const page=cmsEditorBackModule;cmsEditorBackModule=null;cmsManage(page);cmsUpdateBackButton();return;}
@@ -442,17 +455,20 @@ function cmsRowsMarkup(page,rows){
   ];
   const seen=new Set();
   const inventoryRows=inventory.filter(p=>{if(seen.has(p.path))return false;seen.add(p.path);return true}).map(p=>'<tr><td><div class="record-title">'+esc(p.title)+'</div></td><td><code>'+esc(p.path)+'</code></td><td>'+esc(p.type)+'</td><td><a href="'+esc(p.path)+'" target="_blank" rel="noopener">Open ↗</a></td></tr>').join("");
-  body=rows.map(r=>{
+  body=[...rows].sort((a,b)=>{
+   const rank=p=>{const slug=String(p.slug||"").toLowerCase();return ["home","homepage"].includes(slug)?0:slug==="products"?1:2};
+   return rank(a)-rank(b)||String(a.title||"").localeCompare(String(b.title||""));
+  }).map(r=>{
    const n=cmsPageProductIds(r).length,slug=String(r.slug||"");
    const path=(slug==="home"||slug==="homepage")?"/":(slug==="products"?"/products":"/page/"+slug);
    const type=["home","homepage"].includes(slug)?"Homepage product assignment":slug==="products"?"All Products registry":"Custom CMS page";
    return '<tr><td><div class="record-title">'+esc(r.title)+'</div><div class="record-meta">'+esc(type)+'</div></td><td><code>'+esc(path)+'</code></td><td>'+esc(r.status)+'</td><td>'+n+' products</td><td>'+actions(r.id)+'</td></tr>';
   }).join("");
-  return '<div class="module-note"><strong>Why the previous list showed only 2 entries:</strong> CMS Page Records are settings and product-assignment records, not a complete list of every website page. Homepage and All Products are special registry entries. Existing built-in page copy/layout remains in the storefront files; new custom CMS pages publish at <code>/page/your-slug</code>.</div>'+
-   '<h2 style="margin:22px 0 8px">Existing Website Pages <span class="record-meta">('+inventory.length+')</span></h2><p class="hint">Read-only inventory of known public routes, active CMS product pages, categories and published custom pages. Choose Open to review them.</p>'+
-   '<div class="table-wrap"><table class="table"><thead><tr><th>Page</th><th>URL path</th><th>Type</th><th>Preview</th></tr></thead><tbody>'+inventoryRows+'</tbody></table></div>'+
-   '<h2 style="margin:26px 0 8px">CMS Page Records <span class="record-meta">('+rows.length+')</span></h2><p class="hint">These records control CMS status, product assignments and SEO; they are separate from the built-in pages above.</p>'+
-   '<div class="table-wrap"><table class="table"><thead><tr><th>CMS record</th><th>URL path</th><th>Status</th><th>Products assigned</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div>';
+  return '<div class="module-note"><strong>What this screen shows:</strong> Editable CMS page records are listed first. The website-route inventory below also includes built-in pages, published product URLs, category filters and blog articles. Built-in page layouts are managed in the storefront files; custom CMS pages publish at <code>/page/your-slug</code>.</div>'+
+   '<h2 style="margin:18px 0 8px">Editable CMS Pages <span class="record-meta">('+rows.length+')</span></h2><p class="hint">Edit Homepage and All Products assignments here, or create a custom CMS page. Use the product search and filters inside the editor to manage large catalogues.</p>'+
+   '<div class="table-wrap"><table class="table"><thead><tr><th>CMS page</th><th>URL path</th><th>Status</th><th>Products assigned</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div>'+
+   '<h2 style="margin:26px 0 8px">Existing Website Routes <span class="record-meta">('+inventory.length+')</span></h2><p class="hint">Read-only inventory of known public routes, active CMS product pages, categories and published custom pages. Choose Open to review them.</p>'+
+   '<div class="table-wrap"><table class="table"><thead><tr><th>Page</th><th>URL path</th><th>Type</th><th>Preview</th></tr></thead><tbody>'+inventoryRows+'</tbody></table></div>';
  }
  if(page==="banners"){
   body=rows.map(r=>'<tr><td>'+(r.image_url?'<img class="record-thumb" src="'+esc(r.image_url)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.title||"Untitled banner")+'</div><div class="record-meta">'+esc(r.subtitle||"")+'</div></td><td>'+esc(r.placement)+'</td><td>'+esc(r.is_active?"Active":"Off")+'</td><td>'+Number(r.sort_order||0)+'</td><td>'+actions(r.id)+'</td></tr>').join("");
@@ -1268,20 +1284,78 @@ async function cmsSaveCategory(id){const g=x=>document.getElementById(x);try{
  const data={name,slug,image_url:g("cImage").value.trim()||null,parent_id:parent,description:g("cDescription").value.trim()||null,sort_order:Number(g("cSort").value||0),is_active:g("cActive").value==="true",seo};
  await cmsRequest("cms_categories",id===null?"POST":"PATCH",id,data);await cmsManage("categories");
 }catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
+function cmsPageAssignmentFilteredProducts(){
+ const search=String(document.getElementById("pgProductSearch")?.value||"").trim().toLowerCase();
+ const category=String(document.getElementById("pgProductCategory")?.value||"");
+ const status=String(document.getElementById("pgProductStatus")?.value||"all").toLowerCase();
+ return cmsPageAssignmentProducts.filter(p=>{
+  const cat=String(p.category_id??"");
+  if(category&&cat!==category)return false;
+  if(status!=="all"&&String(p.status||"draft").toLowerCase()!==status)return false;
+  if(!search)return true;
+  const haystack=[p.name,p.slug,p.sku].map(x=>String(x||"")).join(" ").toLowerCase();
+  return haystack.includes(search);
+ });
+}
+function cmsUpdatePageAssignmentSummary(filtered){
+ const total=filtered.length,pageCount=Math.max(1,Math.ceil(total/CMS_PAGE_ASSIGNMENT_PAGE_SIZE));
+ cmsPageAssignmentCurrentPage=Math.min(Math.max(1,cmsPageAssignmentCurrentPage),pageCount);
+ const start=total?(cmsPageAssignmentCurrentPage-1)*CMS_PAGE_ASSIGNMENT_PAGE_SIZE+1:0;
+ const end=Math.min(cmsPageAssignmentCurrentPage*CMS_PAGE_ASSIGNMENT_PAGE_SIZE,total);
+ const summary=document.getElementById("pgAssignmentSummary");
+ if(summary)summary.textContent=cmsPageSelectedIds.size+" selected • "+total+" matching products • Showing "+start+"–"+end+" of "+total;
+ const pager=document.getElementById("pgAssignmentPagination");
+ if(pager)pager.innerHTML='<button type="button" class="btn" onclick="cmsChangePageAssignmentPage(-1)" '+(cmsPageAssignmentCurrentPage<=1?'disabled':'')+'>← Previous</button><span>Page '+cmsPageAssignmentCurrentPage+' of '+pageCount+'</span><button type="button" class="btn" onclick="cmsChangePageAssignmentPage(1)" '+(cmsPageAssignmentCurrentPage>=pageCount?'disabled':'')+'>Next →</button>';
+}
+function cmsRenderPageAssignmentList(){
+ const list=document.getElementById("pgProductList");if(!list)return;
+ const filtered=cmsPageAssignmentFilteredProducts(),pageCount=Math.max(1,Math.ceil(filtered.length/CMS_PAGE_ASSIGNMENT_PAGE_SIZE));
+ cmsPageAssignmentCurrentPage=Math.min(Math.max(1,cmsPageAssignmentCurrentPage),pageCount);
+ const start=(cmsPageAssignmentCurrentPage-1)*CMS_PAGE_ASSIGNMENT_PAGE_SIZE;
+ const visible=filtered.slice(start,start+CMS_PAGE_ASSIGNMENT_PAGE_SIZE);
+ const categoryById=new Map((cmsCache.categories||[]).map(c=>[Number(c.id),c.name]));
+ list.innerHTML=visible.map(p=>{
+  const id=Number(p.id),category=categoryById.get(Number(p.category_id))||"Unassigned";
+  const details=[category,String(p.status||"draft"),p.slug?" /"+p.slug:"",p.sku?"SKU "+p.sku:""].filter(Boolean).map(esc).join(" • ");
+  return '<label class="assignment-item"><input type="checkbox" data-page-product value="'+id+'" '+(cmsPageSelectedIds.has(id)?"checked":"")+' onchange="cmsTogglePageProduct(this)"><span class="assignment-copy"><strong>'+esc(p.name||"Untitled product")+'</strong><small>'+details+'</small></span></label>';
+ }).join("")||'<p class="hint">No products match these filters. Try a different search or category.</p>';
+ cmsUpdatePageAssignmentSummary(filtered);
+}
+function cmsTogglePageProduct(input){
+ const id=Number(input.value);if(!Number.isFinite(id))return;
+ if(input.checked)cmsPageSelectedIds.add(id);else cmsPageSelectedIds.delete(id);
+ cmsUpdatePageAssignmentSummary(cmsPageAssignmentFilteredProducts());
+}
+function cmsPageAssignmentFilterChanged(){cmsPageAssignmentCurrentPage=1;cmsRenderPageAssignmentList()}
+function cmsChangePageAssignmentPage(delta){cmsPageAssignmentCurrentPage+=Number(delta||0);cmsRenderPageAssignmentList()}
+function cmsSelectFilteredPageProducts(shouldSelect){
+ const filtered=cmsPageAssignmentFilteredProducts();
+ filtered.forEach(p=>{const id=Number(p.id);if(shouldSelect)cmsPageSelectedIds.add(id);else cmsPageSelectedIds.delete(id)});
+ cmsRenderPageAssignmentList();
+}
 async function cmsEditPage(r,id){
- const products=await cmsRequest("cms_products");cmsCache.products=products;const sections=Array.isArray(r.sections)?r.sections:[],content=sections.find(x=>x&&x.key==="cms-page-content")?.content||"",selected=cmsPageProductIds(r);
- const list=products.map(p=>'<label class="assignment-item"><input type="checkbox" data-page-product value="'+Number(p.id)+'" '+(selected.includes(Number(p.id))?"checked":"")+'><span class="assignment-copy"><strong>'+esc(p.name)+'</strong><small>'+esc(p.status||"draft")+' • '+esc(p.slug||"")+'</small></span></label>').join("");
+ const products=await cmsRequest("cms_products");cmsCache.products=products;
+ const sections=Array.isArray(r.sections)?r.sections:[],content=sections.find(x=>x&&x.key==="cms-page-content")?.content||"";
+ cmsPageAssignmentProducts=products;cmsPageSelectedIds=new Set(cmsPageProductIds(r).map(Number).filter(Number.isFinite));cmsPageAssignmentCurrentPage=1;
+ const categories=cmsCache.categories||[];
+ const categoryOptions='<option value="">All categories</option>'+categories.map(x=>'<option value="'+Number(x.id)+'">'+esc(x.name)+'</option>').join("");
  const fields=cmsField("Page title","pgTitle",r.title,"text")+cmsField("URL slug","pgSlug",r.slug,"text","Use home for the homepage assignment, products for the catalogue, or a custom slug such as kids-care (published at /page/kids-care).")+
  cmsSelect("CMS status","pgStatus",[{value:"draft",label:"Draft — not public"},{value:"published",label:"Published"}],r.status||"draft")+cmsField("Page content / intro","pgContent",content,"textarea",["home","homepage","products"].includes(String(r.slug||"").toLowerCase())?"Template-managed route: text here does not replace the live Home/All Products template.":"This content is rendered on a published custom CMS page.")+
- '<div class="field full"><label>Assign products to this page</label><p class="field-help">A product can belong to more than one page.</p><div class="assignment-list">'+(list||'<p class="hint">Add products first, then return here.</p>')+'</div></div>'+
+ '<div class="field full cms-assignment-manager"><label>Assign products to this page</label><p class="field-help">Search by product name, slug or SKU; filter by category/status. Your selections stay saved in the editor when you change filters or pages.</p>'+
+ '<div class="cms-assignment-filters"><div><label for="pgProductSearch">Search products</label><input id="pgProductSearch" type="search" placeholder="Search product name, slug or SKU…" oninput="cmsPageAssignmentFilterChanged()" autocomplete="off"></div>'+
+ '<div><label for="pgProductCategory">Category</label><select id="pgProductCategory" onchange="cmsPageAssignmentFilterChanged()">'+categoryOptions+'</select></div>'+
+ '<div><label for="pgProductStatus">Status</label><select id="pgProductStatus" onchange="cmsPageAssignmentFilterChanged()"><option value="all">All statuses</option><option value="active">Active</option><option value="draft">Draft</option><option value="archived">Archived</option></select></div></div>'+
+ '<div class="cms-assignment-actions"><button type="button" class="btn" onclick="cmsSelectFilteredPageProducts(true)">Select all matching</button><button type="button" class="btn" onclick="cmsSelectFilteredPageProducts(false)">Clear matching selections</button></div>'+
+ '<div class="cms-assignment-summary" id="pgAssignmentSummary" aria-live="polite"></div><div class="assignment-list" id="pgProductList"><p class="hint">Loading products…</p></div><div class="cms-assignment-pagination" id="pgAssignmentPagination"></div></div>'+
  cmsField("SEO title","pgSeoTitle",cmsFormSeo.title||r.seo?.title||"","text")+cmsField("SEO meta description","pgSeoDesc",cmsFormSeo.description||r.seo?.description||"","textarea");
- cmsEditorShell(id===null?"Add Website Page":"Edit Website Page","Select products for this page. Save with Published status to make the page available at its URL.",fields,"cmsSavePage("+(id===null?"null":Number(id))+")","pages");
+ cmsEditorShell(id===null?"Add Website Page":"Edit Website Page","Search, filter and assign products. The list shows 40 products per page; save to apply your changes.",fields,"cmsSavePage("+(id===null?"null":Number(id))+")","pages");
+ cmsRenderPageAssignmentList();
 }
 async function cmsSavePage(id){const g=x=>document.getElementById(x);try{
  const title=g("pgTitle").value.trim();if(!title)throw new Error("Page title is required.");const slug=g("pgSlug").value.trim()||cmsSlugify(title);if(!slug)throw new Error("Page slug is required.");
  const all=id===null?[]:await cmsRequest("cms_pages"),old=all.find(x=>Number(x.id)===Number(id)),s=Array.isArray(old?.sections)?old.sections:[];
  const keep=s.filter(x=>!x||(x.key!=="cms-page-content"&&x.key!=="cms-product-assignments")),content=g("pgContent").value.trim();if(content)keep.push({type:"content",key:"cms-page-content",content});
- const ids=[...document.querySelectorAll("[data-page-product]:checked")].map(x=>Number(x.value)).filter(Number.isFinite);if(ids.length)keep.push({type:"product-grid",key:"cms-product-assignments",title:"Assigned Products",product_ids:ids});
+ const ids=[...cmsPageSelectedIds].map(Number).filter(x=>Number.isFinite(x)&&x>0);if(ids.length)keep.push({type:"product-grid",key:"cms-product-assignments",title:"Assigned Products",product_ids:ids});
  const seo=Object.assign({},old?.seo||{},cmsFormSeo,{title:g("pgSeoTitle").value.trim()||null,description:g("pgSeoDesc").value.trim()||null});
  await cmsRequest("cms_pages",id===null?"POST":"PATCH",id,{title,slug,status:g("pgStatus").value,sections:keep,seo});await cmsManage("pages");
 }catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
