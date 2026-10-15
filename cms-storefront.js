@@ -38,6 +38,7 @@
       manualDeliveryFee:Math.max(0,Number(row.manual_delivery_fee)||0),
       showWeight:!!row.show_weight,
       variations,
+      videoUrl:String(row.video_url || "").trim(),
       image:image || "/assets/products/mango-pulp-product-image.webp",
       images:images.map(x => typeof x === "string" ? x : (x?.url || x?.src || "")).filter(Boolean),
       tag:String(row.tag || cat?.name || "NEW PRODUCT"), categoryId:Number(row.category_id || 0) || null,
