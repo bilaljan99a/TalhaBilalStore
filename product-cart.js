@@ -139,9 +139,11 @@ function productVariantPrice(product,variant){
  return Math.max(0,price);
 }
 function productDeliveryFee(product,quantity=1,variant={}){
- if(variant&&variant.delivery_fee!=null&&Number.isFinite(Number(variant.delivery_fee)))return Math.max(0,Number(variant.delivery_fee));
- if(product?.deliveryMode==="manual")return Math.max(0,Number(product.manualDeliveryFee)||0);
- return deliveryForWeight(Number(product?.weight||0)*Math.max(1,Number(quantity)||1));
+ if(product?.deliveryMode==="manual"){
+  if(variant&&variant.delivery_fee!=null&&Number.isFinite(Number(variant.delivery_fee)))return Math.max(0,Number(variant.delivery_fee));
+  return Math.max(0,Number(product.manualDeliveryFee)||0);
+ }
+ return deliveryForWeight(productVariantWeight(product,variant)*Math.max(1,Number(quantity)||1));
 }
 function readSelectedVariations(element){
  const root=element?.closest(".detail-info")||document,values={};
