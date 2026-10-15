@@ -1451,13 +1451,6 @@ function cmsReconcilePageProductOrder(){
   });
   cmsReconcilePageProductOrder();cmsRenderPageAssignmentList();cmsRenderPageProductOrder();
  }
-function cmsPageAssignmentFilterChanged(){cmsPageAssignmentCurrentPage=1;cmsRenderPageAssignmentList()}
-function cmsChangePageAssignmentPage(delta){cmsPageAssignmentCurrentPage+=Number(delta||0);cmsRenderPageAssignmentList()}
-function cmsSelectFilteredPageProducts(shouldSelect){
- const filtered=cmsPageAssignmentFilteredProducts();
- filtered.forEach(p=>{const id=Number(p.id);if(shouldSelect)cmsPageSelectedIds.add(id);else cmsPageSelectedIds.delete(id)});
- cmsRenderPageAssignmentList();
-}
 async function cmsEditPage(r,id){
  const products=await cmsRequest("cms_products");cmsCache.products=products;
  const sections=Array.isArray(r.sections)?r.sections:[],content=sections.find(x=>x&&x.key==="cms-page-content")?.content||"";
