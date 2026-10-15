@@ -824,8 +824,8 @@ function cmsSingleVariationCard(v, i) {
      '</div>' +
     '</div>' +
     '<div class="cms-var-field">' +
-     '<label>Pack Weight (kg)</label>' +
-     '<input type="number" id="vWeight_' + i + '" step="0.01" min="0" value="' + (v.weight_kg ?? '') + '" placeholder="e.g. 0.25, 0.5, 1">' +
+     '<label>Item / Pack Weight (kg)</label>' +
+     '<input type="number" id="vWeight_' + i + '" step="0.001" min="0" value="' + (v.weight_kg ?? '') + '" placeholder="e.g. 0.05 = 50g, 0.1 = 100g">' +
     '</div>' +
     '<div class="cms-var-field">' +
      '<label>Sale / Selling Price (PKR) *</label>' +
@@ -843,8 +843,9 @@ function cmsSingleVariationCard(v, i) {
      '</div>' +
     '</div>' +
     '<div class="cms-var-field">' +
-     '<label>Fixed Delivery Fee (PKR)</label>' +
-     '<input type="number" id="vDelivery_' + i + '" min="0" value="' + (v.delivery_fee ?? '') + '" placeholder="Blank = use store rate">' +
+     '<label>Optional Fixed Delivery Fee (PKR)</label>' +
+     '<small style="display:block;font-size:11px;color:#64748b;margin:4px 0 6px">Only used in fixed-fee mode; ignored when automatic weight-based delivery is selected.</small>' +
+     '<input type="number" id="vDelivery_' + i + '" min="0" value="' + (v.delivery_fee ?? '') + '" placeholder="Blank = use product delivery mode">' +
     '</div>' +
     '<div class="cms-var-field" style="grid-column: span 2">' +
      '<label>Variation Photo</label>' +
@@ -1122,9 +1123,9 @@ async function cmsEditProduct(r,id){
  cmsField("Price (PKR)","pPrice",r.price??0,"number")+
  cmsField("Old price (optional)","pOldPrice",r.old_price,"number")+
  cmsField("Sale price (optional)","pSale",r.sale_price,"number")+
- cmsSelect("Delivery charge method","pDeliveryMode",[{value:"weight",label:"Standard store delivery rate"},{value:"manual",label:"Set a fixed fee for this product"}],deliveryMode,"The customer sees the resulting delivery amount, not this setting.")+
- cmsField("Fixed delivery fee (PKR)","pManualDeliveryFee",r.manual_delivery_fee??0,"number","Used only when “Set a fixed fee” is selected. This fee is added once per product line in the cart.")+
- cmsField("Product weight (kg)","pWeight",r.weight_kg??1,"number","Used for internal delivery calculation when standard delivery is selected. It is shown on the website only if you enable the option below.")+
+ cmsSelect("Delivery charge method","pDeliveryMode",[{value:"weight",label:"Automatic weight-based delivery (recommended)"},{value:"manual",label:"Use a fixed fee for this product"}],deliveryMode,"Automatic mode combines this item's weight and quantity with other weight-based cart items, then rounds up to the next whole-kilogram slab: up to 1 kg = Rs. 200; over 1–2 kg = Rs. 290; over 2–3 kg = Rs. 380. Variation-level fixed delivery fees are ignored in automatic mode.")+
+ cmsField("Fixed delivery fee (PKR)","pManualDeliveryFee",r.manual_delivery_fee??0,"number","Used only in fixed-fee mode. Leave at 0 when automatic weight-based delivery is selected.")+
+ cmsField("Product weight (kg)","pWeight",r.weight_kg??1,"number","Enter kilograms: 0.05 = 50g; 0.1 = 100g; 1 = 1kg. Automatic delivery uses weight × quantity, combined with other weight-based items, and rounds up to the next whole kg. Website display is controlled by the option below.")+
  '<div class="field full">'+cmsCheck("Show product weight on the website","pShowWeight",!!r.show_weight)+'</div>'+
  cmsField("Product badge / tag","pTag",r.tag||"","text")+
  cmsField("Cost (optional)","pCost",r.cost,"number")+
@@ -1196,6 +1197,7 @@ async function cmsSaveProduct(id){
   const descEl=g("pDescription");
   const description=descEl?(descEl.isContentEditable?cmsEditorSafeHtml(descEl.innerHTML):descEl.value.trim()):"";
   const variations=typeof cmsCollectVariations==="function"?cmsCollectVariations():(g("pVariations")?cmsParseVariations(g("pVariations").value):[]);
+  if(g("pDeliveryMode").value==="weight"&&Array.isArray(variations))for(const variation of variations){if(variation&&typeof variation==="object")delete variation.delivery_fee;}
   const data={name,slug,sku:g("pSku").value.trim()||null,category_id:g("pCat").value?Number(g("pCat").value):null,price:num("pPrice")??0,old_price:oldPrice,sale_price:salePrice,weight_kg:weight,delivery_mode:g("pDeliveryMode").value,manual_delivery_fee:fixedDelivery,show_weight:g("pShowWeight").checked,variations,tag:g("pTag").value.trim()||null,cost:num("pCost"),stock:num("pStock"),status:g("pStatus").value,short_description:shortDescription||null,description:description||null,images,seo,featured:g("pFeatured").checked,best_seller:g("pBestSeller").checked,is_new:g("pNew").checked};
   const saved=await cmsRequest("cms_products",id===null?"POST":"PATCH",id,data);
   if(saved?.id)await cmsSyncProductAssignments(Number(saved.id),data.category_id,data.featured,selectedPageIds);
