@@ -30,6 +30,16 @@ body.cms-authenticated #logoutBtn{display:inline-block}
 .cms-assignment-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 8px}
 .cms-assignment-summary{font-size:12px;color:var(--muted);margin:8px 0}
 .cms-assignment-pagination{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+.cms-selected-order-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:18px 0 8px}
+.cms-selected-order-header strong{font-size:14px}.cms-selected-order{display:grid;gap:8px;margin:8px 0 16px}
+.cms-order-row{display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:grab}
+.cms-order-row:active{cursor:grabbing}.cms-order-grip{color:var(--muted);font-size:18px;user-select:none}
+.cms-order-name{min-width:0;flex:1}.cms-order-name strong{display:block;font-size:13px;overflow-wrap:anywhere}.cms-order-name small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.cms-order-position{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);white-space:nowrap}
+.cms-order-position input{width:64px;min-height:36px;padding:6px;border:1px solid var(--line);border-radius:7px;background:#fff}
+.cms-order-controls{display:flex;gap:4px}.cms-order-controls .btn{padding:7px 10px;min-width:34px}
+.cms-order-empty{padding:12px;border:1px dashed var(--line);border-radius:9px;color:var(--muted);font-size:12px}
+@media(max-width:600px){.cms-order-row{flex-wrap:wrap}.cms-order-name{flex-basis:calc(100% - 32px)}.cms-order-position{margin-left:27px}.cms-order-controls{margin-left:auto}}
 .cms-assignment-pagination span{font-size:12px;color:var(--muted)}
 .cms-route-filters{display:grid;grid-template-columns:minmax(220px,2fr) minmax(180px,1fr) minmax(190px,1fr);align-items:center;gap:10px;margin:12px 0}
 .cms-route-filters input,.cms-route-filters select{box-sizing:border-box;min-width:0;width:100%;min-height:40px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text)}
@@ -272,6 +282,8 @@ let cmsCurrentModule="dashboard";
 let cmsEditorBackModule=null;
 let cmsPageAssignmentProducts=[];
 let cmsPageSelectedIds=new Set();
+let cmsPageProductOrder=[];
+let cmsPageDraggedProductId=null;
 let cmsPageAssignmentCurrentPage=1;
 const CMS_PAGE_ASSIGNMENT_PAGE_SIZE=40;
 let cmsWebsiteInventory=[];
@@ -1367,12 +1379,78 @@ function cmsRenderPageAssignmentList(){
   return '<label class="assignment-item"><input type="checkbox" data-page-product value="'+id+'" '+(cmsPageSelectedIds.has(id)?"checked":"")+' onchange="cmsTogglePageProduct(this)"><span class="assignment-copy"><strong>'+esc(p.name||"Untitled product")+'</strong><small>'+details+'</small></span></label>';
  }).join("")||'<p class="hint">No products match these filters. Try a different search or category.</p>';
  cmsUpdatePageAssignmentSummary(filtered);
-}
-function cmsTogglePageProduct(input){
- const id=Number(input.value);if(!Number.isFinite(id))return;
- if(input.checked)cmsPageSelectedIds.add(id);else cmsPageSelectedIds.delete(id);
- cmsUpdatePageAssignmentSummary(cmsPageAssignmentFilteredProducts());
-}
+  cmsRenderPageProductOrder();
+ }
+function cmsReconcilePageProductOrder(){
+  const selected=[...cmsPageSelectedIds].map(Number).filter(id=>Number.isFinite(id)&&id>0);
+  const selectedSet=new Set(selected),ordered=[],seen=new Set();
+  cmsPageProductOrder.forEach(value=>{const id=Number(value);if(selectedSet.has(id)&&!seen.has(id)){ordered.push(id);seen.add(id)}});
+  selected.forEach(id=>{if(!seen.has(id)){ordered.push(id);seen.add(id)}});
+  cmsPageProductOrder=ordered;
+ }
+ function cmsRenderPageProductOrder(){
+  const target=document.getElementById("pgSelectedProductOrder");if(!target)return;
+  cmsReconcilePageProductOrder();
+  const byId=new Map(cmsPageAssignmentProducts.map(p=>[Number(p.id),p]));
+  const ordered=cmsPageProductOrder.map(id=>byId.get(Number(id))).filter(Boolean);
+  const summary=document.getElementById("pgOrderSummary");
+  if(summary)summary.textContent=ordered.length?ordered.length+" selected • First product appears at the top":"No products selected yet";
+  if(!ordered.length){target.innerHTML='<div class="cms-order-empty">Select products below, then arrange their display order here.</div>';return}
+  target.innerHTML=ordered.map((p,index)=>{
+   const id=Number(p.id),position=index+1,name=esc(p.name||"Untitled product");
+   return '<div class="cms-order-row" draggable="true" ondragstart="cmsStartPageProductDrag(event,'+id+')" ondragover="cmsAllowPageProductDrop(event)" ondrop="cmsDropPageProduct(event,'+id+')" ondragend="cmsEndPageProductDrag()">'+
+    '<span class="cms-order-grip" aria-hidden="true" title="Drag to reorder">☰</span>'+
+    '<div class="cms-order-name"><strong>'+name+'</strong><small>Position '+position+' • Drag to reorder</small></div>'+
+    '<label class="cms-order-position">Position <input type="number" min="1" max="'+ordered.length+'" value="'+position+'" onchange="cmsSetPageProductPosition('+id+',this.value)" aria-label="Position for '+name+'"></label>'+
+    '<div class="cms-order-controls"><button type="button" class="btn" title="Move up" aria-label="Move '+name+' up" '+(index===0?'disabled':'')+' onclick="cmsMovePageProductBy('+id+',-1)">↑</button><button type="button" class="btn" title="Move down" aria-label="Move '+name+' down" '+(index===ordered.length-1?'disabled':'')+' onclick="cmsMovePageProductBy('+id+',1)">↓</button></div>'+
+   '</div>';
+  }).join("");
+ }
+ function cmsMovePageProductToPosition(id,position){
+  cmsReconcilePageProductOrder();
+  const productId=Number(id),from=cmsPageProductOrder.indexOf(productId);
+  if(from<0)return;
+  const raw=Number(position),safe=Number.isFinite(raw)?Math.round(raw):from+1;
+  const to=Math.max(0,Math.min(cmsPageProductOrder.length-1,safe-1));
+  const next=[...cmsPageProductOrder],moved=next.splice(from,1)[0];next.splice(to,0,moved);
+  cmsPageProductOrder=next;cmsRenderPageProductOrder();
+ }
+ function cmsSetPageProductPosition(id,position){cmsMovePageProductToPosition(id,position)}
+ function cmsMovePageProductBy(id,delta){
+  cmsReconcilePageProductOrder();const from=cmsPageProductOrder.indexOf(Number(id));
+  if(from>=0)cmsMovePageProductToPosition(id,from+1+Number(delta||0));
+ }
+ function cmsStartPageProductDrag(event,id){
+  cmsPageDraggedProductId=Number(id);
+  if(event.dataTransfer){event.dataTransfer.effectAllowed="move";event.dataTransfer.setData("text/plain",String(id))}
+ }
+ function cmsAllowPageProductDrop(event){event.preventDefault();if(event.dataTransfer)event.dataTransfer.dropEffect="move"}
+ function cmsDropPageProduct(event,targetId){
+  event.preventDefault();const source=Number(cmsPageDraggedProductId||event.dataTransfer?.getData("text/plain")),target=Number(targetId);
+  cmsReconcilePageProductOrder();const from=cmsPageProductOrder.indexOf(source),to=cmsPageProductOrder.indexOf(target);
+  if(from>=0&&to>=0&&from!==to){const next=[...cmsPageProductOrder],moved=next.splice(from,1)[0];next.splice(to,0,moved);cmsPageProductOrder=next;cmsRenderPageProductOrder()}
+  cmsPageDraggedProductId=null;
+ }
+ function cmsEndPageProductDrag(){cmsPageDraggedProductId=null}
+ function cmsTogglePageProduct(input){
+  const id=Number(input.value);if(!Number.isFinite(id))return;
+  if(input.checked){cmsPageSelectedIds.add(id);if(!cmsPageProductOrder.includes(id))cmsPageProductOrder.push(id)}
+  else{cmsPageSelectedIds.delete(id);cmsPageProductOrder=cmsPageProductOrder.filter(existing=>Number(existing)!==id)}
+  cmsReconcilePageProductOrder();
+  cmsUpdatePageAssignmentSummary(cmsPageAssignmentFilteredProducts());
+  cmsRenderPageProductOrder();
+ }
+ function cmsPageAssignmentFilterChanged(){cmsPageAssignmentCurrentPage=1;cmsRenderPageAssignmentList()}
+ function cmsChangePageAssignmentPage(delta){cmsPageAssignmentCurrentPage+=Number(delta||0);cmsRenderPageAssignmentList()}
+ function cmsSelectFilteredPageProducts(shouldSelect){
+  const filtered=cmsPageAssignmentFilteredProducts();
+  filtered.forEach(p=>{
+   const id=Number(p.id);
+   if(shouldSelect){if(!cmsPageSelectedIds.has(id))cmsPageProductOrder.push(id);cmsPageSelectedIds.add(id)}
+   else{cmsPageSelectedIds.delete(id);cmsPageProductOrder=cmsPageProductOrder.filter(existing=>Number(existing)!==id)}
+  });
+  cmsReconcilePageProductOrder();cmsRenderPageAssignmentList();cmsRenderPageProductOrder();
+ }
 function cmsPageAssignmentFilterChanged(){cmsPageAssignmentCurrentPage=1;cmsRenderPageAssignmentList()}
 function cmsChangePageAssignmentPage(delta){cmsPageAssignmentCurrentPage+=Number(delta||0);cmsRenderPageAssignmentList()}
 function cmsSelectFilteredPageProducts(shouldSelect){
@@ -1383,7 +1461,7 @@ function cmsSelectFilteredPageProducts(shouldSelect){
 async function cmsEditPage(r,id){
  const products=await cmsRequest("cms_products");cmsCache.products=products;
  const sections=Array.isArray(r.sections)?r.sections:[],content=sections.find(x=>x&&x.key==="cms-page-content")?.content||"";
- cmsPageAssignmentProducts=products;cmsPageSelectedIds=new Set(cmsPageProductIds(r).map(Number).filter(Number.isFinite));cmsPageAssignmentCurrentPage=1;
+ cmsPageAssignmentProducts=products;cmsPageSelectedIds=new Set(cmsPageProductIds(r).map(Number).filter(id=>Number.isFinite(id)&&id>0));cmsPageProductOrder=cmsPageProductIds(r).map(Number).filter(id=>Number.isFinite(id)&&id>0);cmsReconcilePageProductOrder();cmsPageAssignmentCurrentPage=1;
  const categories=cmsCache.categories||[];
  const categoryOptions='<option value="">All categories</option>'+categories.map(x=>'<option value="'+Number(x.id)+'">'+esc(x.name)+'</option>').join("");
  const fields=cmsField("Page title","pgTitle",r.title,"text")+cmsField("URL slug","pgSlug",r.slug,"text","Use home for the homepage assignment, products for the catalogue, or a custom slug such as kids-care (published at /page/kids-care).")+
@@ -1393,7 +1471,7 @@ async function cmsEditPage(r,id){
  '<div><label for="pgProductCategory">Category</label><select id="pgProductCategory" onchange="cmsPageAssignmentFilterChanged()">'+categoryOptions+'</select></div>'+
  '<div><label for="pgProductStatus">Status</label><select id="pgProductStatus" onchange="cmsPageAssignmentFilterChanged()"><option value="all">All statuses</option><option value="active">Active</option><option value="draft">Draft</option><option value="archived">Archived</option></select></div></div>'+
  '<div class="cms-assignment-actions"><button type="button" class="btn" onclick="cmsSelectFilteredPageProducts(true)">Select all matching</button><button type="button" class="btn" onclick="cmsSelectFilteredPageProducts(false)">Clear matching selections</button></div>'+
- '<div class="cms-assignment-summary" id="pgAssignmentSummary" aria-live="polite"></div><div class="assignment-list" id="pgProductList"><p class="hint">Loading products…</p></div><div class="cms-assignment-pagination" id="pgAssignmentPagination"></div></div>'+
+ '<div class="cms-selected-order-header"><div><strong>Selected products — display order</strong><p class="field-help">First product is shown at the top. Drag rows, change a position number, or use ↑ / ↓. This order is saved with the page.</p></div><span class="cms-assignment-summary" id="pgOrderSummary" aria-live="polite"></span></div><div id="pgSelectedProductOrder" class="cms-selected-order"><div class="cms-order-empty">Select products below, then arrange their display order here.</div></div><div class="cms-assignment-summary" id="pgAssignmentSummary" aria-live="polite"></div><div class="assignment-list" id="pgProductList"><p class="hint">Loading products…</p></div><div class="cms-assignment-pagination" id="pgAssignmentPagination"></div></div>'+
  cmsField("SEO title","pgSeoTitle",cmsFormSeo.title||r.seo?.title||"","text")+cmsField("SEO meta description","pgSeoDesc",cmsFormSeo.description||r.seo?.description||"","textarea");
  cmsEditorShell(id===null?"Add Website Page":"Edit Website Page","Search, filter and assign products. The list shows 40 products per page; save to apply your changes.",fields,"cmsSavePage("+(id===null?"null":Number(id))+")","pages");
  cmsRenderPageAssignmentList();
@@ -1402,7 +1480,7 @@ async function cmsSavePage(id){const g=x=>document.getElementById(x);try{
  const title=g("pgTitle").value.trim();if(!title)throw new Error("Page title is required.");const slug=g("pgSlug").value.trim()||cmsSlugify(title);if(!slug)throw new Error("Page slug is required.");
  const all=id===null?[]:await cmsRequest("cms_pages"),old=all.find(x=>Number(x.id)===Number(id)),s=Array.isArray(old?.sections)?old.sections:[];
  const keep=s.filter(x=>!x||(x.key!=="cms-page-content"&&x.key!=="cms-product-assignments")),content=g("pgContent").value.trim();if(content)keep.push({type:"content",key:"cms-page-content",content});
- const ids=[...cmsPageSelectedIds].map(Number).filter(x=>Number.isFinite(x)&&x>0);if(ids.length)keep.push({type:"product-grid",key:"cms-product-assignments",title:"Assigned Products",product_ids:ids});
+ cmsReconcilePageProductOrder();const ids=[...cmsPageProductOrder].map(Number).filter(x=>Number.isFinite(x)&&x>0);if(ids.length)keep.push({type:"product-grid",key:"cms-product-assignments",title:"Assigned Products",product_ids:ids});
  const seo=Object.assign({},old?.seo||{},cmsFormSeo,{title:g("pgSeoTitle").value.trim()||null,description:g("pgSeoDesc").value.trim()||null});
  await cmsRequest("cms_pages",id===null?"POST":"PATCH",id,{title,slug,status:g("pgStatus").value,sections:keep,seo});await cmsManage("pages");
 }catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
