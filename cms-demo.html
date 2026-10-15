@@ -31,6 +31,9 @@ body.cms-authenticated #logoutBtn{display:inline-block}
 .cms-assignment-summary{font-size:12px;color:var(--muted);margin:8px 0}
 .cms-assignment-pagination{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
 .cms-assignment-pagination span{font-size:12px;color:var(--muted)}
+.cms-route-filters{display:grid;grid-template-columns:minmax(220px,2fr) minmax(180px,1fr) minmax(190px,1fr);align-items:center;gap:10px;margin:12px 0}
+.cms-route-filters input,.cms-route-filters select{box-sizing:border-box;min-width:0;width:100%;min-height:40px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text)}
+@media(max-width:750px){.cms-route-filters{grid-template-columns:1fr 1fr}.cms-route-filters input{grid-column:1/-1}.cms-route-filters .cms-assignment-summary{grid-column:1/-1}}
 @media(max-width:750px){.cms-assignment-filters{grid-template-columns:1fr 1fr}.cms-assignment-filters>div:first-child{grid-column:1/-1}}
 @media(max-width:480px){.cms-assignment-filters{grid-template-columns:1fr}.cms-assignment-filters>div:first-child{grid-column:auto}.cms-assignment-pagination{flex-wrap:wrap}}
 .module-note{padding:12px 14px;border:1px solid #e4e7ec;background:#f9fafb;border-radius:10px;color:#505864;font-size:12px;line-height:1.55;margin-bottom:14px}
@@ -271,6 +274,9 @@ let cmsPageAssignmentProducts=[];
 let cmsPageSelectedIds=new Set();
 let cmsPageAssignmentCurrentPage=1;
 const CMS_PAGE_ASSIGNMENT_PAGE_SIZE=40;
+let cmsWebsiteInventory=[];
+let cmsWebsiteInventoryCurrentPage=1;
+const CMS_WEBSITE_INVENTORY_PAGE_SIZE=50;
 function cmsUpdateBackButton(){document.body.classList.toggle("cms-back-visible",document.body.classList.contains("cms-authenticated")&&!!(cmsEditorBackModule||cmsNavHistory.length));}
 function cmsGoBack(){
  if(cmsEditorBackModule){const page=cmsEditorBackModule;cmsEditorBackModule=null;cmsManage(page);cmsUpdateBackButton();return;}
@@ -437,8 +443,31 @@ async function cmsManage(page){
   if(page==="pages"||page==="blog"){cmsCache.products=await cmsRequest("cms_products");cmsCache.pages=page==="pages"?rows:await cmsRequest("cms_pages")}
   if(page==="pages")cmsCache.categories=await cmsRequest("cms_categories");
   if(page==="seo"){const d=await Promise.all([cmsRequest("cms_products"),cmsRequest("cms_categories"),cmsRequest("cms_pages"),cmsRequest("cms_blog_posts"),cmsRequest("cms_banners")]);cmsCache.products=d[0];cmsCache.categories=d[1];cmsCache.pages=d[2];cmsCache.blog=d[3];cmsCache.banners=d[4]}
-  const target=document.getElementById("cmsRecords");if(target)target.innerHTML=cmsRowsMarkup(page,rows);
+  const target=document.getElementById("cmsRecords");if(target){target.innerHTML=cmsRowsMarkup(page,rows);if(page==="pages")cmsRenderWebsiteInventory();}
  }catch(e){const target=document.getElementById("cmsRecords");if(target)target.innerHTML='<p class="live-error">'+esc(e.message)+'</p><button class="btn" onclick="cmsManage(&quot;'+page+'&quot;)">Retry</button>'}
+}
+function cmsWebsiteInventoryFiltered(){
+ const search=String(document.getElementById("cmsRouteSearch")?.value||"").trim().toLowerCase();
+ const type=String(document.getElementById("cmsRouteType")?.value||"");
+ return cmsWebsiteInventory.filter(p=>{
+  if(type&&p.type!==type)return false;
+  if(!search)return true;
+  return [p.title,p.path,p.type].some(x=>String(x||"").toLowerCase().includes(search));
+ });
+}
+function cmsFilterWebsiteInventory(){cmsWebsiteInventoryCurrentPage=1;cmsRenderWebsiteInventory()}
+function cmsChangeWebsiteInventoryPage(delta){cmsWebsiteInventoryCurrentPage+=Number(delta||0);cmsRenderWebsiteInventory()}
+function cmsRenderWebsiteInventory(){
+ const tbody=document.getElementById("cmsWebsiteInventoryRows");if(!tbody)return;
+ const filtered=cmsWebsiteInventoryFiltered(),pageCount=Math.max(1,Math.ceil(filtered.length/CMS_WEBSITE_INVENTORY_PAGE_SIZE));
+ cmsWebsiteInventoryCurrentPage=Math.min(Math.max(1,cmsWebsiteInventoryCurrentPage),pageCount);
+ const start=(cmsWebsiteInventoryCurrentPage-1)*CMS_WEBSITE_INVENTORY_PAGE_SIZE;
+ const visible=filtered.slice(start,start+CMS_WEBSITE_INVENTORY_PAGE_SIZE);
+ tbody.innerHTML=visible.map(p=>'<tr><td><div class="record-title">'+esc(p.title)+'</div></td><td><code>'+esc(p.path)+'</code></td><td>'+esc(p.type)+'</td><td><a href="'+esc(p.path)+'" target="_blank" rel="noopener">Open ↗</a></td></tr>').join("")||'<tr><td colspan="4">No routes match your search/filter.</td></tr>';
+ const summary=document.getElementById("cmsRouteSummary");
+ if(summary)summary.textContent="Showing "+(filtered.length?start+1:0)+"–"+Math.min(start+CMS_WEBSITE_INVENTORY_PAGE_SIZE,filtered.length)+" of "+filtered.length+" matches • "+cmsWebsiteInventory.length+" routes total";
+ const pager=document.getElementById("cmsWebsiteInventoryPagination");
+ if(pager)pager.innerHTML='<button type="button" class="btn" onclick="cmsChangeWebsiteInventoryPage(-1)" '+(cmsWebsiteInventoryCurrentPage<=1?'disabled':'')+'>← Previous</button><span>Page '+cmsWebsiteInventoryCurrentPage+' of '+pageCount+'</span><button type="button" class="btn" onclick="cmsChangeWebsiteInventoryPage(1)" '+(cmsWebsiteInventoryCurrentPage>=pageCount?'disabled':'')+'>Next →</button>';
 }
 function cmsRowsMarkup(page,rows){
  const actions=id=>'<div class="item-actions"><button class="btn" onclick="cmsEdit(&quot;'+page+'&quot;,'+Number(id)+')">Edit</button> <button class="btn danger" onclick="cmsDelete(&quot;'+page+'&quot;,'+Number(id)+')">Delete</button></div>';
@@ -470,7 +499,8 @@ function cmsRowsMarkup(page,rows){
    ...rows.filter(p=>p.status==="published"&&!["home","homepage","products"].includes(String(p.slug||""))).map(p=>({title:p.title,path:"/page/"+p.slug,type:"Published CMS custom page"}))
   ];
   const seen=new Set();
-  const inventoryRows=inventory.filter(p=>{if(seen.has(p.path))return false;seen.add(p.path);return true}).map(p=>'<tr><td><div class="record-title">'+esc(p.title)+'</div></td><td><code>'+esc(p.path)+'</code></td><td>'+esc(p.type)+'</td><td><a href="'+esc(p.path)+'" target="_blank" rel="noopener">Open ↗</a></td></tr>').join("");
+  cmsWebsiteInventory=inventory.filter(p=>{if(seen.has(p.path))return false;seen.add(p.path);return true});
+  cmsWebsiteInventoryCurrentPage=1;
   body=[...rows].sort((a,b)=>{
    const rank=p=>{const slug=String(p.slug||"").toLowerCase();return ["home","homepage"].includes(slug)?0:slug==="products"?1:2};
    return rank(a)-rank(b)||String(a.title||"").localeCompare(String(b.title||""));
@@ -483,8 +513,9 @@ function cmsRowsMarkup(page,rows){
   return '<div class="module-note"><strong>What this screen shows:</strong> Editable CMS page records are listed first. The website-route inventory below also includes built-in pages, published product URLs, category filters and blog articles. Built-in page layouts are managed in the storefront files; custom CMS pages publish at <code>/page/your-slug</code>.</div>'+
    '<h2 style="margin:18px 0 8px">Editable CMS Pages <span class="record-meta">('+rows.length+')</span></h2><p class="hint">Edit Homepage and All Products assignments here, or create a custom CMS page. Use the product search and filters inside the editor to manage large catalogues.</p>'+
    '<div class="table-wrap"><table class="table"><thead><tr><th>CMS page</th><th>URL path</th><th>Status</th><th>Products assigned</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div>'+
-   '<h2 style="margin:26px 0 8px">Existing Website Routes <span class="record-meta">('+inventory.length+')</span></h2><p class="hint">Read-only inventory of known public routes, active CMS product pages, categories and published custom pages. Choose Open to review them.</p>'+
-   '<div class="table-wrap"><table class="table"><thead><tr><th>Page</th><th>URL path</th><th>Type</th><th>Preview</th></tr></thead><tbody>'+inventoryRows+'</tbody></table></div>';
+   '<h2 style="margin:26px 0 8px">Existing Website Routes <span class="record-meta">('+cmsWebsiteInventory.length+')</span></h2><p class="hint">Search or filter this read-only inventory; 50 routes are shown at a time, even when the catalogue grows.</p>'+
+   '<div class="cms-route-filters"><input id="cmsRouteSearch" type="search" placeholder="Search page title or URL…" oninput="cmsFilterWebsiteInventory()" aria-label="Search website routes"><select id="cmsRouteType" onchange="cmsFilterWebsiteInventory()" aria-label="Filter website route type"><option value="">All route types</option>'+[...new Set(cmsWebsiteInventory.map(p=>p.type))].sort().map(t=>'<option value="'+esc(t)+'">'+esc(t)+'</option>').join("")+'</select><span id="cmsRouteSummary" class="cms-assignment-summary"></span></div>'+
+   '<div class="table-wrap"><table class="table"><thead><tr><th>Page</th><th>URL path</th><th>Type</th><th>Preview</th></tr></thead><tbody id="cmsWebsiteInventoryRows"></tbody></table></div><div class="cms-assignment-pagination" id="cmsWebsiteInventoryPagination"></div>';
  }
  if(page==="banners"){
   body=rows.map(r=>'<tr><td>'+(r.image_url?'<img class="record-thumb" src="'+esc(r.image_url)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.title||"Untitled banner")+'</div><div class="record-meta">'+esc(r.subtitle||"")+'</div></td><td>'+esc(r.placement)+'</td><td>'+esc(r.is_active?"Active":"Off")+'</td><td>'+Number(r.sort_order||0)+'</td><td>'+actions(r.id)+'</td></tr>').join("");
