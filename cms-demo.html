@@ -405,7 +405,8 @@ async function cmsManage(page){
  try{
   const rows=await cmsRequest(cfg.table);cmsCache[page]=rows;
   if(page==="products"||page==="categories")cmsCache.categories=page==="categories"?rows:await cmsRequest("cms_categories");
-  if(page==="pages"||page==="blog"){cmsCache.products=await cmsRequest("cms_products");cmsCache.pages=page==="pages"?rows:await cmsRequest("cms_pages")}\n  if(page==="pages")cmsCache.categories=await cmsRequest("cms_categories");
+  if(page==="pages"||page==="blog"){cmsCache.products=await cmsRequest("cms_products");cmsCache.pages=page==="pages"?rows:await cmsRequest("cms_pages")}
+  if(page==="pages")cmsCache.categories=await cmsRequest("cms_categories");
   if(page==="seo"){const d=await Promise.all([cmsRequest("cms_products"),cmsRequest("cms_categories"),cmsRequest("cms_pages"),cmsRequest("cms_blog_posts"),cmsRequest("cms_banners")]);cmsCache.products=d[0];cmsCache.categories=d[1];cmsCache.pages=d[2];cmsCache.blog=d[3];cmsCache.banners=d[4]}
   const target=document.getElementById("cmsRecords");if(target)target.innerHTML=cmsRowsMarkup(page,rows);
  }catch(e){const target=document.getElementById("cmsRecords");if(target)target.innerHTML='<p class="live-error">'+esc(e.message)+'</p><button class="btn" onclick="cmsManage(&quot;'+page+'&quot;)">Retry</button>'}
