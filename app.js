@@ -103,6 +103,11 @@ function cartVariantImage(product,variant={},record=null){
 }
 function orderItemName(product,variant){const label=variantLabel(variant);return label?product.name+" — "+label:product.name}
 function productVariantWeight(product,variant={}){
+ if(variant&&variant.weight!=null&&Number.isFinite(Number(variant.weight)))return Math.max(0,Number(variant.weight));
+ if(variant?.Option&&Array.isArray(product?.variations)){
+  const match=product.variations.find(v=>String(v?.name||v?.label||"").trim().toLowerCase()===String(variant.Option).trim().toLowerCase());
+  if(match&&match.weight_kg!=null&&Number.isFinite(Number(match.weight_kg)))return Math.max(0,Number(match.weight_kg));
+ }
  let weight=Math.max(0,Number(product?.weight)||0);
  for(const [name,value] of Object.entries(normalizedVariant(variant))){
   if(!/^(weight|pack\s*weight|product\s*weight)$/i.test(String(name).trim()))continue;
