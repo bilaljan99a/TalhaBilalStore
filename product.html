@@ -254,7 +254,7 @@ function renderCmsGenericProduct(){
  const displayPrice=defaultVariant&&defaultVariant.price!=null?defaultVariant.price:(Number(p.price)||0);
  const displayOldPrice=defaultVariant&&defaultVariant.old_price!=null?defaultVariant.old_price:(Number(p.oldPrice)||0);
  const displayWeight=defaultVariant&&defaultVariant.weight_kg!=null?defaultVariant.weight_kg:cmsVariantWeight(p,{});
- const itemDeliveryFee=defaultVariant&&defaultVariant.delivery_fee!=null?defaultVariant.delivery_fee:cmsDeliveryFee(displayWeight,p.deliveryMode,p.manualDeliveryFee);
+ const itemDeliveryFee=p.deliveryMode==="manual"&&defaultVariant&&defaultVariant.delivery_fee!=null?defaultVariant.delivery_fee:cmsDeliveryFee(displayWeight,p.deliveryMode,p.manualDeliveryFee);
  const oldPriceMarkup=displayOldPrice>displayPrice?'<span class="old-price" data-cms-old-price>'+currency(displayOldPrice)+'</span>':(displayOldPrice?'<span class="old-price" data-cms-old-price hidden>'+currency(displayOldPrice)+'</span>':'');
 
  let variationMarkup="";
@@ -329,8 +329,8 @@ function renderCmsGenericProduct(){
   const deliveryLabel=document.querySelector('[data-cms-current-delivery]');
   const deliveryCopyEl=document.querySelector('[data-cms-delivery-copy]');
   const activeCard=document.querySelector(".detail-info .cms-var-option-card.active");
-  const varDeliveryFee=activeCard&&activeCard.dataset.varDelivery!=null&&activeCard.dataset.varDelivery!==''?Number(activeCard.dataset.varDelivery):null;
-  const fee=varDeliveryFee!=null?varDeliveryFee:(p.deliveryMode==="manual"?(Number(p.manualDeliveryFee)||0):cmsDeliveryFee(activeWeight*q,p.deliveryMode,p.manualDeliveryFee));
+  const varDeliveryFee=p.deliveryMode==="manual"&&activeCard&&activeCard.dataset.varDelivery!=null&&activeCard.dataset.varDelivery!==''?Number(activeCard.dataset.varDelivery):null;
+  const fee=varDeliveryFee!=null?varDeliveryFee:cmsDeliveryFee(activeWeight*q,p.deliveryMode,p.manualDeliveryFee);
   if(deliveryLabel)deliveryLabel.textContent=currency(fee);
   if(deliveryCopyEl)deliveryCopyEl.textContent='Cash on Delivery is available. The delivery fee for this item ('+q+' unit'+(q>1?'s':'')+') is '+currency(fee)+'. If you add other items, the final delivery fee will be shown in your cart before you place the order.';
  }
