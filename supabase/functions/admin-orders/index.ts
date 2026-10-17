@@ -37,39 +37,51 @@ Deno.serve(async(req)=>{
         const {data:orders,error:lookupError}=await db.from("orders").select("id,order_number,status,tracking_number");
         if(lookupError) return out({error:lookupError.message},500);
 
-        const byTracking=new Map<string,any>();
+        const trackingAliases=(value:any):string[]=>{const t=String(value||"").trim().toUpperCase().replace(/[^A-Z0-9]/g,"");if(!t)return[];const out=[t];if(t.startsWith("PKDEX"))out.push(t.slice(2));else if(t.startsWith("DEX"))out.push("PK"+t);return [...new Set(out)];};
+        const byTracking=new Map<string,any|null>();
         for(const o of (orders||[])){
-          const t=String(o.tracking_number||"").trim().toLowerCase();
-          if(t&&!byTracking.has(t)) byTracking.set(t,o);
+          for(const t of trackingAliases(o.tracking_number)){
+            if(!byTracking.has(t))byTracking.set(t,o);
+            else if(byTracking.get(t)?.id!==o.id)byTracking.set(t,null);
+          }
         }
-
+        const statusPriority=(status:string)=>({"Cancelled":6,"Delivery Failed":5,"Delivered":4,"Out for Delivery":3,"Shipping":2,"Transit To Ship":2,"Processing":1,"Confirmed":1,"New":1} as Record<string,number>)[status]||0;
         const matched=new Map<string,any>();
         const missing:string[]=[];
         for(const x of updates){
           const trackingNo=String(x?.trackingNo||"").trim();
           const originalTrackingNo=String(x?.originalTrackingNo||"").trim();
-          const candidates=[trackingNo,originalTrackingNo]
-            .filter(Boolean)
-            .map((v:string)=>v.toLowerCase())
-            .filter((v:string,i:number,a:string[])=>a.indexOf(v)===i);
-
-          if(!candidates.length){missing.push("");continue;}
-
-          // Prefer the current courier Tracking No; fall back to Original Tracking No.
-          // If both IDs point to the same order, it is still only one match.
-          const o=byTracking.get(candidates[0])||byTracking.get(candidates[1]);
-          if(o) matched.set(String(o.id),{order:o,status:String(x?.status||"").trim()});
-          else missing.push(trackingNo||originalTrackingNo);
+          const supplied=[trackingNo,originalTrackingNo,...(Array.isArray(x?.trackingCandidates)?x.trackingCandidates:[])].filter(Boolean);
+          const possible=new Map<string,any>();
+          for(const candidate of supplied){
+            for(const key of trackingAliases(candidate)){
+              const order=byTracking.get(key);
+              if(order)possible.set(String(order.id),order);
+            }
+          }
+          if(possible.size===1){
+            const o=[...possible.values()][0],id=String(o.id),status=String(x?.status||"").trim();
+            const entry={order:o,status,rawStatus:String(x?.rawStatus||""),logisticsStatus:String(x?.logisticsStatus||"")};
+            const prior=matched.get(id);
+            if(!prior||statusPriority(status)>statusPriority(prior.status))matched.set(id,entry);
+          }else{
+            const fallback=[...new Set(supplied.map((v:any)=>String(v||"").trim()).filter(Boolean))].join(" / ");
+            missing.push(fallback);
+          }
         }
 
         const changed:any[]=[];
         let unchanged=0;
-        for(const {order,status} of matched.values()){
-          if(!status) continue;
-          // Never downgrade a final Delivery Failed status to an in-progress status.
-          // A later confirmed Delivered/Cancelled state may still replace it.
-          const inProgress=["New","Confirmed","Processing","Transit To Ship","Shipping","Out for Delivery"];
-          if(order.status==="Delivery Failed"&&inProgress.includes(status)){unchanged++;continue;}
+        let skippedProtected=0;
+        const inProgress=["New","Confirmed","Processing","Transit To Ship","Shipping","Out for Delivery"];
+        for(const {order,status,rawStatus,logisticsStatus} of matched.values()){
+          if(!status)continue;
+          if(order.status==="Cancelled"){unchanged++;skippedProtected++;continue;}
+          const raw=String(rawStatus||"").toLowerCase().replace(/[_-]+/g," ").trim();
+          const log=String(logisticsStatus||"").toLowerCase().replace(/[_-]+/g," ").trim();
+          const attemptOnly=(v:string)=>v.includes("attempt")&&/(fail|unsuccess|not delivered)/.test(v)||/failed attempts?\s*\d*/.test(v)||/failed attempt/.test(v)||/reattempts failed/.test(v);
+          const canCorrectMisclassifiedAttempt=status==="Shipping"&&(attemptOnly(raw)||attemptOnly(log));
+          if(order.status==="Delivery Failed"&&inProgress.includes(status)&&!canCorrectMisclassifiedAttempt){unchanged++;continue;}
           if(order.status===status){unchanged++;continue;}
           changed.push({id:order.id,order_number:order.order_number,status});
         }
@@ -85,7 +97,7 @@ Deno.serve(async(req)=>{
           matched:matched.size,
           updated:changed.length,
           unchanged,
-          skippedProtected:0,
+          skippedProtected,
           skippedUnknown:missing.length,
           missing,
           updatedOrderIds:changed.map((x:any)=>x.order_number)
