@@ -25,6 +25,17 @@ Deno.serve(async(req)=>{
     }
     if(req.method==="POST"){
       const b=await req.json();
+      if(b.action==="manual_create"){
+        const full_name=String(b.full_name||"").trim(),phone=String(b.phone||"").trim(),address=String(b.address||"").trim(),city=String(b.city||"").trim();
+        const itemName=String(b.item_name||"").trim(),quantity=Math.max(1,Math.floor(Number(b.quantity)||1)),unitPrice=Number(b.unit_price),unitWeight=Number(b.item_weight||0),productCost=Number(b.product_cost||0),packagingCost=Number(b.packaging_cost||0),deliveryFee=Number(b.delivery_fee||0);
+        if(!full_name||!phone||!address||!city||!itemName||!Number.isFinite(unitPrice)||unitPrice<0||!Number.isFinite(productCost)||productCost<0||!Number.isFinite(packagingCost)||packagingCost<0||!Number.isFinite(deliveryFee)||deliveryFee<0||!Number.isFinite(unitWeight)||unitWeight<0) return out({error:"Please complete all required customer, product and cost fields."},400);
+        const product_total=unitPrice*quantity,total=product_total+deliveryFee;
+        const order_number="TB-"+String(Date.now()).slice(-8);
+        const items=[{id:String(b.item_id||"manual-item"),name:itemName,price:unitPrice,quantity,weight:unitWeight}];
+        const {data,error}=await db.from("orders").insert({order_number,full_name,phone,address,city,items,product_total,delivery_fee:deliveryFee,total,payment_method:"Cash on Delivery",status:String(b.status||"New"),product_cost:productCost,packaging_cost:packagingCost,shipping_cost:0,return_shipping_cost:0,ads_cost:0,other_cost:0,finance_note:"Manually entered by admin"}).select("id,order_number").single();
+        if(error) return out({error:error.message},500);
+        return out({success:true,order:data});
+      }
       if(b.action==="import_courier_status"){
         const updates=Array.isArray(b.updates)?b.updates:[];
         if(!updates.length) return out({error:"No supported courier status rows found in the import file."},400);
