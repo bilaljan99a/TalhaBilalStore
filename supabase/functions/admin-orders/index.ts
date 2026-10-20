@@ -147,6 +147,21 @@ Deno.serve(async(req)=>{
         return out({success:true});
       }
       if(!b.id) return out({error:"Missing order id"},400);
+      if(b.action==="manual_order_update"){
+        const {data:existing,error:readError}=await db.from("orders").select("id,items,finance_note").eq("id",b.id).single();
+        if(readError||!existing) return out({error:"Order not found"},404);
+        if(String(existing.finance_note||"")!=="Manually entered by admin") return out({error:"Only manually entered orders can be edited here."},403);
+        const full_name=String(b.full_name||"").trim(),phone=String(b.phone||"").trim(),address=String(b.address||"").trim(),city=String(b.city||"").trim(),itemName=String(b.item_name||"").trim();
+        const quantity=Number(b.quantity),unitPrice=Number(b.unit_price),unitWeight=Number(b.item_weight),productCost=Number(b.product_cost),packagingCost=Number(b.packaging_cost),deliveryFee=Number(b.delivery_fee),status=String(b.status||"New");
+        if(!full_name||!phone||!address||!city||!itemName||!Number.isInteger(quantity)||quantity<1||![unitPrice,unitWeight,productCost,packagingCost,deliveryFee].every(n=>Number.isFinite(n)&&n>=0)||!["New","Need To Confirm","Confirmed","Transit To Ship","Shipping","Out for Delivery","Delivered","Delivery Failed","Cancelled"].includes(status)) return out({error:"Please check all order fields and values."},400);
+        const oldItems=Array.isArray(existing.items)?existing.items:[];
+        const oldItem=oldItems[0]||{};
+        const product_total=Math.round(unitPrice*quantity*100)/100,total=product_total+deliveryFee;
+        const items=[{...oldItem,id:String(oldItem.id||"manual-item"),name:itemName,price:unitPrice,quantity,weight:unitWeight}];
+        const {error:updateError}=await db.from("orders").update({full_name,phone,address,city,items,product_total,delivery_fee:deliveryFee,total,status,product_cost:productCost,packaging_cost:packagingCost}).eq("id",b.id);
+        if(updateError) return out({error:updateError.message},500);
+        return out({success:true});
+      }
       const patch:any={};
       if(b.status!==undefined) patch.status=String(b.status);
       if(b.tracking_number!==undefined) patch.tracking_number=String(b.tracking_number||"").trim();
