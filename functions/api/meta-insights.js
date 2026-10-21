@@ -1,6 +1,5 @@
 const META_CONFIG = {
-  adAccountId: '1783909009396122',
-  accessToken: 'EAATJw1ZANghQBSmqGlkoYVm9hvneLWlu5MtZAnAVfIERqGxroxvoVgmrAEeuBeUbULoL1ZCg54j1JioEHdRxxWlrIfXB4BW79n25VGEjC9ilJzRuL2SxJJF6ZCXagHJjsINrTqTxMpYKUJYLHswZB63fKtZAoG5kvVxhVjFC82waVxatLyMnxuvk9E81f2NRiIEQZDZD'
+  adAccountId: '1783909009396122'
 };
 
 export async function onRequestGet(context) {
@@ -12,7 +11,13 @@ export async function onRequestGet(context) {
     const range = url.searchParams.get('range') || 'yesterday';
 
     const accountId = 'act_' + META_CONFIG.adAccountId.replace(/^act_/, '');
-    const token = META_CONFIG.accessToken;
+    const token = context.env?.META_ACCESS_TOKEN;
+    if (!token) {
+      return new Response(JSON.stringify({ success: false, error: 'Meta Ads token is not configured in Cloudflare Secrets (META_ACCESS_TOKEN).' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+      });
+    }
 
     let timeParam = '';
     let label = range;
