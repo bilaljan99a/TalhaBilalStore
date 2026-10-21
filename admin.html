@@ -230,8 +230,7 @@ function renderRoiComparison(){
 }loginForm.addEventListener('submit',async e=>{e.preventDefault();loginError.textContent='';const email=document.getElementById('email').value.trim().toLowerCase(),password=document.getElementById('password').value;const{data,error}=await supabase.auth.signInWithPassword({email,password});if(error){loginError.textContent='Login failed: '+error.message;return}if(!data.session){loginError.textContent='Login failed: no session returned.';return}showDashboard()});document.getElementById('logoutBtn').addEventListener('click',async()=>{if(realtimeChannel){await supabase.removeChannel(realtimeChannel);realtimeChannel=null}await supabase.auth.signOut();location.reload()});
 
 const META_DASHBOARD_CONFIG = {
-  adAccountId: localStorage.getItem('tb_meta_ad_account_id') || '1783909009396122',
-  accessToken: localStorage.getItem('tb_meta_access_token') || 'EAATJw1ZANghQBSmqGlkoYVm9hvneLWlu5MtZAnAVfIERqGxroxvoVgmrAEeuBeUbULoL1ZCg54j1JioEHdRxxWlrIfXB4BW79n25VGEjC9ilJzRuL2SxJJF6ZCXagHJjsINrTqTxMpYKUJYLHswZB63fKtZAoG5kvVxhVjFC82waVxatLyMnxuvk9E81f2NRiIEQZDZD'
+  adAccountId: localStorage.getItem('tb_meta_ad_account_id') || '1783909009396122'
 };
 
 async function safeJsonFetch(url, options = {}) {
@@ -259,86 +258,10 @@ async function queryMetaInsights({ date, range = 'yesterday' } = {}) {
     }
   }
 
-  // 2. Direct client-side Meta Graph API call
-  const actId = 'act_' + String(META_DASHBOARD_CONFIG.adAccountId).replace(/^act_/, '');
-  const token = META_DASHBOARD_CONFIG.accessToken;
-  const timeParam = date
-    ? 'time_range=' + encodeURIComponent(JSON.stringify({ since: date, until: date }))
-    : 'date_preset=' + encodeURIComponent(range);
-
-  const [accRes, campRes, statRes] = await Promise.all([
-    safeJsonFetch('https://graph.facebook.com/v19.0/' + actId + '/insights?' + timeParam + '&fields=spend,impressions,reach,clicks,cpc,cpm,ctr,actions,cost_per_action_type&access_token=' + token),
-    safeJsonFetch('https://graph.facebook.com/v19.0/' + actId + '/insights?level=campaign&' + timeParam + '&fields=campaign_id,campaign_name,spend,impressions,reach,clicks,cpc,ctr,actions,cost_per_action_type&access_token=' + token),
-    safeJsonFetch('https://graph.facebook.com/v19.0/' + actId + '/campaigns?fields=id,name,status,objective,daily_budget&access_token=' + token)
-  ]);
-
-  if (!accRes) throw new Error('Could not reach Meta API. Check network or adblocker.');
-  if (accRes.error) throw new Error(accRes.error.message || 'Meta API error');
-
-  const statusMap = {};
-  if (statRes && Array.isArray(statRes.data)) {
-    statRes.data.forEach(c => { statusMap[c.id] = c; });
-  }
-
-  const campaigns = ((campRes && campRes.data) || []).map(c => {
-    const extra = statusMap[c.campaign_id] || {};
-    const actions = c.actions || [];
-    const costPerAction = c.cost_per_action_type || [];
-    const purchaseAction = actions.find(a => a.action_type === 'purchase' || a.action_type === 'omni_purchase');
-    const costPerPurchase = costPerAction.find(a => a.action_type === 'purchase' || a.action_type === 'omni_purchase');
-    const checkoutAction = actions.find(a => a.action_type === 'initiate_checkout' || a.action_type === 'omni_initiated_checkout');
-    const linkClickAction = actions.find(a => a.action_type === 'link_click');
-    return {
-      id: c.campaign_id,
-      name: c.campaign_name,
-      status: extra.status || 'ACTIVE',
-      daily_budget: extra.daily_budget ? Number(extra.daily_budget) : null,
-      spend: Number(c.spend || 0),
-      impressions: Number(c.impressions || 0),
-      reach: Number(c.reach || 0),
-      clicks: Number(c.clicks || 0),
-      link_clicks: linkClickAction ? Number(linkClickAction.value) : Number(c.clicks || 0),
-      cpc: Number(c.cpc || 0),
-      ctr: Number(c.ctr || 0),
-      purchases: purchaseAction ? Number(purchaseAction.value) : 0,
-      cost_per_purchase: costPerPurchase ? Number(costPerPurchase.value) : 0,
-      checkouts: checkoutAction ? Number(checkoutAction.value) : 0
-    };
-  });
-
-  const summary = accRes.data && accRes.data[0] ? accRes.data[0] : null;
-  let totalPurchases = 0, costPerPurchase = 0, totalCheckouts = 0, linkClicks = 0;
-  if (summary && summary.actions) {
-    const pAct = summary.actions.find(a => a.action_type === 'purchase' || a.action_type === 'omni_purchase');
-    totalPurchases = pAct ? Number(pAct.value) : 0;
-    const cppAct = summary.cost_per_action_type?.find(a => a.action_type === 'purchase' || a.action_type === 'omni_purchase');
-    costPerPurchase = cppAct ? Number(cppAct.value) : 0;
-    const chkAct = summary.actions.find(a => a.action_type === 'initiate_checkout' || a.action_type === 'omni_initiated_checkout');
-    totalCheckouts = chkAct ? Number(chkAct.value) : 0;
-    const linkAct = summary.actions.find(a => a.action_type === 'link_click');
-    linkClicks = linkAct ? Number(linkAct.value) : Number(summary.clicks || 0);
-  }
-
-  return {
-    success: true,
-    range: date || range,
-    account_id: META_DASHBOARD_CONFIG.adAccountId,
-    summary: summary ? {
-      spend: Number(summary.spend || 0),
-      impressions: Number(summary.impressions || 0),
-      reach: Number(summary.reach || 0),
-      clicks: Number(summary.clicks || 0),
-      link_clicks: linkClicks,
-      cpc: Number(summary.cpc || 0),
-      cpm: Number(summary.cpm || 0),
-      ctr: Number(summary.ctr || 0),
-      purchases: totalPurchases,
-      cost_per_purchase: costPerPurchase,
-      checkouts: totalCheckouts
-    } : { spend: 0, impressions: 0, reach: 0, clicks: 0, link_clicks: 0, cpc: 0, cpm: 0, ctr: 0, purchases: 0, cost_per_purchase: 0, checkouts: 0 },
-    campaigns
-  };
+  // Never call Meta directly from the browser. Keep the token server-side.
+  throw new Error('Meta Ads connection needs the server-side META_ACCESS_TOKEN secret. Check Cloudflare deployment and retry.');
 }
+
 async function fetchMetaSpend(date) {
   const note = document.getElementById('adsSaveNote'), btn = document.getElementById('fetchMetaSpendBtn');
   if (!date) { note.textContent = 'Please select an Ads Date first.'; return; }
