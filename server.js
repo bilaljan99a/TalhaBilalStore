@@ -121,8 +121,7 @@ app.use((req, res, next) => {
 });
 
 const META_CONFIG = {
-  adAccountId: '1783909009396122',
-  accessToken: 'EAATJw1ZANghQBSmqGlkoYVm9hvneLWlu5MtZAnAVfIERqGxroxvoVgmrAEeuBeUbULoL1ZCg54j1JioEHdRxxWlrIfXB4BW79n25VGEjC9ilJzRuL2SxJJF6ZCXagHJjsINrTqTxMpYKUJYLHswZB63fKtZAoG5kvVxhVjFC82waVxatLyMnxuvk9E81f2NRiIEQZDZD'
+  adAccountId: '1783909009396122'
 };
 
 app.get('/api/meta-insights', async (req, res) => {
@@ -132,7 +131,10 @@ app.get('/api/meta-insights', async (req, res) => {
     const toDate = req.query.to;
     const range = req.query.range || 'yesterday';
     const accountId = 'act_' + META_CONFIG.adAccountId.replace(/^act_/, '');
-    const token = META_CONFIG.accessToken;
+    const token = process.env.META_ACCESS_TOKEN;
+    if (!token) {
+      return res.status(500).json({ success: false, error: 'Meta Ads token is not configured in the server environment (META_ACCESS_TOKEN).' });
+    }
 
     let timeParam = '';
     let label = range;
