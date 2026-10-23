@@ -953,6 +953,7 @@ function cmsSingleVariationCard(v, i) {
     '</div>' +
     '<div class="cms-var-field" style="grid-column: span 2">' +
      '<label>Variation Photo</label>' +
+     '<small style="display:block;font-size:11px;color:#64748b;margin:4px 0 8px">Use a square 1:1 image, minimum 500 × 500 px; 1200 × 1200 px recommended. Keep Pink/Blue or pack-option photos framed consistently.</small>' +
      '<div class="cms-var-img-row">' +
       thumb +
       '<input type="text" id="vImage_' + i + '" value="' + esc(v.image) + '" placeholder="Paste image URL or click Upload" oninput="cmsPreviewVarThumb(' + i + ')" style="flex:1">' +
@@ -1264,8 +1265,8 @@ async function cmsEditProduct(r,id){
  cmsField("Product video link (optional)","pVideoUrl",r.video_url,"text","Paste a YouTube watch, youtu.be, Shorts or embed link. The player appears on this product page; the actual video remains on YouTube and does not use Supabase Storage.")+
  cmsUploadField("Upload image inside product description","pDescription","products/description",false,"inline","Recommended: 1200 px wide, proportional height, WebP/JPG, ideally 150–300 KB. Use this for in-article illustrations, not the main product gallery.")+
  cmsRenderVariationsManager(r.variations, r)+
- cmsField("Image URL(s), one per line","pImages",imgs.join("\n"),"textarea","Paste existing image URLs or upload files below.")+
- cmsUploadField("Upload product image(s)","pImages","products",true,"append-lines","RECOMMENDED MAIN/GALLERY SIZE: 1200 × 1200 px, square (1:1), WebP preferred, ideally 150–300 KB per image. Keep the product centred on the same square canvas with consistent padding. Use this same size for every gallery image. Upload limit: 8 MB each.")+
+ cmsField("Image URL(s), one per line","pImages",imgs.join("\n"),"textarea","For new products, use square 1:1 images at least 500 × 500 px; 1200 × 1200 px is recommended. Keep the product centred and use the same framing for every gallery image.")+
+ cmsUploadField("Upload product image(s)","pImages","products",true,"append-lines","MINIMUM: 500 × 500 px, square (1:1). RECOMMENDED: 1200 × 1200 px square, WebP preferred, ideally 150–300 KB per image. Keep the product centred with consistent padding and use the same square size for every gallery image. Applies to new CMS product images; existing products are not changed. Upload limit: 8 MB each.")+
  '<div class="field full"><label>Image preview</label><div class="preview-frame" id="pPreview">'+(imgs[0]?'<img src="'+esc(imgs[0])+'" alt="Product preview">':'<span class="hint">Add an image URL above.</span>')+'</div></div>'+
  '<div class="field full"><label>Website page assignment</label><p class="field-help">The category links automatically. Every saved product is added to All Products. The existing homepage products remain unchanged; select extra CMS pages below if needed.</p><div class="assignment-list">'+(pageAssignment||'<p class="hint">No extra CMS pages yet. The product will still appear on All Products and its selected category page.</p>')+'</div></div>'+
  cmsField("SEO title","pSeoTitle",cmsFormSeo.title||"","text")+
