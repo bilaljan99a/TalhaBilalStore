@@ -924,7 +924,7 @@ function cmsSingleVariationCard(v, i) {
       '<select id="vColor_' + i + '" onchange="cmsOnColorChange(' + i + ')">' +
        colorOptions +
       '</select>' +
-      '<input type="color" id="vColorHex_' + i + '" class="cms-color-picker" value="' + (v.color_hex || '#ff69b4') + '" title="Color Hex" onchange="cmsOnHexChange(' + i + ')">' +
+      '<input type="color" id="vColorHex_' + i + '" class="cms-color-picker" value="' + (v.color ? (v.color_hex || (CMS_COLOR_PRESETS.find(c => c.name === v.color)?.hex || '#ff69b4')) : '#ffffff') + '" title="Color Hex" ' + (!v.color ? 'disabled aria-label="Select a color option first"' : '') + ' onchange="cmsOnHexChange(' + i + ')">' +
      '</div>' +
     '</div>' +
     '<div class="cms-var-field">' +
@@ -976,7 +976,7 @@ function cmsSyncCurrentVariationsFromDom() {
    id: cmsCurrentVariations[i]?.id || ("v_" + Date.now() + "_" + i),
    name: g("vName")?.value.trim() || "",
    color: g("vColor")?.value || "",
-   color_hex: g("vColorHex")?.value || "",
+   color_hex: (g("vColor")?.value || "") ? (g("vColorHex")?.value || "") : "",
    weight_kg: g("vWeight")?.value ? Number(g("vWeight").value) : null,
    price: g("vPrice")?.value ? Number(g("vPrice").value) : 0,
    sale_price: g("vPrice")?.value ? Number(g("vPrice").value) : 0,
@@ -1002,6 +1002,13 @@ function cmsOnColorChange(i) {
  const sel = document.getElementById("vColor_" + i);
  const hexInput = document.getElementById("vColorHex_" + i);
  if (!sel || !hexInput) return;
+ const selected = sel.value || "";
+ if (!selected) {
+  hexInput.value = "#ffffff";
+  hexInput.disabled = true;
+  return;
+ }
+ hexInput.disabled = false;
  const opt = sel.options[sel.selectedIndex];
  const hex = opt?.dataset.hex;
  if (hex) hexInput.value = hex;
@@ -1157,7 +1164,7 @@ function cmsCollectVariations() {
   id: v.id,
   name: v.name.trim(),
   color: v.color || null,
-  color_hex: v.color_hex || null,
+  color_hex: v.color ? (v.color_hex || null) : null,
   weight_kg: v.weight_kg != null && Number.isFinite(Number(v.weight_kg)) ? Number(v.weight_kg) : null,
   price: v.sale_price != null && Number.isFinite(Number(v.sale_price)) ? Number(v.sale_price) : (Number(v.price) || 0),
   sale_price: v.sale_price != null && Number.isFinite(Number(v.sale_price)) ? Number(v.sale_price) : (Number(v.price) || 0),
