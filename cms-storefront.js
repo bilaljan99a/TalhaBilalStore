@@ -175,7 +175,7 @@
     const name = String(category.name || "Shop by Category").trim();
     const description = String(category.description || "")
       .replace(/<[^>]*>/g, " ")
-      .replace(/\\s+/g, " ")
+      .replace(/\s+/g, " ")
       .trim();
 
     title.textContent = name;
