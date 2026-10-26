@@ -161,6 +161,27 @@
     if(robots)setMeta('meta[name="robots"]',"content",robots);
     if(canonical){let link=document.querySelector('link[rel="canonical"]');if(!link){link=document.createElement("link");link.rel="canonical";document.head.appendChild(link)}link.href=canonical;}
   }
+  function renderCatalogHero(data) {
+    const title = document.getElementById("catalogTitle");
+    const intro = document.getElementById("catalogIntro");
+    if (!title || !intro) return;
+
+    const categorySlug = new URLSearchParams(location.search).get("category");
+    if (!categorySlug) return;
+
+    const category = (data.categories || []).find(c => String(c.slug) === categorySlug);
+    if (!category) return;
+
+    const name = String(category.name || "Shop by Category").trim();
+    const description = String(category.description || "")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\\s+/g, " ")
+      .trim();
+
+    title.textContent = name;
+    intro.textContent = description || `Explore ${name} products at Talha Bilal Store. Cash on Delivery available across Pakistan.`;
+  }
+
   async function load() {
     try {
       const res = await fetch(ENDPOINT, {headers:{Accept:"application/json"},cache:"no-store"});
@@ -175,7 +196,7 @@
         for(const row of data.products){const p=mapProduct(row,data.categories),idx=list.findIndex(x=>x.id===p.id);if(idx>=0)list[idx]=p;else list.push(p);}
         data.siteProducts=list;
       }
-      renderFilters(data); renderBanners(data); renderBlogListing(data); applySeo(data);
+      renderCatalogHero(data); renderFilters(data); renderBanners(data); renderBlogListing(data); applySeo(data);
       document.dispatchEvent(new CustomEvent("cms-site-data-ready",{detail:data}));
       return data;
     } catch (error) {
