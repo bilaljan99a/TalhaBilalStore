@@ -187,3 +187,32 @@
 .detail-accordions .detail-static-product-details{border:1px solid #e7e7e7;border-radius:16px;background:#fff;margin-bottom:10px;overflow:hidden}
 .detail-accordions .detail-static-product-details .detail-static-title{list-style:none;display:block;margin:0;padding:20px 22px;font-size:18px;line-height:1.35;font-weight:900;color:var(--ink)}
 @media(max-width:900px){.detail-accordions .detail-static-product-details .detail-static-title{padding:17px 16px;font-size:15px}.detail-accordions .detail-static-product-details .accordion-content{padding:0 16px 18px}}
+
+
+/* Category listing polish: keep the category title, then show products directly. */
+body.category-catalog-page .catalog-hero{
+  padding:50px 0 22px!important;
+  border-bottom:0!important;
+}
+body.category-catalog-page .products-section{
+  padding:22px 0 70px!important;
+  border-top:0!important;
+}
+body.category-catalog-page .products-section .section-heading,
+body.category-catalog-page .products-section .cms-category-filters{
+  display:none!important;
+}
+body.category-catalog-page .products-section .product-grid{
+  margin-top:0!important;
+}
+body.category-catalog-page .products-section .product-card .product-visual>.tag{
+  display:none!important;
+}
+@media(max-width:560px){
+  body.category-catalog-page .catalog-hero{
+    padding:34px 0 18px!important;
+  }
+  body.category-catalog-page .products-section{
+    padding:18px 0 48px!important;
+  }
+}
