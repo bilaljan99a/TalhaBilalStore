@@ -1337,12 +1337,12 @@ async function cmsSaveProduct(id){
 
 function cmsPreviewCategoryDescription(){
  const name=String(document.getElementById("cName")?.value||"").trim()||"Category name";
- const description=String(document.getElementById("cDescription")?.value||"").replace(/<[^>]*>/g," ").replace(/\\s+/g," ").trim();
- const firstSentence=(description.match(/^.{1,140}?[.!?](?:\\s|$)/)||[""])[0].trim();
+ const description=String(document.getElementById("cDescription")?.value||"").replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+ const firstSentence=(description.match(/^.{1,140}?[.!?](?:\s|$)/)||[""])[0].trim();
  let top=firstSentence;
- if(!top)top=description.length>140?description.slice(0,137).replace(/\\s+\\S*$/,"")+"…":description;
+ if(!top)top=description.length>140?description.slice(0,137).replace(/\s+\S*$/,"")+"…":description;
  const displayedLength=top.endsWith("…")?top.length-1:top.length;
- const remaining=description.slice(displayedLength).replace(/^[\\s.!?;:—-]+/,"").trim();
+ const remaining=description.slice(displayedLength).replace(/^[\s.!?;:—-]+/,"").trim();
  const nameEl=document.getElementById("cDescriptionPreviewName");
  const topEl=document.getElementById("cDescriptionPreviewTop");
  const bottomWrap=document.getElementById("cDescriptionPreviewBottomWrap");
