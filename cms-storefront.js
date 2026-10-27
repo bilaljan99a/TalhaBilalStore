@@ -211,6 +211,11 @@
     if(robots)setMeta('meta[name="robots"]',"content",robots);
     if(canonical){let link=document.querySelector('link[rel="canonical"]');if(!link){link=document.createElement("link");link.rel="canonical";document.head.appendChild(link)}link.href=canonical;}
   }
+  function catalogPlainText(value) {
+    const template = document.createElement("template");
+    template.innerHTML = String(value || "");
+    return (template.content.textContent || "").replace(/\\s+/g, " ").trim();
+  }
   function renderCatalogHero(data) {
     const title = document.getElementById("catalogTitle");
     const intro = document.getElementById("catalogIntro");
@@ -220,11 +225,28 @@
     const bottom = document.getElementById("categoryDescriptionBottom");
     const bottomTitle = document.getElementById("categoryDescriptionTitle");
     const bottomText = document.getElementById("categoryDescriptionText");
+
+    // The All Products record is editable in CMS. The template used to ignore
+    // its title/content and always show the hard-coded catalogue introduction.
     if (!categorySlug) {
       if (bottom) bottom.hidden = true;
+      const cataloguePage = (data.pages || []).find(page =>
+        String(page.slug || "").toLowerCase() === "products" &&
+        String(page.status || "published").toLowerCase() === "published"
+      );
+      if (cataloguePage) {
+        const pageTitle = String(cataloguePage.title || "").trim();
+        if (pageTitle) title.textContent = pageTitle;
+        const sections = Array.isArray(cataloguePage.sections) ? cataloguePage.sections : [];
+        const introSection = sections.find(section => section && section.key === "cms-page-content");
+        const pageIntro = catalogPlainText(introSection && introSection.content);
+        if (pageIntro) intro.textContent = pageIntro;
+      }
       return;
     }
 
+    // Category title and description are driven directly by the active CMS
+    // category record, not a hard-coded list in products.html.
     const category = (data.categories || []).find(c => String(c.slug) === categorySlug);
     if (!category) {
       if (bottom) bottom.hidden = true;
@@ -232,17 +254,14 @@
     }
 
     const name = String(category.name || "Shop by Category").trim();
-    const description = String(category.description || "")
-      .replace(/<[^>]*>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
+    const description = catalogPlainText(category.description);
     const fallbackDescription = "Explore " + name + " products at Talha Bilal Store. Cash on Delivery available across Pakistan.";
     const fullDescription = description || fallbackDescription;
-    const firstSentence = (fullDescription.match(/^.{1,140}?[.!?](?:\s|$)/) || [""])[0].trim();
+    const firstSentence = (fullDescription.match(/^.{1,140}?[.!?](?:\\s|$)/) || [""])[0].trim();
     let shortDescription = firstSentence;
     if (!shortDescription) {
       shortDescription = fullDescription.length > 140
-        ? fullDescription.slice(0, 137).replace(/\s+\S*$/, "") + "…"
+        ? fullDescription.slice(0, 137).replace(/\\s+\\S*$/, "") + "…"
         : fullDescription;
     }
 
@@ -256,7 +275,7 @@
           ? shortDescription.length - 1
           : shortDescription.length;
         remainingDescription = description.slice(displayedLength)
-          .replace(/^[\s.!?;:—-]+/, "")
+          .replace(/^[\\s.!?;:—-]+/, "")
           .trim();
       }
       if (remainingDescription) {
