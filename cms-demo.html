@@ -275,6 +275,7 @@ const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let liveData=null;
 let cmsFormSeo={};
 let cmsCache={products:[],categories:[],pages:[],blog:[],banners:[],seo:[]};
+let cmsBannerPresetPlacement=null;
 let cmsOptionSets={};
 let cmsSavedRichRange=null;
 let cmsNavHistory=[];
@@ -446,8 +447,11 @@ async function cmsManage(page){
  cmsEditorBackModule=null;cmsUpdateBackButton();
  const labels={products:"Add Product",categories:"Add Category",pages:"Add Page",banners:"Add Banner",blog:"Add Blog Post",seo:"Add SEO Record"};
  const subs={products:"Add or update products, images, price, shipping weight, categories and SEO. Active products publish automatically.",categories:"Create and organise categories. Active categories and product filters sync to the website.",pages:"Create page drafts, assign products, and publish them to a page URL when status is Published.",banners:"Upload desktop/mobile images, set CTA links, placement, ordering and schedule. Active banners sync automatically.",blog:"Edit articles and upload images. Published posts update their public blog URL.",seo:"Manage titles, descriptions, canonical URLs, indexing, Open Graph and structured data. SEO settings sync to public pages."};
- app.innerHTML=head(cfg.title,subs[page]||"Website content management.","<button class='btn primary' onclick='cmsEdit(&quot;"+page+"&quot;,null)'>+ "+labels[page]+"</button>")+
- (page==="blog"?'<div class="module-note"><strong>Publishing:</strong> Published CMS posts update their public blog URL automatically. Imported article slugs are retained.</div>':'<div class="module-note"><strong>Automatic publishing:</strong> Active products/categories, published pages/blogs, active banners and SEO records sync to the public website after save. Checkout, orders and finance remain in the existing admin.</div>')+
+ const headerActions=page==="banners"
+  ? "<div class='topbar-tools'><button class='btn' onclick='cmsEdit(&quot;banners&quot;,null)'>+ Add Banner</button><button class='btn primary' onclick='cmsAddHomepageSliderSlide()'>+ Add Homepage Slider Slide</button></div>"
+  : "<button class='btn primary' onclick='cmsEdit(&quot;"+page+"&quot;,null)'>+ "+labels[page]+"</button>";
+ app.innerHTML=head(cfg.title,subs[page]||"Website content management.",headerActions)+
+ (page==="blog"?'<div class="module-note"><strong>Publishing:</strong> Published CMS posts update their public blog URL automatically. Imported article slugs are retained.</div>':page==="banners"?'<div class="module-note"><strong>Homepage slider:</strong> Click <strong>Add Homepage Slider Slide</strong> for each slide. Create at least 2 active slides, keep their placement as <strong>Homepage slider</strong>, and use sort order 1, 2, 3 to control sequence. The rotating slider appears below the existing homepage hero. Upload a desktop image and an optional mobile image, then save.</div>':'<div class="module-note"><strong>Automatic publishing:</strong> Active products/categories, published pages/blogs, active banners and SEO records sync to the public website after save. Checkout, orders and finance remain in the existing admin.</div>')+
  '<div class="panel"><div id="cmsRecords">Loading website content…</div></div>';
  try{
   const rows=await cmsRequest(cfg.table);cmsCache[page]=rows;
@@ -1493,7 +1497,7 @@ async function cmsEditPage(r,id){
  const categories=cmsCache.categories||[];
  const categoryOptions='<option value="">All categories</option>'+categories.map(x=>'<option value="'+Number(x.id)+'">'+esc(x.name)+'</option>').join("");
  const fields=cmsField("Page title","pgTitle",r.title,"text")+cmsField("URL slug","pgSlug",r.slug,"text","Use home for the homepage assignment, products for the catalogue, or a custom slug such as kids-care (published at /page/kids-care).")+
- cmsSelect("CMS status","pgStatus",[{value:"draft",label:"Draft — not public"},{value:"published",label:"Published"}],r.status||"draft")+cmsField("Page content / intro","pgContent",content,"textarea",["home","homepage","products"].includes(String(r.slug||"").toLowerCase())?"Template-managed route: text here does not replace the live Home/All Products template.":"This content is rendered on a published custom CMS page.")+
+ cmsSelect("CMS status","pgStatus",[{value:"draft",label:"Draft — not public"},{value:"published",label:"Published"}],r.status||"draft")+cmsField("Page content / intro","pgContent",content,"textarea",["home","homepage"].includes(String(r.slug||"").toLowerCase())?"The homepage keeps its existing storefront template. Use Banners / Sliders to manage homepage promotional creative.":String(r.slug||"").toLowerCase()==="products"?"This updates the heading and intro on the live /products catalogue page after you save. The product grid and checkout remain template-managed.":"This content is rendered on a published custom CMS page.")+
  '<div class="field full cms-assignment-manager"><label>Assign products to this page</label><p class="field-help">Search by product name, slug or SKU; filter by category/status. Your selections stay saved in the editor when you change filters or pages.</p>'+
  '<div class="cms-assignment-filters"><div><label for="pgProductSearch">Search products</label><input id="pgProductSearch" type="search" placeholder="Search product name, slug or SKU…" oninput="cmsPageAssignmentFilterChanged()" autocomplete="off"></div>'+
  '<div><label for="pgProductCategory">Category</label><select id="pgProductCategory" onchange="cmsPageAssignmentFilterChanged()">'+categoryOptions+'</select></div>'+
@@ -1513,9 +1517,13 @@ async function cmsSavePage(id){const g=x=>document.getElementById(x);try{
  await cmsRequest("cms_pages",id===null?"POST":"PATCH",id,{title,slug,status:g("pgStatus").value,sections:keep,seo});await cmsManage("pages");
 }catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
 function cmsLocalDatetime(v){if(!v)return "";const d=new Date(v);if(Number.isNaN(d.getTime()))return "";return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}
+async function cmsAddHomepageSliderSlide(){
+ cmsBannerPresetPlacement="homepage-slider";
+ try{await cmsEdit("banners",null)}finally{cmsBannerPresetPlacement=null}
+}
 async function cmsEditBanner(r,id){
  const fields=cmsField("Banner title","bTitle",r.title,"text")+cmsField("Subtitle / offer","bSubtitle",r.subtitle,"text")+cmsField("Desktop image URL","bImage",r.image_url,"text")+cmsUploadField("Upload desktop banner","bImage","banners",false,"set","Recommended: 1920 × 650 px wide landscape, WebP/JPG, ideally under 500 KB. Keep text/logos away from edges.")+cmsField("Mobile image URL","bMobileImage",r.mobile_image_url,"text")+cmsUploadField("Upload mobile banner","bMobileImage","banners",false,"set","Recommended: 1080 × 1350 px portrait (4:5), WebP/JPG, ideally under 350 KB. Keep the main subject near the centre.")+
- cmsSelect("Placement","bPlacement",[{value:"homepage",label:"Homepage hero"},{value:"homepage-slider",label:"Homepage slider (below hero)"},{value:"category",label:"Category page"},{value:"product",label:"Product page"},{value:"blog",label:"Blog / editorial"},{value:"campaign",label:"Campaign / promotion"},{value:"sitewide",label:"Site-wide"}],r.placement||"homepage")+
+ cmsSelect("Placement","bPlacement",[{value:"homepage",label:"Homepage hero"},{value:"homepage-slider",label:"Homepage slider (below hero)"},{value:"category",label:"Category page"},{value:"product",label:"Product page"},{value:"blog",label:"Blog / editorial"},{value:"campaign",label:"Campaign / promotion"},{value:"sitewide",label:"Site-wide"}],r.placement||(id===null&&cmsBannerPresetPlacement?cmsBannerPresetPlacement:"homepage"))+
  cmsField("Button text","bButtonText",r.button_text,"text")+cmsField("Button URL","bButtonUrl",r.button_url,"text")+cmsField("Sort order","bSort",r.sort_order??0,"number")+cmsField("Start time (optional)","bStart",cmsLocalDatetime(r.starts_at),"datetime-local")+cmsField("End time (optional)","bEnd",cmsLocalDatetime(r.ends_at),"datetime-local")+
  cmsSelect("CMS status","bActive",[{value:"true",label:"Active in CMS"},{value:"false",label:"Disabled"}],String(r.is_active!==false))+
  '<div class="field full"><label>Image previews</label><div class="banner-preview-grid"><div><div class="field-help">Desktop creative</div><div class="preview-frame" id="bPreview">'+(r.image_url?'<img src="'+esc(r.image_url)+'" alt="Desktop banner preview">':'<span class="hint">Add a desktop image.</span>')+'</div></div><div><div class="field-help">Mobile creative (optional)</div><div class="preview-frame mobile-preview" id="bMobilePreview">'+(r.mobile_image_url?'<img src="'+esc(r.mobile_image_url)+'" alt="Mobile banner preview">':'<span class="hint">Add a mobile image.</span>')+'</div></div></div></div>';
