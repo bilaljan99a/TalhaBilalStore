@@ -1335,14 +1335,41 @@ async function cmsSaveProduct(id){
  }catch(e){const b=g("cmsFormError");if(b)b.textContent="Save failed: "+e.message;else alert("Save failed: "+e.message)}
 }
 
+function cmsPreviewCategoryDescription(){
+ const name=String(document.getElementById("cName")?.value||"").trim()||"Category name";
+ const description=String(document.getElementById("cDescription")?.value||"").replace(/<[^>]*>/g," ").replace(/\\s+/g," ").trim();
+ const firstSentence=(description.match(/^.{1,140}?[.!?](?:\\s|$)/)||[""])[0].trim();
+ let top=firstSentence;
+ if(!top)top=description.length>140?description.slice(0,137).replace(/\\s+\\S*$/,"")+"…":description;
+ const displayedLength=top.endsWith("…")?top.length-1:top.length;
+ const remaining=description.slice(displayedLength).replace(/^[\\s.!?;:—-]+/,"").trim();
+ const nameEl=document.getElementById("cDescriptionPreviewName");
+ const topEl=document.getElementById("cDescriptionPreviewTop");
+ const bottomWrap=document.getElementById("cDescriptionPreviewBottomWrap");
+ const bottomTitle=document.getElementById("cDescriptionPreviewBottomTitle");
+ const bottomText=document.getElementById("cDescriptionPreviewBottomText");
+ const bottomEmpty=document.getElementById("cDescriptionPreviewBottomEmpty");
+ if(nameEl)nameEl.textContent=name;
+ if(topEl)topEl.textContent=top||"The opening sentence from your description will appear here.";
+ if(bottomTitle)bottomTitle.textContent="About "+name;
+ if(bottomText)bottomText.textContent=remaining;
+ if(bottomWrap)bottomWrap.style.display=remaining?"block":"none";
+ if(bottomEmpty)bottomEmpty.style.display=remaining?"none":"block";
+}
 async function cmsEditCategory(r,id){
  const all=await cmsRequest("cms_categories");cmsCache.categories=all;const opts=[{value:"",label:"Main category — no parent"},...all.filter(x=>Number(x.id)!==Number(id)).map(x=>({value:x.id,label:x.name}))];
  const fields=cmsField("Category name","cName",r.name,"text")+cmsField("URL slug","cSlug",r.slug,"text","Blank = generate from name.")+cmsField("Image URL","cImage",r.image_url,"text")+cmsUploadField("Upload category image","cImage","categories",false,"set","Recommended: 800 × 800 px square (1:1), WebP preferred, ideally under 200 KB. Keep subject centred.")+cmsSelect("Parent category","cParent",opts,r.parent_id??"")+
- cmsField("Description","cDescription",r.description,"textarea")+cmsField("Display order","cSort",r.sort_order??0,"number")+cmsSelect("Visibility","cActive",[{value:"true",label:"Active"},{value:"false",label:"Hidden"}],String(r.is_active!==false))+
+ cmsField("Category page description","cDescription",r.description,"textarea","Shown on the public category page (/products?category=your-slug). The opening sentence appears below the category name at the top. Any remaining text appears below the product grid under “About [category]”.")+
+ '<div class="field full"><label>Website placement preview</label><div style="border:1px solid #3b414a;border-radius:10px;padding:14px;background:#17191d;color:#e5e7eb"><div style="font-size:10px;font-weight:800;letter-spacing:.08em;color:#fb923c;margin-bottom:8px">TOP OF CATEGORY PAGE · BELOW CATEGORY NAME</div><h3 id="cDescriptionPreviewName" style="font-size:18px;margin:0 0 7px">Category name</h3><p id="cDescriptionPreviewTop" style="margin:0;line-height:1.55;color:#cbd5e1">The opening sentence from your description will appear here.</p><div id="cDescriptionPreviewBottomWrap" style="display:none;margin-top:16px;padding-top:12px;border-top:1px solid #3b414a"><div style="font-size:10px;font-weight:800;letter-spacing:.08em;color:#fb923c;margin-bottom:8px">BELOW THE PRODUCT GRID</div><h3 id="cDescriptionPreviewBottomTitle" style="font-size:17px;margin:0 0 7px">About Category</h3><p id="cDescriptionPreviewBottomText" style="margin:0;line-height:1.55;color:#cbd5e1"></p></div><p id="cDescriptionPreviewBottomEmpty" class="field-help" style="margin:12px 0 0">No lower section appears until you add text after the opening sentence.</p></div><p class="field-help">This preview shows placement only. It updates as you type and mirrors the category description layout on the website.</p></div>'+
+ cmsField("Display order","cSort",r.sort_order??0,"number")+cmsSelect("Visibility","cActive",[{value:"true",label:"Active"},{value:"false",label:"Hidden"}],String(r.is_active!==false))+
  cmsField("SEO title","cSeoTitle",cmsFormSeo.title||"","text")+cmsField("SEO meta description","cSeoDesc",cmsFormSeo.description||"","textarea")+
  '<div class="field full"><label>Image preview</label><div class="preview-frame" id="cPreview">'+(r.image_url?'<img src="'+esc(r.image_url)+'" alt="Category preview">':'<span class="hint">Add an image URL above.</span>')+'</div></div>';
  cmsEditorShell(id===null?"Add Category":"Edit Category","Create main/subcategories; assign products from Products.",fields,"cmsSaveCategory("+(id===null?"null":Number(id))+")","categories");
  const im=document.getElementById("cImage");if(im)im.addEventListener("input",()=>cmsPreviewImage("cImage","cPreview"));
+ const categoryName=document.getElementById("cName"),categoryDescription=document.getElementById("cDescription");
+ if(categoryName)categoryName.addEventListener("input",cmsPreviewCategoryDescription);
+ if(categoryDescription)categoryDescription.addEventListener("input",cmsPreviewCategoryDescription);
+ cmsPreviewCategoryDescription();
 }
 async function cmsSaveCategory(id){const g=x=>document.getElementById(x);try{
  const name=g("cName").value.trim();if(!name)throw new Error("Category name is required.");const slug=g("cSlug").value.trim()||cmsSlugify(name);if(!slug)throw new Error("URL slug is required.");
