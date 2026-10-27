@@ -206,7 +206,7 @@
           ? shortDescription.length - 1
           : shortDescription.length;
         remainingDescription = description.slice(displayedLength)
-          .replace(/^[\\s.!?;:—-]+/, "")
+          .replace(/^[\s.!?;:—-]+/, "")
           .trim();
       }
       if (remainingDescription) {
