@@ -167,21 +167,54 @@
     if (!title || !intro) return;
 
     const categorySlug = new URLSearchParams(location.search).get("category");
-    if (!categorySlug) return;
+    const bottom = document.getElementById("categoryDescriptionBottom");
+    const bottomTitle = document.getElementById("categoryDescriptionTitle");
+    const bottomText = document.getElementById("categoryDescriptionText");
+    if (!categorySlug) {
+      if (bottom) bottom.hidden = true;
+      return;
+    }
 
     const category = (data.categories || []).find(c => String(c.slug) === categorySlug);
-    if (!category) return;
+    if (!category) {
+      if (bottom) bottom.hidden = true;
+      return;
+    }
 
     const name = String(category.name || "Shop by Category").trim();
     const description = String(category.description || "")
       .replace(/<[^>]*>/g, " ")
       .replace(/\s+/g, " ")
       .trim();
+    const fallbackDescription = "Explore " + name + " products at Talha Bilal Store. Cash on Delivery available across Pakistan.";
+    const fullDescription = description || fallbackDescription;
+    const firstSentence = (fullDescription.match(/^.{1,140}?[.!?](?:\s|$)/) || [""])[0].trim();
+    let shortDescription = firstSentence;
+    if (!shortDescription) {
+      shortDescription = fullDescription.length > 140
+        ? fullDescription.slice(0, 137).replace(/\s+\S*$/, "") + "…"
+        : fullDescription;
+    }
 
     title.textContent = name;
-    intro.textContent = description || `Explore ${name} products at Talha Bilal Store. Cash on Delivery available across Pakistan.`;
-  }
+    intro.textContent = shortDescription;
 
+    if (bottom && bottomTitle && bottomText) {
+      let remainingDescription = description;
+      if (firstSentence && description.startsWith(firstSentence)) {
+        remainingDescription = description.slice(firstSentence.length).trim();
+      }
+      if (remainingDescription) {
+        bottomTitle.textContent = "About " + name;
+        bottomText.textContent = remainingDescription;
+        bottom.hidden = false;
+      } else {
+        bottom.hidden = true;
+        bottomTitle.textContent = "";
+        bottomText.textContent = "";
+      }
+    }
+  }
   async function load() {
     try {
       const res = await fetch(ENDPOINT, {headers:{Accept:"application/json"},cache:"no-store"});
