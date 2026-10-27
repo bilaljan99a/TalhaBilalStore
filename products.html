@@ -12,7 +12,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
 <link rel="shortcut icon" href="/favicon.ico">
-<link rel="manifest" href="/site.webmanifest"><link rel="stylesheet" href="styles.css?v=20261012-1"><link rel="stylesheet" href="pages.css?v=20261027-1"><link rel="stylesheet" href="store-fixes.css?v=20261012-2"><link rel="stylesheet" href="store-shell.css?v=20261012-1">
+<link rel="manifest" href="/site.webmanifest"><link rel="stylesheet" href="styles.css?v=20261012-1"><link rel="stylesheet" href="pages.css?v=20261027-1"><link rel="stylesheet" href="store-fixes.css?v=20261027-3"><link rel="stylesheet" href="store-shell.css?v=20261012-1">
 <!-- Meta Pixel Code -->
 <script>
 !function(f,b,e,v,n,t,s)
@@ -38,6 +38,7 @@ src="https://www.facebook.com/tr?id=2937138116646692&ev=PageView&noscript=1"
 <main><section class="catalog-hero"><div class="container"><span class="eyebrow">SHOP TALHA BILAL STORE</span><h1 id="catalogTitle">All Products</h1><p id="catalogIntro">Browse the store catalogue by category and choose the product that fits your needs.</p><script>
 (function () {
   const slug = new URLSearchParams(window.location.search).get("category");
+  document.body.classList.toggle("category-catalog-page", !!slug);
   if (!slug) return;
   const titleEl = document.getElementById("catalogTitle");
   const introEl = document.getElementById("catalogIntro");
