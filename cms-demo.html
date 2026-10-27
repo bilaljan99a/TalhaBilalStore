@@ -1338,10 +1338,12 @@ async function cmsEditProduct(r,id){
  cmsField("Old price (optional)","pOldPrice",r.old_price,"number")+
  cmsField("Sale price (optional)","pSale",r.sale_price,"number")+
  cmsSelect("Delivery charge method","pDeliveryMode",[{value:"weight",label:"Automatic weight-based delivery (recommended)"},{value:"manual",label:"Use a fixed fee for this product"}],deliveryMode,"Automatic mode combines this item's weight and quantity with other weight-based cart items, then rounds up to the next whole-kilogram slab: up to 1 kg = Rs. 200; over 1–2 kg = Rs. 290; over 2–3 kg = Rs. 380. Variation-level fixed delivery fees are ignored in automatic mode.")+
- cmsField("Fixed delivery fee (PKR)","pManualDeliveryFee",r.manual_deliver cmsUploadField("Upload product image(s)","pImages","products",true,"append-lines","MINIMUM: 500 × 500 px, square (1:1). RECOMMENDED: 1200 × 1200 px square, WebP preferred, ideally 150–300 KB per image. Keep the product centred with consistent padding and use the same square size for every gallery image. Applies to new CMS product images; existing products are not changed. Upload limit: 8 MB each.")+
- '<div class="field full"><label>Arrange product gallery</label><p class="field-help">Drag image cards to set their order. The first image is the main product image. On phones, use the ↑ and ↓ buttons if dragging is difficult.</p><div id="cmsImageOrder" class="cms-image-order" aria-live="polite"></div></div>'+
- '<div class="field full"><label>Main image preview</label><div class="preview-frame" id="pPreview">'+(imgs[0]?'<img src="'+esc(imgs[0])+'" alt="Product preview">':'<span class="hint">Add an image URL above.</span>')+'</div></div>'+
-sField("Stock (optional)","pStock",r.stock,"number")+
+ cmsField("Fixed delivery fee (PKR)","pManualDeliveryFee",r.manual_delivery_fee??0,"number","Used only in fixed-fee mode. Leave at 0 when automatic weight-based delivery is selected.")+
+ cmsField("Product weight (kg)","pWeight",r.weight_kg??1,"number","Enter kilograms: 0.05 = 50g; 0.1 = 100g; 1 = 1kg. Automatic delivery uses weight × quantity, combined with other weight-based items, and rounds up to the next whole kg. Website display is controlled by the option below.")+
+ '<div class="field full">'+cmsCheck("Show product weight on the website","pShowWeight",!!r.show_weight)+'</div>'+
+ cmsField("Product badge / tag","pTag",r.tag||"","text")+
+ cmsField("Cost (optional)","pCost",r.cost,"number")+
+ cmsField("Stock (optional)","pStock",r.stock,"number")+
  cmsSelect("Publish status","pStatus",[{value:"draft",label:"Draft — not shown on website"},{value:"active",label:"Active — publish to website"},{value:"archived",label:"Archived — hidden"}],r.status||"draft")+
  cmsField("Short description (max 135 characters)","pShort",r.short_description,"textarea-135","Short summary shown on the product detail page. Product cards show only image, title, price and buttons.")+
  cmsRenderRichEditor("pDescription",r.description,"Full description (Product Details)","Shown inside Product Details on the product page. Use bold text, headings, bullet points and images to build an attractive, high-converting product description.")+
@@ -1350,7 +1352,8 @@ sField("Stock (optional)","pStock",r.stock,"number")+
  cmsRenderVariationsManager(r.variations, r)+
  cmsField("Image URL(s), one per line","pImages",imgs.join("\n"),"textarea","For new products, use square 1:1 images at least 500 × 500 px; 1200 × 1200 px is recommended. Keep the product centred and use the same framing for every gallery image.")+
  cmsUploadField("Upload product image(s)","pImages","products",true,"append-lines","MINIMUM: 500 × 500 px, square (1:1). RECOMMENDED: 1200 × 1200 px square, WebP preferred, ideally 150–300 KB per image. Keep the product centred with consistent padding and use the same square size for every gallery image. Applies to new CMS product images; existing products are not changed. Upload limit: 8 MB each.")+
- '<div class="field full"><label>Image preview</label><div class="preview-frame" id="pPreview">'+(imgs[0]?'<img src="'+esc(imgs[0])+'" alt="Product preview">':'<span class="hint">Add an image URL above.</span>')+'</div></div>'+
+ '<div class="field full"><label>Arrange product gallery</label><p class="field-help">Drag image cards to set their order. The first image is the main product image. On phones, use the ↑ and ↓ buttons if dragging is difficult.</p><div id="cmsImageOrder" class="cms-image-order" aria-live="polite"></div></div>'+
+ '<div class="field full"><label>Main image preview</label><div class="preview-frame" id="pPreview">'+(imgs[0]?'<img src="'+esc(imgs[0])+'" alt="Product preview">':'<span class="hint">Add an image URL above.</span>')+'</div></div>'+
  '<div class="field full"><label>Website page assignment</label><p class="field-help">The category links automatically. Every saved product is added to All Products. The existing homepage products remain unchanged; select extra CMS pages below if needed.</p><div class="assignment-list">'+(pageAssignment||'<p class="hint">No extra CMS pages yet. The product will still appear on All Products and its selected category page.</p>')+'</div></div>'+
  cmsField("SEO title","pSeoTitle",cmsFormSeo.title||"","text")+
  cmsField("SEO meta description","pSeoDesc",cmsFormSeo.description||"","textarea")+
