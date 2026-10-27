@@ -156,6 +156,25 @@ body.cms-back-visible #backBtn{display:inline-block}
 @media(max-width:1150px){.cms-product-editor-layout{grid-template-columns:minmax(0,1fr)}.cms-product-preview{position:static;max-width:520px;width:100%;margin:0 auto;grid-row:1}.cms-product-editor-layout>.cms-editor{grid-row:2}}
 @media(max-width:600px){.cms-product-editor-layout{gap:12px}.cms-product-preview{padding:12px}.cms-product-editor-layout>.cms-editor{padding:14px}.cms-product-preview-card{max-width:340px}}
 
+
+/* CMS product gallery ordering */
+.cms-image-order{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:10px}
+.cms-image-order-card{display:grid;grid-template-columns:82px minmax(0,1fr);align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);cursor:grab}
+.cms-image-order-card:active{cursor:grabbing}
+.cms-image-order-card.is-dragging{opacity:.45}
+.cms-image-order-card.is-drop-target{border-color:var(--accent);box-shadow:0 0 0 2px rgba(255,106,0,.16)}
+.cms-image-order-thumb-wrap{position:relative;width:82px;height:82px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:#f8fafc}
+.cms-image-order-thumb-wrap img{width:100%;height:100%;object-fit:contain;display:block}
+.cms-image-order-number{position:absolute;top:4px;left:4px;min-width:22px;height:22px;display:grid;place-items:center;padding:0 4px;border-radius:6px;background:var(--accent);color:#fff;font-size:11px;font-weight:800}
+.cms-image-order-info{min-width:0}
+.cms-image-order-info strong{display:block;font-size:12px;line-height:1.35;margin-bottom:4px}
+.cms-image-order-info span{display:-webkit-box;min-width:0;overflow:hidden;overflow-wrap:anywhere;color:var(--muted);font-size:10px;line-height:1.35;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.cms-image-order-actions{display:flex;grid-column:1/-1;justify-content:flex-end;gap:6px}
+.cms-image-order-actions button{width:34px;height:30px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--text);font-weight:800}
+.cms-image-order-actions button:disabled{opacity:.35;cursor:not-allowed}
+.cms-image-order-empty{padding:14px;border:1px dashed var(--line);border-radius:9px;background:var(--panel);color:var(--muted);font-size:13px}
+@media(max-width:650px){.cms-image-order{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.cms-image-order-card{grid-template-columns:minmax(0,1fr);padding:8px;gap:7px}.cms-image-order-thumb-wrap{width:100%;height:120px}.cms-image-order-actions{justify-content:space-between}}
+
 </style>
 </head>
 <body>
@@ -1239,6 +1258,68 @@ function cmsNormalizeYoutubeUrl(value){
  if(!/^[A-Za-z0-9_-]{11}$/.test(id))throw new Error("Use a valid YouTube watch, youtu.be, Shorts or embed link.");
  return "https://www.youtube-nocookie.com/embed/"+id;
 }
+
+function cmsReadProductImageLines(){
+ const input=document.getElementById("pImages");
+ return input?String(input.value||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean):[];
+}
+function cmsWriteProductImageLines(images){
+ const input=document.getElementById("pImages");
+ if(!input)return;
+ input.value=images.join("\n");
+ input.dispatchEvent(new Event("input",{bubbles:true}));
+}
+function cmsMoveProductImage(index,direction){
+ const images=cmsReadProductImageLines(),target=index+direction;
+ if(!Number.isInteger(index)||target<0||index<0||index>=images.length||target>=images.length)return;
+ const item=images[index];
+ images.splice(index,1);
+ images.splice(target,0,item);
+ cmsWriteProductImageLines(images);
+}
+function cmsRenderImageOrder(){
+ const host=document.getElementById("cmsImageOrder"),input=document.getElementById("pImages");
+ if(!host||!input)return;
+ const images=cmsReadProductImageLines();
+ if(!images.length){
+  host.innerHTML='<div class="cms-image-order-empty">No gallery images yet. Paste image URLs above or upload product images.</div>';
+  return;
+ }
+ host.innerHTML=images.map((url,index)=>
+  '<article class="cms-image-order-card" draggable="true" data-image-index="'+index+'" title="Drag to reorder">'+
+   '<div class="cms-image-order-thumb-wrap"><img loading="lazy" src="'+esc(url)+'" alt="Product gallery image '+(index+1)+'"><span class="cms-image-order-number">'+(index+1)+'</span></div>'+
+   '<div class="cms-image-order-info"><strong>'+(index===0?'Image '+(index+1)+' · Main image':'Image '+(index+1))+'</strong><span title="'+esc(url)+'">'+esc(url)+'</span></div>'+
+   '<div class="cms-image-order-actions"><button type="button" aria-label="Move image '+(index+1)+' up" title="Move up" onclick="cmsMoveProductImage('+index+',-1)" '+(index===0?'disabled':'')+'>↑</button><button type="button" aria-label="Move image '+(index+1)+' down" title="Move down" onclick="cmsMoveProductImage('+index+',1)" '+(index===images.length-1?'disabled':'')+'>↓</button></div>'+
+  '</article>'
+ ).join("");
+ host.querySelectorAll(".cms-image-order-card").forEach(card=>{
+  card.addEventListener("dragstart",event=>{
+   if(event.dataTransfer){event.dataTransfer.effectAllowed="move";event.dataTransfer.setData("text/plain",card.dataset.imageIndex||"");}
+   card.classList.add("is-dragging");
+  });
+  card.addEventListener("dragend",()=>{
+   host.querySelectorAll(".cms-image-order-card").forEach(item=>item.classList.remove("is-dragging","is-drop-target"));
+  });
+  card.addEventListener("dragover",event=>{
+   event.preventDefault();
+   if(event.dataTransfer)event.dataTransfer.dropEffect="move";
+   card.classList.add("is-drop-target");
+  });
+  card.addEventListener("dragleave",()=>card.classList.remove("is-drop-target"));
+  card.addEventListener("drop",event=>{
+   event.preventDefault();
+   card.classList.remove("is-drop-target");
+   const from=Number(event.dataTransfer?event.dataTransfer.getData("text/plain"):"NaN");
+   const to=Number(card.dataset.imageIndex);
+   const current=cmsReadProductImageLines();
+   if(!Number.isInteger(from)||!Number.isInteger(to)||from<0||to<0||from>=current.length||to>=current.length||from===to)return;
+   const moved=current.splice(from,1)[0];
+   current.splice(to,0,moved);
+   cmsWriteProductImageLines(current);
+  });
+ });
+}
+
 async function cmsEditProduct(r,id){
  const cats=await cmsRequest("cms_categories");cmsCache.categories=cats;
  const pages=await cmsRequest("cms_pages");cmsCache.pages=pages;
@@ -1257,12 +1338,10 @@ async function cmsEditProduct(r,id){
  cmsField("Old price (optional)","pOldPrice",r.old_price,"number")+
  cmsField("Sale price (optional)","pSale",r.sale_price,"number")+
  cmsSelect("Delivery charge method","pDeliveryMode",[{value:"weight",label:"Automatic weight-based delivery (recommended)"},{value:"manual",label:"Use a fixed fee for this product"}],deliveryMode,"Automatic mode combines this item's weight and quantity with other weight-based cart items, then rounds up to the next whole-kilogram slab: up to 1 kg = Rs. 200; over 1–2 kg = Rs. 290; over 2–3 kg = Rs. 380. Variation-level fixed delivery fees are ignored in automatic mode.")+
- cmsField("Fixed delivery fee (PKR)","pManualDeliveryFee",r.manual_delivery_fee??0,"number","Used only in fixed-fee mode. Leave at 0 when automatic weight-based delivery is selected.")+
- cmsField("Product weight (kg)","pWeight",r.weight_kg??1,"number","Enter kilograms: 0.05 = 50g; 0.1 = 100g; 1 = 1kg. Automatic delivery uses weight × quantity, combined with other weight-based items, and rounds up to the next whole kg. Website display is controlled by the option below.")+
- '<div class="field full">'+cmsCheck("Show product weight on the website","pShowWeight",!!r.show_weight)+'</div>'+
- cmsField("Product badge / tag","pTag",r.tag||"","text")+
- cmsField("Cost (optional)","pCost",r.cost,"number")+
- cmsField("Stock (optional)","pStock",r.stock,"number")+
+ cmsField("Fixed delivery fee (PKR)","pManualDeliveryFee",r.manual_deliver cmsUploadField("Upload product image(s)","pImages","products",true,"append-lines","MINIMUM: 500 × 500 px, square (1:1). RECOMMENDED: 1200 × 1200 px square, WebP preferred, ideally 150–300 KB per image. Keep the product centred with consistent padding and use the same square size for every gallery image. Applies to new CMS product images; existing products are not changed. Upload limit: 8 MB each.")+
+ '<div class="field full"><label>Arrange product gallery</label><p class="field-help">Drag image cards to set their order. The first image is the main product image. On phones, use the ↑ and ↓ buttons if dragging is difficult.</p><div id="cmsImageOrder" class="cms-image-order" aria-live="polite"></div></div>'+
+ '<div class="field full"><label>Main image preview</label><div class="preview-frame" id="pPreview">'+(imgs[0]?'<img src="'+esc(imgs[0])+'" alt="Product preview">':'<span class="hint">Add an image URL above.</span>')+'</div></div>'+
+sField("Stock (optional)","pStock",r.stock,"number")+
  cmsSelect("Publish status","pStatus",[{value:"draft",label:"Draft — not shown on website"},{value:"active",label:"Active — publish to website"},{value:"archived",label:"Archived — hidden"}],r.status||"draft")+
  cmsField("Short description (max 135 characters)","pShort",r.short_description,"textarea-135","Short summary shown on the product detail page. Product cards show only image, title, price and buttons.")+
  cmsRenderRichEditor("pDescription",r.description,"Full description (Product Details)","Shown inside Product Details on the product page. Use bold text, headings, bullet points and images to build an attractive, high-converting product description.")+
@@ -1283,7 +1362,8 @@ async function cmsEditProduct(r,id){
  previewFields.forEach(id=>{const node=document.getElementById(id);if(node){node.addEventListener("input",cmsRenderProductLivePreview);node.addEventListener("change",cmsRenderProductLivePreview)}});
  const categorySelect=document.getElementById("pCat");if(categorySelect)categorySelect.addEventListener("change",cmsRenderProductLivePreview);
  const imageInput=document.getElementById("pImages");
- if(imageInput)imageInput.addEventListener("input",()=>{cmsPreviewImage("pImages","pPreview");cmsRenderProductLivePreview()});
+ if(imageInput)imageInput.addEventListener("input",()=>{cmsPreviewImage("pImages","pPreview");cmsRenderProductLivePreview();cmsRenderImageOrder()});
+ cmsRenderImageOrder();
  cmsRenderProductLivePreview();
 }
 
