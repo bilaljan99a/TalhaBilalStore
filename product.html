@@ -12,7 +12,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
 <link rel="shortcut icon" href="/favicon.ico">
-<link rel="manifest" href="/site.webmanifest"><link rel="stylesheet" href="styles.css?v=20261012-1"><link rel="stylesheet" href="pages.css?v=20261012-1"><link rel="stylesheet" href="store-fixes.css?v=20261012-3"><link rel="stylesheet" href="store-shell.css?v=20261012-1"><link rel="stylesheet" href="/product-page-polish.css?v=20261027-2">
+<link rel="manifest" href="/site.webmanifest"><link rel="stylesheet" href="styles.css?v=20261012-1"><link rel="stylesheet" href="pages.css?v=20261012-1"><link rel="stylesheet" href="store-fixes.css?v=20261012-3"><link rel="stylesheet" href="store-shell.css?v=20261012-1"><link rel="stylesheet" href="/product-page-polish.css?v=20261027-3">
 <style>
 /* Critical inline styles: Guarantee small icon variations & professional quantity selector */
 .cms-modern-variant-selector{margin:16px 0 14px!important;padding:14px!important;border:1px solid #eadfd7!important;border-radius:14px!important;background:#fff8f2!important}
@@ -241,6 +241,36 @@ function cmsVariantWeight(product,chosen){
  }
  return weight;
 }
+function cmsProductTrustMarkup(product){
+ return '<section class="cms-product-trust" aria-label="Shopping benefits">'+
+  '<div class="cms-product-trust-item"><span class="cms-product-trust-icon" aria-hidden="true">✓</span><div><strong>Cash on Delivery</strong><span>Pay when your parcel arrives</span></div></div>'+
+  '<div class="cms-product-trust-item"><span class="cms-product-trust-icon" aria-hidden="true">🚚</span><div><strong>Delivery across Pakistan</strong><span>Delivery fee shown before checkout</span></div></div>'+
+  '<div class="cms-product-trust-item"><span class="cms-product-trust-icon" aria-hidden="true">●</span><div><strong>Available to order</strong><span>Order this product online</span></div></div>'+
+  '<div class="cms-product-trust-item"><span class="cms-product-trust-icon" aria-hidden="true">?</span><div><strong>Need help?</strong><span><a href="/contact.html">Contact customer support</a></span></div></div>'+
+ '</section>';
+}
+function cmsRelatedProductsMarkup(product){
+ const all=(Array.isArray(PRODUCTS)?PRODUCTS:[]).filter(item=>item&&item.id&&String(item.id)!==String(product.id)&&!item.isMangoPremix&&!/^mango-/i.test(String(item.id)));
+ const sameCategory=all.filter(item=>product.categorySlug&&item.categorySlug===product.categorySlug);
+ const rest=all.filter(item=>!sameCategory.includes(item)).sort((a,b)=>(Number(!!b.featured)-Number(!!a.featured))||(Number(a.newProductRank||99)-Number(b.newProductRank||99)));
+ const picks=[...sameCategory,...rest].slice(0,4);
+ if(!picks.length)return '';
+ return '<section class="cms-related-products" aria-label="Related products">'+
+  '<div class="cms-related-heading"><span class="eyebrow">MORE TO EXPLORE</span><h2>You may also like</h2><p>Discover more products from Talha Bilal Store.</p></div>'+
+  '<div class="cms-related-grid">'+picks.map(item=>{
+   const image=item.image||((Array.isArray(item.images)&&item.images[0])||'/assets/products/mango-pulp-product-image.webp');
+   const price=Number(item.price)||0;
+   const oldPrice=Number(item.oldPrice)||0;
+   return '<article class="cms-related-card">'+
+    '<a class="cms-related-image-link" href="/product/'+encodeURIComponent(item.id)+'" aria-label="View '+esc(item.name)+'"><img src="'+esc(image)+'" alt="'+esc(item.name)+'" loading="lazy"></a>'+
+    '<div class="cms-related-card-body">'+
+     '<span class="cms-related-category">'+esc(item.categoryName||item.tag||'PRODUCT')+'</span>'+
+     '<h3><a href="/product/'+encodeURIComponent(item.id)+'">'+esc(item.name)+'</a></h3>'+
+     '<div class="cms-related-price"><strong>'+currency(price)+'</strong>'+(oldPrice>price?'<del>'+currency(oldPrice)+'</del>':'')+'</div>'+
+     '<a class="cms-related-view" href="/product/'+encodeURIComponent(item.id)+'">View product <span aria-hidden="true">→</span></a>'+
+    '</div></article>';
+  }).join('')+'</div></section>';
+}
 function renderCmsGenericProduct(){
  detail.classList.add("cms-generic-detail");
  const images=(Array.isArray(p.images)&&p.images.length?p.images:[p.image]).filter(Boolean).slice(0,8);
@@ -321,11 +351,11 @@ function renderCmsGenericProduct(){
  '<input type="number" id="productQtyInput" class="product-qty-field" value="1" min="1" max="99" inputmode="numeric" aria-label="Quantity">'+
  '<button type="button" class="product-qty-btn" id="productQtyPlus" aria-label="Increase quantity">+</button>'+
  '</div></div>'+
- '<div class="detail-actions"><a class="detail-cart" id="detailAdd" data-add="'+esc(p.id)+'" href="#">Add to Cart</a><a class="detail-buy" id="detailBuy" data-buy="'+esc(p.id)+'" href="#">Buy Now</a></div></div></section>'+
+ '<div class="detail-actions"><a class="detail-cart" id="detailAdd" data-add="'+esc(p.id)+'" href="#">Add to Cart</a><a class="detail-buy" id="detailBuy" data-buy="'+esc(p.id)+'" href="#">Buy Now</a></div>'+cmsProductTrustMarkup(p)+'</div></div></section>'+
  cmsProductVideoMarkup(p.videoUrl,p.name)+
  '<section class="detail-accordions"><div class="detail-static-product-details"><h2 class="detail-static-title">Product Details</h2><div class="accordion-content detail-rich-body">'+renderProductDescription(p.description)+'</div></div>'+
  '<details open><summary>Delivery Information <span>⌄</span></summary><div class="accordion-content"><p data-cms-delivery-copy>'+esc(deliveryCopy)+'</p></div></details></section>'+
- '<section class="detail-section customer-reviews-section"><div class="section-heading"><div><span class="eyebrow">CUSTOMER REVIEWS</span><h2>Reviews for this product</h2></div></div><div id="productReviews"><div class="empty-reviews">No reviews for this product yet.</div></div></section>'+
+ '<section class="detail-section customer-reviews-section"><div class="section-heading"><div><span class="eyebrow">CUSTOMER REVIEWS</span><h2>Reviews for this product</h2></div></div><div id="productReviews"><div class="empty-reviews">No reviews for this product yet.</div></div></section>'+cmsRelatedProductsMarkup(p)+
  '<div class="detail-bottom-link"><a class="detail-back" href="/products">← All Products</a></div>';
 
  document.querySelectorAll('[data-cms-gallery]').forEach(btn=>btn.addEventListener('click',()=>{const im=document.getElementById('cmsGalleryMain');if(im)im.src=btn.dataset.cmsGallery;document.querySelectorAll('[data-cms-gallery]').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}));
