@@ -55,6 +55,18 @@
       ".cms-category-filter{display:inline-flex;padding:9px 14px;border:1px solid #e5e7eb;border-radius:999px;text-decoration:none;color:inherit;background:#fff;font-size:14px;font-weight:650}",
       ".cms-category-filter[aria-current=true],.cms-category-filter:hover{background:#17191d;color:#fff;border-color:#17191d}",
       ".cms-homepage-banners{display:grid;gap:14px;margin:18px auto 24px}",
+      "#cmsHomepageSlider[hidden]{display:none!important}",
+      ".cms-banner-slider{position:relative;padding:0 42px 27px}",
+      ".cms-banner-slider-track{position:relative}",
+      ".cms-banner-slide[hidden]{display:none!important}",
+      ".cms-banner-slider .cms-home-banner{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);min-height:220px;margin:0}",
+      ".cms-banner-slider .cms-home-banner img{max-height:270px;width:100%;object-fit:contain}",
+      ".cms-slider-control{position:absolute;top:calc(50% - 28px);z-index:2;width:36px;height:36px;border:1px solid #e5e7eb;border-radius:50%;background:#fff;color:#171717;font-size:25px;line-height:1;box-shadow:0 2px 10px rgba(0,0,0,.12);cursor:pointer}",
+      ".cms-slider-prev{left:0}",
+      ".cms-slider-next{right:0}",
+      ".cms-slider-dots{position:absolute;left:0;right:0;bottom:2px;display:flex;justify-content:center;gap:8px}",
+      ".cms-slider-dot{width:9px;height:9px;padding:0;border:0;border-radius:50%;background:#cbd5e1;cursor:pointer}",
+      ".cms-slider-dot[aria-current=true]{background:#ff6a00;transform:scale(1.15)}",
       ".store-banner.cms-banner-replaced{display:none!important}",
       ".cms-home-banner{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(220px,.8fr);gap:22px;align-items:center;overflow:hidden;border:1px solid #e8e8e8;border-radius:18px;background:#fff;color:#151515;text-decoration:none;padding:18px 22px}",
       ".cms-home-banner-copy h2{margin:0 0 8px;font-size:clamp(20px,3vw,32px);line-height:1.2}",
@@ -91,10 +103,43 @@
       (b.button_text ? '<span class="cms-banner-cta">' + esc(b.button_text) + '</span>' : "") +
       '</span>' + pic + '</a>';
   }
+  function bannerSliderMarkup(banners) {
+    const slides = banners.map((b, i) => '<div class="cms-banner-slide" data-cms-slide="' + i + '"' + (i ? " hidden" : "") + '>' + bannerMarkup(b) + '</div>').join("");
+    const controls = banners.length > 1
+      ? '<button type="button" class="cms-slider-control cms-slider-prev" data-slider-prev aria-label="Previous promotion">‹</button>' +
+        '<button type="button" class="cms-slider-control cms-slider-next" data-slider-next aria-label="Next promotion">›</button>' +
+        '<div class="cms-slider-dots" aria-label="Choose promotion">' + banners.map((b, i) => '<button type="button" class="cms-slider-dot" data-slider-dot="' + i + '" aria-label="Show promotion ' + (i + 1) + '" aria-current="' + (i === 0 ? "true" : "false") + '"></button>').join("") + '</div>'
+      : "";
+    return '<div class="cms-banner-slider" data-cms-slider aria-label="Homepage promotions"><div class="cms-banner-slider-track" aria-live="polite">' + slides + '</div>' + controls + '</div>';
+  }
+  function initBannerSlider(slot) {
+    const slider = slot.querySelector("[data-cms-slider]");
+    if (!slider) return;
+    const slides = Array.from(slider.querySelectorAll("[data-cms-slide]"));
+    const dots = Array.from(slider.querySelectorAll("[data-slider-dot]"));
+    if (slides.length < 2) return;
+    let current = 0, timer = null;
+    const reducedMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    const show = next => {
+      current = (next + slides.length) % slides.length;
+      slides.forEach((slide, i) => { slide.hidden = i !== current; });
+      dots.forEach((dot, i) => dot.setAttribute("aria-current", String(i === current)));
+    };
+    const stop = () => { if (timer !== null) { window.clearInterval(timer); timer = null; } };
+    const start = () => { if (!reducedMotion && timer === null && !document.hidden) timer = window.setInterval(() => show(current + 1), 5500); };
+    slider.querySelector("[data-slider-prev]")?.addEventListener("click", () => show(current - 1));
+    slider.querySelector("[data-slider-next]")?.addEventListener("click", () => show(current + 1));
+    dots.forEach((dot, i) => dot.addEventListener("click", () => show(i)));
+    slider.addEventListener("mouseenter", stop); slider.addEventListener("mouseleave", start);
+    slider.addEventListener("focusin", stop); slider.addEventListener("focusout", start);
+    document.addEventListener("visibilitychange", () => document.hidden ? stop() : start());
+    start();
+  }
   function renderBanners(data) {
     const active = data.banners || [];
     const slots = [
       { id:"cmsHomepageBanners", placements:["homepage","sitewide"] },
+      { id:"cmsHomepageSlider", placements:["homepage-slider"], slider:true },
       { id:"cmsCatalogBanners", placements:["category","campaign","sitewide"] },
       { id:"cmsProductBanners", placements:["product","sitewide"] },
       { id:"cmsBlogBanners", placements:["blog","sitewide"] }
@@ -109,7 +154,12 @@
       if (!banners.length) { slot.hidden = true; slot.innerHTML = ""; continue; }
       injectStyles();
       slot.hidden = false;
-      slot.innerHTML = banners.map(bannerMarkup).join("");
+      if (slotInfo.slider) {
+        slot.innerHTML = bannerSliderMarkup(banners);
+        initBannerSlider(slot);
+      } else {
+        slot.innerHTML = banners.map(bannerMarkup).join("");
+      }
     }
   }
   function renderBlogListing(data) {
