@@ -200,9 +200,14 @@
     intro.textContent = shortDescription;
 
     if (bottom && bottomTitle && bottomText) {
-      let remainingDescription = description;
-      if (firstSentence && description.startsWith(firstSentence)) {
-        remainingDescription = description.slice(firstSentence.length).trim();
+      let remainingDescription = "";
+      if (description && shortDescription) {
+        const displayedLength = shortDescription.endsWith("…")
+          ? shortDescription.length - 1
+          : shortDescription.length;
+        remainingDescription = description.slice(displayedLength)
+          .replace(/^[\\s.!?;:—-]+/, "")
+          .trim();
       }
       if (remainingDescription) {
         bottomTitle.textContent = "About " + name;
