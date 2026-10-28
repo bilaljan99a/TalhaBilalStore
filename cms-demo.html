@@ -86,6 +86,10 @@ body.cms-back-visible #backBtn{display:inline-block}
 .cms-rich-footer{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:#f8fafc;border-top:1px solid #e5e7eb;font-size:11.5px;color:#64748b}
 .cms-rich-tip{font-weight:500}
 .cms-rich-stats{font-weight:700;color:#334155}
+.cms-rich-editor img.cms-selected-image{outline:3px solid #ff6a00;outline-offset:2px}
+.cms-image-alt-panel{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;background:#fff8f2;border-bottom:1px solid #e5e7eb;font-size:13px}
+.cms-image-alt-panel input{flex:1;min-width:220px;border:1px solid #cbd5e1;border-radius:6px;padding:8px 10px;font-size:13px}
+.cms-image-alt-panel .cms-alt-status{font-size:12px;color:#475569}
 
 /* Product Variations Manager */
 .cms-variations-box{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px;margin-top:6px}
@@ -632,7 +636,8 @@ async function cmsBannerDrop(event,group,targetId){
 }
 async function cmsEdit(page,id){
  const cfg=CMS_SCHEMAS[page];if(!cfg)return;let r={};
- try{if(id!==null){const rows=await cmsRequest(cfg.table);r=rows.find(x=>Number(x.id)===Number(id));if(!r)throw new Error("Record not found.")}}catch(e){alert(e.message);return}
+ if(id!==null)app.innerHTML=head("Loading…","Opening editor…")+'<div class="panel"><p>Loading editor…</p></div>';
+ try{if(id!==null){const rows=await cmsRequest(cfg.table);r=rows.find(x=>Number(x.id)===Number(id));if(!r)throw new Error("Record not found.")}}catch(e){alert(e.message);cmsManage(page);return}
  cmsFormSeo=r.seo&&typeof r.seo==="object"?Object.assign({},r.seo):{};
  if(page==="products")return cmsEditProduct(r,id);if(page==="categories")return cmsEditCategory(r,id);if(page==="pages")return cmsEditPage(r,id);if(page==="banners")return cmsEditBanner(r,id);if(page==="blog")return cmsEditBlog(r,id);if(page==="seo")return cmsEditSeo(r,id);
 }
@@ -816,8 +821,52 @@ function cmsUpdateRichStats(targetId){
  stats.textContent = words + " word" + (words === 1 ? "" : "s") + " • " + chars + " characters";
 }
 
+function cmsRichSelectedImage(targetId){
+ const editor = document.getElementById(targetId);
+ if(!editor) return null;
+ return editor.querySelector("img.cms-selected-image");
+}
+function cmsRichImageClick(targetId, event){
+ const img = event && event.target ? event.target.closest("img") : null;
+ if(!img) return;
+ cmsRichSelectImage(targetId, img);
+}
+function cmsRichSelectImage(targetId, img){
+ const editor = document.getElementById(targetId);
+ if(!editor || !img) return;
+ editor.querySelectorAll("img.cms-selected-image").forEach(x=>x.classList.remove("cms-selected-image"));
+ img.classList.add("cms-selected-image");
+ const panel = document.getElementById("alt-" + targetId);
+ const input = document.getElementById("alt-input-" + targetId);
+ const status = document.getElementById("alt-status-" + targetId);
+ if(panel) panel.hidden = false;
+ if(input){ input.value = img.getAttribute("alt") || ""; input.focus(); }
+ if(status) status.textContent = "Selected image: " + (img.getAttribute("src") || "").split("/").pop();
+}
+function cmsRichEditImageAlt(targetId){
+ const img = cmsRichSelectedImage(targetId);
+ const panel = document.getElementById("alt-" + targetId);
+ const status = document.getElementById("alt-status-" + targetId);
+ if(panel) panel.hidden = false;
+ if(img){ cmsRichSelectImage(targetId, img); return; }
+ if(status) status.textContent = "Click an image in the description first, then edit its alt text here.";
+}
+function cmsRichSaveImageAlt(targetId){
+ const img = cmsRichSelectedImage(targetId);
+ const input = document.getElementById("alt-input-" + targetId);
+ const status = document.getElementById("alt-status-" + targetId);
+ if(!img){ if(status) status.textContent = "Click an image in the description first."; return; }
+ if(!input) return;
+ img.setAttribute("alt", input.value.trim());
+ cmsUpdateRichStats(targetId);
+ if(status) status.textContent = "Alt text updated in the editor. Press Save Changes to publish it.";
+}
+
 function cmsRenderRichEditor(targetId, initialContent, label, helpText){
  const safe = cmsEditorSafeHtml(initialContent || "");
+ const initialPlain = safe.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+ const initialWords = initialPlain ? initialPlain.split(" ").length : 0;
+ const initialStats = initialWords + " word" + (initialWords === 1 ? "" : "s") + " • " + initialPlain.length + " characters";
  const toolbar =
   '<div class="cms-rich-toolbar" role="toolbar" aria-label="Rich text editor toolbar">' +
    '<div class="cms-rich-grp">' +
@@ -844,6 +893,7 @@ function cmsRenderRichEditor(targetId, initialContent, label, helpText){
    '<div class="cms-rich-grp">' +
     '<button type="button" class="cms-tb-btn" title="Insert Link" onmousedown="event.preventDefault()" onclick="cmsRichLink(\'' + targetId + '\')">🔗 Link</button>' +
     '<button type="button" class="cms-tb-btn" title="Insert Image by URL" onmousedown="event.preventDefault()" onclick="cmsRichPromptImage(\'' + targetId + '\')">🖼️ Image URL</button>' +
+    '<button type="button" class="cms-tb-btn" title="Edit alt text of the selected image" onclick="cmsRichEditImageAlt(\'' + targetId + '\')">🖼️ Alt</button>' +
    '</div>' +
    '<div class="cms-rich-grp">' +
     '<button type="button" class="cms-tb-btn" title="Clear Formatting" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'removeFormat\')">Clear</button>' +
@@ -858,13 +908,15 @@ function cmsRenderRichEditor(targetId, initialContent, label, helpText){
    (helpText ? '<p class="field-help">' + esc(helpText) + '</p>' : '') +
    '<div class="cms-rich-container">' +
     toolbar +
+    '<div id="alt-' + targetId + '" class="cms-image-alt-panel" hidden><strong>Image alt text:</strong><input id="alt-input-' + targetId + '" type="text" placeholder="e.g. TDS Water Quality Tester Pen" aria-label="Image alt text"><button type="button" class="cms-tb-btn" onclick="cmsRichSaveImageAlt(\'' + targetId + '\')">Save alt</button><span id="alt-status-' + targetId + '" class="cms-alt-status">Click an image in the description, then edit its alt text here. Press Save Changes to publish.</span></div>' +
     '<div id="' + targetId + '" class="cms-rich-editor" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="true" ' +
+     'onclick="cmsRichImageClick(\'' + targetId + '\',event)" ' +
      'onmouseup="cmsRememberRichSelection(\'' + targetId + '\'); cmsUpdateRichStats(\'' + targetId + '\')" ' +
      'onkeyup="cmsRememberRichSelection(\'' + targetId + '\'); cmsUpdateRichStats(\'' + targetId + '\')" ' +
      'oninput="cmsUpdateRichStats(\'' + targetId + '\')">' + safe + '</div>' +
     '<div class="cms-rich-footer">' +
      '<span class="cms-rich-tip">💡 Tip: Use Heading 2 for main headers, Bold for key points, and upload photos below to insert them right into the content.</span>' +
-     '<span id="stats-' + targetId + '" class="cms-rich-stats">0 words • 0 characters</span>' +
+     '<span id="stats-' + targetId + '" class="cms-rich-stats">' + initialStats + '</span>' +
     '</div>' +
    '</div>' +
   '</div>'
@@ -1410,7 +1462,7 @@ async function cmsEditProduct(r,id){
  cmsField("Sale price (optional)","pSale",r.sale_price,"number")+
  cmsSelect("Delivery charge method","pDeliveryMode",[{value:"weight",label:"Automatic weight-based delivery (recommended)"},{value:"manual",label:"Use a fixed fee for this product"}],deliveryMode,"Automatic mode combines this item's weight and quantity with other weight-based cart items, then rounds up to the next whole-kilogram slab: up to 1 kg = Rs. 200; over 1–2 kg = Rs. 290; over 2–3 kg = Rs. 380. Variation-level fixed delivery fees are ignored in automatic mode.")+
  cmsField("Fixed delivery fee (PKR)","pManualDeliveryFee",r.manual_delivery_fee??0,"number","Used only in fixed-fee mode. Leave at 0 when automatic weight-based delivery is selected.")+
- cmsField("Product weight (kg)","pWeight",r.weight_kg??1,"number","Enter kilograms: 0.05 = 50g; 0.1 = 100g; 1 = 1kg. Automatic delivery uses weight × quantity, combined with other weight-based items, and rounds up to the next whole kg. Website display is controlled by the option below.")+
+ cmsField("Product weight (kg)","pWeight",r.weight_kg==null?1:Math.round(Number(r.weight_kg)*1000)/1000,"number","Enter kilograms: 0.05 = 50g; 0.1 = 100g; 1 = 1kg. Automatic delivery uses weight × quantity, combined with other weight-based items, and rounds up to the next whole kg. Website display is controlled by the option below.")+
  '<div class="field full">'+cmsCheck("Show product weight on the website","pShowWeight",!!r.show_weight)+'</div>'+
  cmsField("Product badge / tag","pTag",r.tag||"","text")+
  cmsField("Cost (optional)","pCost",r.cost,"number")+
