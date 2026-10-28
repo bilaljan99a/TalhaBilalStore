@@ -508,7 +508,7 @@ function cmsRenderWebsiteInventory(){
  if(pager)pager.innerHTML='<button type="button" class="btn" onclick="cmsChangeWebsiteInventoryPage(-1)" '+(cmsWebsiteInventoryCurrentPage<=1?'disabled':'')+'>← Previous</button><span>Page '+cmsWebsiteInventoryCurrentPage+' of '+pageCount+'</span><button type="button" class="btn" onclick="cmsChangeWebsiteInventoryPage(1)" '+(cmsWebsiteInventoryCurrentPage>=pageCount?'disabled':'')+'>Next →</button>';
 }
 function cmsRowsMarkup(page,rows){
- const actions=id=>'<div class="item-actions"><button class="btn" onclick="cmsEdit(&quot;'+page+'&quot;,'+Number(id)+')">Edit</button> <button class="btn danger" onclick="cmsDelete(&quot;'+page+'&quot;,'+Number(id)+')">Delete</button></div>';
+ const actions=id=>'<div class="item-actions"><button class="btn" onclick="cmsEdit(&quot;'+page+'&quot;,'+Number(id)+')">Edit</button> '+(page==="banners"&&Number(id)===4?'<span class="cms-banner-placement">Built-in hero</span>':'<button class="btn danger" onclick="cmsDelete(&quot;'+page+'&quot;,'+Number(id)+')">Delete</button>')+'</div>';
  const empty='<tr><td colspan="8">No records yet. Use Add to create the first record.</td></tr>';let body="";
  if(page==="products"){
   body=rows.map(r=>{const im=cmsFirstImage(r.images),cat=(cmsCache.categories||[]).find(x=>Number(x.id)===Number(r.category_id));return '<tr><td>'+(im?'<img class="record-thumb" src="'+esc(im)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.name)+'</div><div class="record-meta">'+esc(r.slug)+'</div></td><td>'+esc(cat?cat.name:"Unassigned")+'</td><td>'+money(r.sale_price??r.price)+'</td><td>'+esc(r.status)+'</td><td>'+actions(r.id)+'</td></tr>'}).join("");
