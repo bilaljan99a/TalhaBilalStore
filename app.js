@@ -6,6 +6,27 @@ const currency=value=>`Rs. ${Number(value).toLocaleString('en-PK')}`;
 const productGrid=document.getElementById('productGrid');
 const homeProductGrid=document.getElementById('homeProductGrid');
 const grid=productGrid||homeProductGrid;
+const CATEGORY_LABELS={'grocery-beverages':'Grocery & Beverages','beauty-personal-care':'Beauty & Personal Care','baby-kids-care':'Baby & Kids Care','home-gadget':'Home Gadget'};
+function catalogCategorySlug(product){if(product?.categorySlug)return product.categorySlug==='home-gadgets'?'home-gadget':product.categorySlug;if(/^mango-/i.test(String(product?.id||'')))return 'grocery-beverages';return '';}
+function catalogCategoryName(product){return product?.categoryName||CATEGORY_LABELS[catalogCategorySlug(product)]||'';}
+let catalogSearchQuery=productGrid?(new URLSearchParams(location.search).get('q')||'').trim():'';
+function catalogSearchMatches(product,query){if(!query)return true;const hay=[product?.name,product?.description,product?.shortDescription,product?.short_description,product?.tag,catalogCategoryName(product),product?.id].filter(Boolean).join(' ').toLowerCase();return query.toLowerCase().split(/\s+/).filter(Boolean).every(word=>hay.includes(word));}
+function renderCatalogToolbar(filteredList){
+ const filtersBox=document.getElementById('catalogFilters');const countEl=document.getElementById('catalogResultCount');const searchInput=document.getElementById('catalogSearchInput');
+ if(searchInput&&document.activeElement!==searchInput)searchInput.value=catalogSearchQuery||'';
+ if(!window.__catalogSearchWired&&searchInput){window.__catalogSearchWired=true;searchInput.addEventListener('input',()=>{catalogSearchQuery=searchInput.value.trim();const url=new URL(location.href);if(catalogSearchQuery)url.searchParams.set('q',catalogSearchQuery);else url.searchParams.delete('q');history.replaceState(null,'',url);renderProducts();});}
+ if(filtersBox){
+  const params=new URLSearchParams(location.search);const current=params.get('category');const currentNorm=current==='home-gadgets'?'home-gadget':current;const q=catalogSearchQuery||'';
+  const seen=new Map();for(const item of [...PRODUCTS]){const slug=catalogCategorySlug(item);if(!slug)continue;if(!seen.has(slug))seen.set(slug,catalogCategoryName(item)||slug);}
+  const linkFor=(slug)=>{const u=new URL('/products',location.origin);if(slug)u.searchParams.set('category',slug);if(q)u.searchParams.set('q',q);return u.pathname+u.search;};
+  filtersBox.innerHTML='<a class="catalog-filter'+(!currentNorm?' active':'')+'" href="'+linkFor('')+'" aria-current="'+(!currentNorm)+'">All products</a>'+[...seen.entries()].map(([slug,label])=>'<a class="catalog-filter'+(currentNorm===slug?' active':'')+'" href="'+linkFor(slug)+'" aria-current="'+(currentNorm===slug)+'">'+appEsc(label)+'</a>').join('');
+ }
+ if(countEl){
+  const params=new URLSearchParams(location.search);const hasFilter=!!params.get('category')||!!catalogSearchQuery;
+  countEl.textContent=hasFilter?((filteredList||[]).length+' product'+((filteredList||[]).length===1?'':'s')+' found'+(catalogSearchQuery?' for \u201c'+catalogSearchQuery+'\u201d':'')):((filteredList||[]).length+' products');
+ }
+}
+
 const orderModal=document.getElementById('orderModal');
 const selectedProduct=document.getElementById('selectedProduct');
 const orderForm=document.getElementById('orderForm');
@@ -141,8 +162,11 @@ function productList(){
  let list=[...PRODUCTS];
  const params=new URLSearchParams(location.search),view=params.get("view");
  if(productGrid){
-  const category=params.get("category");
-  if(category)list=list.filter(p=>p.categorySlug===category);
+  const categoryRaw=params.get("category");
+  const category=categoryRaw==='home-gadgets'?'home-gadget':categoryRaw;
+  if(category)list=list.filter(p=>catalogCategorySlug(p)===category);
+  const searchQuery=catalogSearchQuery||params.get("q")||'';
+  if(searchQuery)list=list.filter(p=>catalogSearchMatches(p,searchQuery));
   const assigned=assignedCmsProductIds("products");
   if(view==="best-sellers")list.sort((a,b)=>(a.bestSellerRank||99)-(b.bestSellerRank||99));
   else if(view==="new-products")list.sort((a,b)=>(b.newProductRank||0)-(a.newProductRank||0));
@@ -180,6 +204,7 @@ function productCardSummary(product){
 function renderProducts(){
  if(!grid)return;
  const list=productList(),homeOnly=!!homeProductGrid&&!productGrid;
+ if(productGrid)renderCatalogToolbar(list);
  if(!list.length){
   const cmsStatus=window.CMS_SITE_STATUS||(window.CMS_SITE_DATA?"ready":"loading");
   if(cmsStatus==="loading"){
@@ -190,6 +215,7 @@ function renderProducts(){
    grid.innerHTML='<div class="catalog-empty-state" role="status">Products could not be loaded just now. Please refresh the page in a moment.</div>';
    return;
   }
+  if(productGrid&&(catalogSearchQuery||new URLSearchParams(location.search).get('category'))){grid.innerHTML='<div class="catalog-empty-state">No products found'+(catalogSearchQuery?' for \u201c'+appEsc(catalogSearchQuery)+'\u201d':' in this category')+'. Try another word or <a href="/products">clear the search</a>.</div>';return;}
   grid.innerHTML='<div class="catalog-empty-state">There are no products in this category yet.</div>';
   return;
  }

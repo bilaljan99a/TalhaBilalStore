@@ -499,3 +499,5 @@
 }
 @media(prefers-reduced-motion:reduce){.catalog-spinner{animation:none}}
 
+
+.site-search{display:flex;align-items:center;gap:0;border:1px solid #e5e7eb;border-radius:999px;padding:2px 2px 2px 12px;background:#fff}.site-search input{border:0;outline:0;width:170px;font:inherit;font-size:14px;background:transparent}.site-search button{border:0;background:#ff6a00;color:#fff;border-radius:50%;width:32px;height:32px;cursor:pointer;line-height:1}@media(max-width:900px){.site-search{display:none}}

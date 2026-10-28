@@ -114,17 +114,17 @@
     const existing=document.querySelector('link[data-store-shell],link[rel="stylesheet"][href*="store-shell.css"]');
     if(existing){
       existing.dataset.storeShell='true';
-      if(!existing.href.includes('v=20261012-3'))existing.href='/store-shell.css?v=20261012-3';
+      if(!existing.href.includes('v=20261028-1'))existing.href='/store-shell.css?v=20261028-1';
       return;
     }
-    const link=document.createElement('link');link.id='storeShellStyles';link.dataset.storeShell='true';link.rel='stylesheet';link.href='/store-shell.css?v=20261012-3';document.head.appendChild(link);
+    const link=document.createElement('link');link.id='storeShellStyles';link.dataset.storeShell='true';link.rel='stylesheet';link.href='/store-shell.css?v=20261028-1';document.head.appendChild(link);
   }
   function loadMetaEvents(){if(document.querySelector('script[data-meta-events]'))return;const script=document.createElement('script');script.src='/meta-events.js?v=20261005-2';script.dataset.metaEvents='true';document.head.appendChild(script)}
   function productIdFromPath(){const m=location.pathname.match(/^\/product\/([^/]+)\/?$/i);return m?decodeURIComponent(m[1]):null}
   function addCanonical(){const existing=document.querySelector('link[rel="canonical"]');if(existing){if(productIdFromPath())existing.href=`${BASE}product/${encodeURIComponent(productIdFromPath())}`;return}const path=location.pathname;const productId=productIdFromPath();let canonical=path.replace(/\.html$/i,'');if(productId)canonical=`/product/${encodeURIComponent(productId)}`;canonical=canonical==='/'?BASE:BASE+canonical.replace(/^\//,'');const link=document.createElement('link');link.rel='canonical';link.href=canonical;document.head.appendChild(link)}
   function setOpenGraph(){let image=`${BASE}assets/here-banner.webp`;const id=productIdFromPath();const p=id&&Array.isArray(window.PRODUCTS)?window.PRODUCTS.find(x=>x.id===id):null;if(p?.image)image=new URL(p.image,BASE).href;let meta=document.querySelector('meta[property="og:image"]');if(!meta){meta=document.createElement('meta');meta.setAttribute('property','og:image');document.head.appendChild(meta)}meta.content=image}
   function setRobots(){if(!/(^|\/)(admin|thank-you)\.html$/i.test(location.pathname))return;let meta=document.querySelector('meta[name="robots"]');if(!meta){meta=document.createElement('meta');meta.name='robots';document.head.appendChild(meta)}meta.content='noindex,nofollow'}
-  function standardizeHeader(){const wrap=document.querySelector('.site-header .nav-wrap');if(!wrap)return;const hasCartDrawer=!!document.getElementById('cartDrawer');wrap.innerHTML=`<a class="brand" href="index.html"><img class="brand-logo" src="${LOGO}" alt="Talha Bilal Store"></a><nav class="desktop-nav"></nav>${hasCartDrawer?'<button class="cart-button" id="cartButton" type="button">🛒 Cart <span id="cartCount">0</span></button>':'<a class="cart-button" href="/index.html?cart=1">🛒 Cart</a>'}`}
+  function standardizeHeader(){const wrap=document.querySelector('.site-header .nav-wrap');if(!wrap)return;const hasCartDrawer=!!document.getElementById('cartDrawer');wrap.innerHTML=`<a class="brand" href="index.html"><img class="brand-logo" src="${LOGO}" alt="Talha Bilal Store"></a><nav class="desktop-nav"></nav><form class="site-search" action="/products" method="get" role="search"><input type="search" name="q" placeholder="Search products\u2026" aria-label="Search products"><button type="submit" aria-label="Search">\uD83D\uDD0D</button></form>${hasCartDrawer?'<button class="cart-button" id="cartButton" type="button">🛒 Cart <span id="cartCount">0</span></button>':'<a class="cart-button" href="/index.html?cart=1">🛒 Cart</a>'}`}
   function standardizeNav(){
     const nav=document.querySelector('.desktop-nav');if(!nav)return;
     nav.innerHTML=links.slice(0,2).map(([label,href])=>'<a href="'+href+'">'+label+'</a>').join('')+categoryDropdownHtml()+'<a href="'+links[2][1]+'">'+links[2][0]+'</a>';
