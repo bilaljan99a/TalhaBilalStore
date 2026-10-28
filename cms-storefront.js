@@ -1,7 +1,6 @@
 (() => {
   "use strict";
   const ENDPOINT = "https://dxdjqeqlmyawqrzphzdb.supabase.co/functions/v1/cms-public";
-  const LEGACY_HERO_BANNER_ID = 4;
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   function firstImage(images) {
     if (!Array.isArray(images)) {
@@ -244,16 +243,6 @@
     if (document.getElementById("cmsHomepageHeroSlider")) document.body.classList.toggle("cms-home-no-grid-banners", !hasHomepageGrid);
     injectStyles();
     const ordered = list => list.slice().sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0) || Number(a.id || 0) - Number(b.id || 0));
-    const heroBanners = ordered(active.filter(b => ["homepage","homepage-hero-slider"].includes(String(b.placement || "").toLowerCase())));
-    const legacyHero = document.querySelector(".store-banner");
-    let legacySlideMarkup = "";
-    if (heroBanners.length && legacyHero && !heroBanners.some(b => Number(b.id) === LEGACY_HERO_BANNER_ID)) {
-      const clone = legacyHero.cloneNode(true);
-      clone.classList.remove("cms-banner-replaced","store-banner");
-      clone.classList.add("cms-legacy-hero-slide");
-      legacySlideMarkup = clone.outerHTML;
-    }
-    if (legacyHero) legacyHero.classList.toggle("cms-banner-replaced", heroBanners.length > 0);
     const slots = [
       { id:"cmsHomepageBanners", placements:["sitewide"] },
       { id:"cmsHomepageHeroSlider", placements:["homepage","homepage-hero-slider"], slider:true, hero:true, intervalMs:2000 },
@@ -270,7 +259,7 @@
       injectStyles();
       slot.hidden = false;
       if (slotInfo.slider) {
-        slot.innerHTML = bannerSliderMarkup(banners, slotInfo.hero ? legacySlideMarkup : "");
+        slot.innerHTML = bannerSliderMarkup(banners);
         initBannerSlider(slot, slotInfo.intervalMs || 5500);
       } else if (slotInfo.grid) {
         slot.innerHTML = bannerGridMarkup(banners);
