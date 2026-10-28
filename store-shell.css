@@ -501,3 +501,5 @@
 
 
 .site-search{display:flex;align-items:center;gap:0;border:1px solid #e5e7eb;border-radius:999px;padding:2px 2px 2px 12px;background:#fff}.site-search input{border:0;outline:0;width:170px;font:inherit;font-size:14px;background:transparent}.site-search button{border:0;background:#ff6a00;color:#fff;border-radius:50%;width:32px;height:32px;cursor:pointer;line-height:1}@media(max-width:900px){.site-header .nav-wrap{height:auto;padding-top:10px;padding-bottom:10px;row-gap:10px}.site-search{display:flex;grid-column:1/-1;grid-row:2;width:100%}.site-search input{width:auto;flex:1 1 auto;min-width:0}.site-search button{flex:0 0 auto}}
+
+@media(max-width:700px){#cmsHomepageSlider.cms-homepage-banners{margin-bottom:8px}.home-products.products-section{padding-top:24px!important}}
