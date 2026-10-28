@@ -10,12 +10,26 @@ const cors = {
   "Content-Type": "application/json",
   "Cache-Control": "no-store"
 };
-const reply = (data: unknown, status = 200) =>
-  new Response(JSON.stringify(data), { status, headers: cors });
+const reply = (data: unknown, status = 200, cacheable = false) =>
+  new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      ...cors,
+      "Cache-Control": cacheable ? "private, max-age=10" : "no-store"
+    }
+  });
+const CACHE_TTL_MS = 10_000;
+let publicCatalogCache: { expiresAt: number; payload: unknown } | null = null;
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { status: 200, headers: cors });
   if (req.method !== "GET") return reply({ error: "Method not allowed" }, 405);
+
+  // The catalogue contains public storefront content only. Reuse the last
+  // successful response briefly so category navigation avoids repeated DB reads.
+  if (publicCatalogCache && publicCatalogCache.expiresAt > Date.now()) {
+    return reply(publicCatalogCache.payload, 200, true);
+  }
 
   try {
     const url = Deno.env.get("SUPABASE_URL");
@@ -72,7 +86,7 @@ Deno.serve(async (req: Request) => {
       url: p.seo?.live_url || ("/blog/" + p.slug + ".html")
     }));
 
-    return reply({
+    const payload = {
       ok: true,
       fetched_at: new Date().toISOString(),
       products: productsQ.data || [],
@@ -82,7 +96,9 @@ Deno.serve(async (req: Request) => {
       blog_posts: blogs,
       seo: seoQ.data || [],
       hidden_static_product_ids: (hiddenQ.data || []).map((p: any) => p.slug)
-    });
+    };
+    publicCatalogCache = { expiresAt: Date.now() + CACHE_TTL_MS, payload };
+    return reply(payload, 200, true);
   } catch (_error) {
     return reply({ error: "Could not load published website content." }, 500);
   }
