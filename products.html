@@ -37,7 +37,9 @@ src="https://www.facebook.com/tr?id=2937138116646692&ev=PageView&noscript=1"
 <section id="cmsCatalogBanners" class="cms-homepage-banners container" hidden aria-label="Catalogue promotions"></section>
 <main><section class="catalog-hero"><div class="container"><span class="eyebrow">SHOP TALHA BILAL STORE</span><h1 id="catalogTitle">All Products</h1><p id="catalogIntro">Browse the store catalogue by category and choose the product that fits your needs.</p><script>
 (function () {
-  const slug = new URLSearchParams(window.location.search).get("category");
+  const params = new URLSearchParams(window.location.search);
+  const rawCategory = params.get("category") || params.get("cat") || "";
+  const slug = rawCategory.trim().toLowerCase().replace(/%20/g, " ").replace(/[&_ ]+/g, "-").replace(/-+/g, "-");
   document.body.classList.toggle("category-catalog-page", !!slug);
   if (!slug) return;
   const titleEl = document.getElementById("catalogTitle");
@@ -46,15 +48,23 @@ src="https://www.facebook.com/tr?id=2937138116646692&ev=PageView&noscript=1"
   const known = {
     "grocery-beverages": {
       title: "Grocery & Beverages",
-      description: "Food, drinks and grocery products, including Mango Pulp Drink Premix pack sizes."
+      description: "Shop mango pulp drink premix and other grocery essentials from Talha Bilal Store, with Cash on Delivery across Pakistan."
     },
     "beauty-personal-care": {
       title: "Beauty & Personal Care",
-      description: "Explore beauty and personal-care products at Talha Bilal Store. Cash on Delivery available across Pakistan."
+      description: "Discover beauty tools and personal-care essentials at Talha Bilal Store, with Cash on Delivery across Pakistan."
     },
     "baby-kids-care": {
       title: "Baby & Kids Care",
-      description: "Explore baby and kids care products at Talha Bilal Store. Cash on Delivery available across Pakistan."
+      description: "Shop baby and kids care essentials at Talha Bilal Store, with Cash on Delivery across Pakistan."
+    },
+    "home-gadget": {
+      title: "Home Gadgets",
+      description: "Explore useful home gadgets and everyday tools at Talha Bilal Store, with Cash on Delivery across Pakistan."
+    },
+    "home-gadgets": {
+      title: "Home Gadgets",
+      description: "Explore useful home gadgets and everyday tools at Talha Bilal Store, with Cash on Delivery across Pakistan."
     }
   };
   const titleCase = value => value.split(/[-_]+/).filter(Boolean)
@@ -65,6 +75,9 @@ src="https://www.facebook.com/tr?id=2937138116646692&ev=PageView&noscript=1"
   };
   titleEl.textContent = initial.title;
   introEl.textContent = initial.description;
+  document.title = initial.title + " | Talha Bilal Store";
+  const metaDescription = document.querySelector('meta[name="description"]');
+  if (metaDescription) metaDescription.setAttribute("content", initial.description);
 })();
 </script></div></section><section class="products-section" id="products"><div class="container"><div class="product-grid" id="productGrid"></div></div></section><section id="categoryDescriptionBottom" class="category-description-bottom" hidden aria-labelledby="categoryDescriptionTitle"><div class="container"><span class="eyebrow">ABOUT THIS CATEGORY</span><h2 id="categoryDescriptionTitle"></h2><p id="categoryDescriptionText"></p></div></section></main>
 <footer class="footer"><div class="container footer-grid"><div class="footer-brand"><img class="footer-logo" src="assets/TalhaBilalStore%20Logo.png" alt="Talha Bilal Store"><p>Quality Mango Pulp Drink Premix delivered across Pakistan with Cash on Delivery.</p></div><div class="footer-col footer-shop"><h4>Shop</h4><a href="/products">All Products</a><a href="products.html?view=best-sellers">Best Sellers</a><a href="products.html?view=new-products">New Products</a><a href="index.html">Home</a></div><div class="footer-col footer-customer-care"><h4>Customer Care</h4><a href="how-to-order.html">How to Order</a><a href="track-order.html">Track Order</a><a href="reviews.html">Customer Reviews</a><a href="contact.html">Contact Us</a></div><div class="footer-col footer-info"><h4>Information</h4><div class="footer-links-grid"><a href="blog.html">Blog</a><a href="privacy.html">Privacy Policy</a><a href="why-us.html">Why Choose Us</a><a href="return-policy.html">Return Policy</a><a href="write-for-us.html">Write for Us</a><a href="shipping.html">Shipping Policy</a></div></div></div><div class="container footer-bottom"><span>© 2026 Talha Bilal Store. All rights reserved.</span><span>Cash on Delivery • Quality Products • Customer Support</span></div></footer>
