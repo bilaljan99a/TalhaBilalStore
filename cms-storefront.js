@@ -55,28 +55,50 @@
       ".cms-category-filter{display:inline-flex;padding:9px 14px;border:1px solid #e5e7eb;border-radius:999px;text-decoration:none;color:inherit;background:#fff;font-size:14px;font-weight:650}",
       ".cms-category-filter[aria-current=true],.cms-category-filter:hover{background:#17191d;color:#fff;border-color:#17191d}",
       ".cms-homepage-banners{display:grid;gap:14px;margin:18px auto 24px}",
-      "#cmsHomepageSlider[hidden]{display:none!important}",
-      ".cms-banner-slider{position:relative;padding:0 42px 27px}",
-      ".cms-banner-slider-track{position:relative}",
+      "#cmsHomepageBanners[hidden],#cmsHomepageHeroSlider[hidden],#cmsHomepageSlider[hidden]{display:none!important}",
+      ".cms-banner-slider{position:relative;width:100%;padding:0 0 26px}",
+      ".cms-banner-slider-track{position:relative;min-width:0}",
       ".cms-banner-slide[hidden]{display:none!important}",
-      ".cms-banner-slider .cms-home-banner{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);min-height:220px;margin:0}",
-      ".cms-banner-slider .cms-home-banner img{max-height:270px;width:100%;object-fit:contain}",
-      ".cms-slider-control{position:absolute;top:calc(50% - 28px);z-index:2;width:36px;height:36px;border:1px solid #e5e7eb;border-radius:50%;background:#fff;color:#171717;font-size:25px;line-height:1;box-shadow:0 2px 10px rgba(0,0,0,.12);cursor:pointer}",
-      ".cms-slider-prev{left:0}",
-      ".cms-slider-next{right:0}",
-      ".cms-slider-dots{position:absolute;left:0;right:0;bottom:2px;display:flex;justify-content:center;gap:8px}",
+      ".cms-banner-slider .cms-home-banner{margin:0;width:100%}",
+      ".cms-banner-slider .cms-home-banner--split{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);min-height:220px}",
+      ".cms-banner-slider .cms-home-banner--split img{max-height:270px;width:100%;object-fit:contain}",
+      ".cms-slider-control{position:absolute;top:calc(50% - 13px);transform:translateY(-50%);z-index:4;width:38px;height:38px;border:1px solid rgba(255,255,255,.75);border-radius:50%;background:rgba(255,255,255,.92);color:#171717;font-size:25px;line-height:1;box-shadow:0 2px 10px rgba(0,0,0,.16);cursor:pointer}",
+      ".cms-slider-prev{left:12px}",
+      ".cms-slider-next{right:12px}",
+      ".cms-slider-dots{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:8px;padding:6px 0}",
       ".cms-slider-dot{width:9px;height:9px;padding:0;border:0;border-radius:50%;background:#cbd5e1;cursor:pointer}",
       ".cms-slider-dot[aria-current=true]{background:#ff6a00;transform:scale(1.15)}",
       ".store-banner.cms-banner-replaced{display:none!important}",
-      ".cms-home-banner{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(220px,.8fr);gap:22px;align-items:center;overflow:hidden;border:1px solid #e8e8e8;border-radius:18px;background:#fff;color:#151515;text-decoration:none;padding:18px 22px}",
-      ".cms-home-banner-copy h2{margin:0 0 8px;font-size:clamp(20px,3vw,32px);line-height:1.2}",
-      ".cms-home-banner-copy p{margin:0 0 12px;line-height:1.55;color:#555}",
-      ".cms-home-banner-copy .cms-banner-cta{display:inline-block;background:#ff6a00;color:#fff;padding:10px 15px;border-radius:8px;font-weight:750}",
-      ".cms-home-banner img{display:block;width:100%;max-height:220px;object-fit:contain;border-radius:10px}",
-      ".cms-home-banner picture{display:block;width:100%;min-width:0}",
+      ".cms-home-banner{position:relative;display:block;width:100%;box-sizing:border-box;overflow:hidden;border:1px solid #e8e8e8;border-radius:16px;background:#fff;text-decoration:none;color:#151515;padding:0;line-height:1.4;isolation:isolate}",
+      ".cms-home-banner--overlay{--cms-banner-text-color:#fff}",
+      ".cms-home-banner--overlay picture{display:block;width:100%;min-width:0;line-height:0}",
+      ".cms-home-banner--overlay img{display:block;width:100%;height:auto;max-height:none;object-fit:contain;border-radius:0}",
+      ".cms-home-banner--overlay .cms-home-banner-copy{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;box-sizing:border-box;padding:clamp(12px,3vw,36px);color:var(--cms-banner-text-color,#fff);pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.65)}",
+      ".cms-home-banner--overlay .cms-home-banner-copy h2{margin:0 0 8px;font-size:clamp(20px,3vw,36px);line-height:1.16;color:inherit;max-width:min(78%,720px)}",
+      ".cms-home-banner--overlay .cms-home-banner-copy p{margin:0;line-height:1.45;color:inherit;max-width:min(78%,720px);font-size:clamp(13px,1.35vw,18px)}",
+      ".cms-home-banner--text-top-left .cms-home-banner-copy{justify-content:flex-start;align-items:flex-start;text-align:left}",
+      ".cms-home-banner--text-top-center .cms-home-banner-copy{justify-content:flex-start;align-items:center;text-align:center}",
+      ".cms-home-banner--text-top-right .cms-home-banner-copy{justify-content:flex-start;align-items:flex-end;text-align:right}",
+      ".cms-home-banner--text-middle-left .cms-home-banner-copy{justify-content:center;align-items:flex-start;text-align:left}",
+      ".cms-home-banner--text-center .cms-home-banner-copy{justify-content:center;align-items:center;text-align:center}",
+      ".cms-home-banner--text-middle-right .cms-home-banner-copy{justify-content:center;align-items:flex-end;text-align:right}",
+      ".cms-home-banner--text-bottom-left .cms-home-banner-copy{justify-content:flex-end;align-items:flex-start;text-align:left}",
+      ".cms-home-banner--text-bottom-center .cms-home-banner-copy{justify-content:flex-end;align-items:center;text-align:center}",
+      ".cms-home-banner--text-bottom-right .cms-home-banner-copy{justify-content:flex-end;align-items:flex-end;text-align:right}",
+      ".cms-home-banner--overlay .cms-banner-cta{position:absolute;z-index:3;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;max-width:calc(100% - 24px);line-height:1.2;background:#ff6a00;color:#fff;padding:10px 15px;border-radius:8px;font-weight:750;font-size:clamp(12px,1.2vw,15px);box-shadow:0 3px 12px rgba(0,0,0,.22);text-shadow:none;pointer-events:none;white-space:normal}",
+      ".cms-home-banner--button-top-left .cms-banner-cta{top:clamp(10px,2.5vw,28px);left:clamp(10px,2.5vw,28px)}",
+      ".cms-home-banner--button-top-right .cms-banner-cta{top:clamp(10px,2.5vw,28px);right:clamp(10px,2.5vw,28px)}",
+      ".cms-home-banner--button-bottom-left .cms-banner-cta{bottom:clamp(10px,2.5vw,28px);left:clamp(10px,2.5vw,28px)}",
+      ".cms-home-banner--button-bottom-right .cms-banner-cta{bottom:clamp(10px,2.5vw,28px);right:clamp(10px,2.5vw,28px)}",
+      ".cms-home-banner--split{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(220px,.8fr);gap:22px;align-items:center;overflow:hidden;padding:18px 22px}",
+      ".cms-home-banner--split .cms-home-banner-copy{position:static;display:block;padding:0;color:#151515;text-shadow:none;pointer-events:auto}",
+      ".cms-home-banner--split .cms-home-banner-copy h2{margin:0 0 8px;font-size:clamp(20px,3vw,32px);line-height:1.2;color:inherit}",
+      ".cms-home-banner--split .cms-home-banner-copy p{margin:0 0 12px;line-height:1.55;color:#555}",
+      ".cms-home-banner--split .cms-banner-cta{position:static;display:inline-block;background:#ff6a00;color:#fff;padding:10px 15px;border-radius:8px;font-weight:750;box-shadow:none;text-shadow:none}",
+      ".cms-home-banner--split img{display:block;width:100%;max-height:220px;object-fit:contain;border-radius:10px}",
+      ".cms-home-banner--split picture{display:block;width:100%;min-width:0}",
       ".cms-blog-card-image{width:100%;height:100%;min-height:270px;object-fit:cover}",
-      "#cmsHomepageBanners[hidden]{display:none!important}",
-      "@media(max-width:700px){.cms-home-banner{grid-template-columns:1fr;padding:15px;gap:12px}.cms-home-banner img{max-height:210px;grid-row:1}.cms-blog-card-image{height:240px;min-height:0}}"
+      "@media(max-width:700px){.cms-home-banner--split{grid-template-columns:1fr;padding:15px;gap:12px}.cms-home-banner--split img{max-height:210px;grid-row:1}.cms-home-banner--overlay .cms-home-banner-copy{padding:16px}.cms-home-banner--overlay .cms-home-banner-copy h2{font-size:clamp(17px,4.7vw,25px);max-width:85%}.cms-home-banner--overlay .cms-home-banner-copy p{font-size:13px;max-width:85%}.cms-home-banner--overlay .cms-banner-cta{padding:8px 11px;font-size:12px}.cms-slider-control{width:32px;height:32px;font-size:22px}.cms-slider-prev{left:7px}.cms-slider-next{right:7px}.cms-blog-card-image{height:240px;min-height:0}}
     ].join("");
     document.head.appendChild(st);
   }
@@ -94,16 +116,36 @@
     const external = /^https?:\/\//i.test(dest) ? ' target="_blank" rel="noopener"' : "";
     const desktop = b.image_url || b.mobile_image_url || "";
     const mobile = b.mobile_image_url || "";
+    const title = String(b.title || "").trim();
+    const subtitle = String(b.subtitle || "").trim();
+    const buttonText = String(b.button_text || "").trim();
+    const mode = b.display_mode === "split" ? "split" : "overlay";
+    const textPositions = ["top-left","top-center","top-right","middle-left","center","middle-right","bottom-left","bottom-center","bottom-right"];
+    const buttonPositions = ["top-left","top-right","bottom-left","bottom-right"];
+    const textPosition = textPositions.includes(String(b.text_position || "")) ? String(b.text_position) : "bottom-left";
+    const buttonPosition = buttonPositions.includes(String(b.button_position || "")) ? String(b.button_position) : "bottom-right";
+    const rawColor = String(b.text_color || "").trim();
+    const textColor = /^#[0-9a-f]{6}$/i.test(rawColor) ? rawColor : "#ffffff";
     const pic = desktop
       ? '<picture>' + (mobile && mobile !== desktop ? '<source media="(max-width: 700px)" srcset="' + esc(mobile) + '">' : "") +
-        '<img src="' + esc(desktop) + '" alt="' + esc(b.title || "Store promotion") + '" loading="lazy"></picture>'
+        '<img src="' + esc(desktop) + '" alt="' + esc(title || "Store promotion") + '" loading="lazy" decoding="async"></picture>'
       : "";
-    return '<a class="cms-home-banner" href="' + esc(dest) + '"' + external + '>' +
-      '<span class="cms-home-banner-copy"><h2>' + esc(b.title || "") + '</h2><p>' + esc(b.subtitle || "") + '</p>' +
-      (b.button_text ? '<span class="cms-banner-cta">' + esc(b.button_text) + '</span>' : "") +
-      '</span>' + pic + '</a>';
+    if (mode === "split") {
+      return '<a class="cms-home-banner cms-home-banner--split" href="' + esc(dest) + '"' + external + '>' +
+        '<span class="cms-home-banner-copy">' + (title ? '<h2>' + esc(title) + '</h2>' : "") +
+        (subtitle ? '<p>' + esc(subtitle) + '</p>' : "") +
+        (buttonText ? '<span class="cms-banner-cta">' + esc(buttonText) + '</span>' : "") +
+        '</span>' + pic + '</a>';
+    }
+    return '<a class="cms-home-banner cms-home-banner--overlay cms-home-banner--text-' + textPosition +
+      ' cms-home-banner--button-' + buttonPosition + '" style="--cms-banner-text-color:' + textColor +
+      '" href="' + esc(dest) + '"' + external + '>' + pic +
+      ((title || subtitle) ? '<span class="cms-home-banner-copy">' + (title ? '<h2>' + esc(title) + '</h2>' : "") +
+        (subtitle ? '<p>' + esc(subtitle) + '</p>' : "") + '</span>' : "") +
+      (buttonText ? '<span class="cms-banner-cta">' + esc(buttonText) + '</span>' : "") + '</a>';
   }
-  function bannerSliderMarkup(banners) {
+  
+function bannerSliderMarkup(banners) {
     const slides = banners.map((b, i) => '<div class="cms-banner-slide" data-cms-slide="' + i + '"' + (i ? " hidden" : "") + '>' + bannerMarkup(b) + '</div>').join("");
     const controls = banners.length > 1
       ? '<button type="button" class="cms-slider-control cms-slider-prev" data-slider-prev aria-label="Previous promotion">‹</button>' +
@@ -139,14 +181,16 @@
     const active = data.banners || [];
     const slots = [
       { id:"cmsHomepageBanners", placements:["homepage","sitewide"] },
+      { id:"cmsHomepageHeroSlider", placements:["homepage-hero-slider"], slider:true },
       { id:"cmsHomepageSlider", placements:["homepage-slider"], slider:true },
       { id:"cmsCatalogBanners", placements:["category","campaign","sitewide"] },
       { id:"cmsProductBanners", placements:["product","sitewide"] },
       { id:"cmsBlogBanners", placements:["blog","sitewide"] }
     ];
     const homeBanners = active.filter(b => slots[0].placements.includes(String(b.placement || "").toLowerCase()));
+    const heroSliderBanners = active.filter(b => String(b.placement || "").toLowerCase() === "homepage-hero-slider");
     const legacyHero = document.querySelector(".store-banner");
-    if (legacyHero) legacyHero.classList.toggle("cms-banner-replaced", homeBanners.length > 0);
+    if (legacyHero) legacyHero.classList.toggle("cms-banner-replaced", homeBanners.length > 0 || heroSliderBanners.length > 0);
     for (const slotInfo of slots) {
       const slot = document.getElementById(slotInfo.id);
       if (!slot) continue;
@@ -162,7 +206,8 @@
       }
     }
   }
-  function renderBlogListing(data) {
+  
+function renderBlogListing(data) {
     const grid = document.querySelector(".blog-grid");
     if (!grid || !Array.isArray(data.blog_posts) || !data.blog_posts.length) return;
     injectStyles();
