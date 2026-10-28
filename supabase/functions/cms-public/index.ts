@@ -36,7 +36,7 @@ Deno.serve(async (req: Request) => {
         .select("id,title,slug,sections,seo,status")
         .eq("status", "published"),
       db.from("cms_banners")
-        .select("id,title,subtitle,image_url,mobile_image_url,button_text,button_url,placement,sort_order,starts_at,ends_at,is_active")
+        .select("id,title,subtitle,image_url,mobile_image_url,button_text,button_url,placement,display_mode,text_color,text_position,button_position,sort_order,starts_at,ends_at,is_active")
         .eq("is_active", true)
         .order("sort_order", { ascending: true }),
       db.from("cms_blog_posts")
