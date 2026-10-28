@@ -55,6 +55,16 @@
       ".cms-category-filter{display:inline-flex;padding:9px 14px;border:1px solid #e5e7eb;border-radius:999px;text-decoration:none;color:inherit;background:#fff;font-size:14px;font-weight:650}",
       ".cms-category-filter[aria-current=true],.cms-category-filter:hover{background:#17191d;color:#fff;border-color:#17191d}",
       ".cms-homepage-banners{display:grid;gap:14px;margin:18px auto 24px}",
+      ".cms-banner-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:100%}",
+      ".cms-banner-grid .cms-home-banner{margin:0;width:100%;min-width:0;aspect-ratio:1/1;overflow:hidden;border-radius:12px;background:#f3f4f6}",
+      ".cms-banner-grid .cms-home-banner picture,.cms-banner-grid .cms-home-banner img{display:block;width:100%;height:100%;object-fit:contain}",
+      ".cms-banner-grid .cms-home-banner-copy{padding:10px}",
+      ".cms-banner-grid .cms-banner-cta{font-size:12px;padding:7px 10px}",
+      ".cms-banner-slide>.cms-legacy-hero-slide{margin:0!important;padding:0!important}",
+      ".cms-banner-slide>.cms-legacy-hero-slide .container{width:100%;max-width:none;margin:0;padding:0}",
+      ".cms-banner-slide>.cms-legacy-hero-slide img{display:block;width:100%;height:auto;object-fit:contain}",
+      "@media(max-width:900px){.cms-banner-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}",
+      "@media(max-width:480px){.cms-banner-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.cms-banner-grid .cms-home-banner--overlay{border-radius:8px}}",
       "#cmsHomepageBanners[hidden],#cmsHomepageHeroSlider[hidden],#cmsHomepageSlider[hidden]{display:none!important}",
       ".cms-banner-slider{position:relative;width:100%;padding:0 0 26px}",
       ".cms-banner-slider-track{position:relative;min-width:0}",
@@ -144,16 +154,25 @@
         (subtitle ? '<p>' + esc(subtitle) + '</p>' : "") + '</div>' : "") +
       (buttonText ? '<span class="cms-banner-cta">' + esc(buttonText) + '</span>' : "") + '</a>';
   }
-  function bannerSliderMarkup(banners) {
-    const slides = banners.map((b, i) => '<div class="cms-banner-slide" data-cms-slide="' + i + '"' + (i ? " hidden" : "") + '>' + bannerMarkup(b) + '</div>').join("");
-    const controls = banners.length > 1
-      ? '<button type="button" class="cms-slider-control cms-slider-prev" data-slider-prev aria-label="Previous promotion">‹</button>' +
-        '<button type="button" class="cms-slider-control cms-slider-next" data-slider-next aria-label="Next promotion">›</button>' +
-        '<div class="cms-slider-dots" aria-label="Choose promotion">' + banners.map((b, i) => '<button type="button" class="cms-slider-dot" data-slider-dot="' + i + '" aria-label="Show promotion ' + (i + 1) + '" aria-current="' + (i === 0 ? "true" : "false") + '"></button>').join("") + '</div>'
+  function bannerSliderMarkup(banners, legacySlideMarkup) {
+    const hasLegacy = !!legacySlideMarkup;
+    const total = banners.length + (hasLegacy ? 1 : 0);
+    const legacySlide = hasLegacy ? '<div class="cms-banner-slide" data-cms-slide="0">' + legacySlideMarkup + '</div>' : '';
+    const slides = legacySlide + banners.map((b, i) => {
+      const position = i + (hasLegacy ? 1 : 0);
+      return '<div class="cms-banner-slide" data-cms-slide="' + position + '"' + (position ? " hidden" : "") + '>' + bannerMarkup(b) + '</div>';
+    }).join("");
+    const controls = total > 1
+      ? '<button type="button" class="cms-slider-control cms-slider-prev" data-slider-prev aria-label="Previous hero slide">‹</button>' +
+        '<button type="button" class="cms-slider-control cms-slider-next" data-slider-next aria-label="Next hero slide">›</button>' +
+        '<div class="cms-slider-dots" aria-label="Choose hero slide">' + Array.from({length:total}, (_, i) => '<button type="button" class="cms-slider-dot" data-slider-dot="' + i + '" aria-label="Show hero slide ' + (i + 1) + '" aria-current="' + (i === 0 ? "true" : "false") + '"></button>').join("") + '</div>'
       : "";
-    return '<div class="cms-banner-slider" data-cms-slider aria-label="Homepage promotions"><div class="cms-banner-slider-track" aria-live="polite">' + slides + '</div>' + controls + '</div>';
+    return '<div class="cms-banner-slider" data-cms-slider aria-label="Homepage hero slider"><div class="cms-banner-slider-track" aria-live="polite">' + slides + '</div>' + controls + '</div>';
   }
-  function initBannerSlider(slot) {
+  function bannerGridMarkup(banners) {
+    return '<div class="cms-banner-grid" aria-label="Homepage banner grid">' + banners.map(bannerMarkup).join("") + '</div>';
+  }
+  function initBannerSlider(slot, intervalMs = 5500) {
     const slider = slot.querySelector("[data-cms-slider]");
     if (!slider) return;
     const slides = Array.from(slider.querySelectorAll("[data-cms-slide]"));
@@ -167,7 +186,8 @@
       dots.forEach((dot, i) => dot.setAttribute("aria-current", String(i === current)));
     };
     const stop = () => { if (timer !== null) { window.clearInterval(timer); timer = null; } };
-    const start = () => { if (!reducedMotion && timer === null && !document.hidden) timer = window.setInterval(() => show(current + 1), 5500); };
+    const delay = Number.isFinite(Number(intervalMs)) && Number(intervalMs) >= 1000 ? Number(intervalMs) : 5500;
+    const start = () => { if (!reducedMotion && timer === null && !document.hidden) timer = window.setInterval(() => show(current + 1), delay); };
     slider.querySelector("[data-slider-prev]")?.addEventListener("click", () => show(current - 1));
     slider.querySelector("[data-slider-next]")?.addEventListener("click", () => show(current + 1));
     dots.forEach((dot, i) => dot.addEventListener("click", () => show(i)));
@@ -178,28 +198,37 @@
   }
   function renderBanners(data) {
     const active = data.banners || [];
+    const ordered = list => list.slice().sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0) || Number(a.id || 0) - Number(b.id || 0));
+    const heroBanners = ordered(active.filter(b => ["homepage","homepage-hero-slider"].includes(String(b.placement || "").toLowerCase())));
+    const legacyHero = document.querySelector(".store-banner");
+    let legacySlideMarkup = "";
+    if (heroBanners.length && legacyHero) {
+      const clone = legacyHero.cloneNode(true);
+      clone.classList.remove("cms-banner-replaced","store-banner");
+      clone.classList.add("cms-legacy-hero-slide");
+      legacySlideMarkup = clone.outerHTML;
+    }
+    if (legacyHero) legacyHero.classList.toggle("cms-banner-replaced", heroBanners.length > 0);
     const slots = [
-      { id:"cmsHomepageBanners", placements:["homepage","sitewide"] },
-      { id:"cmsHomepageHeroSlider", placements:["homepage-hero-slider"], slider:true },
-      { id:"cmsHomepageSlider", placements:["homepage-slider"], slider:true },
+      { id:"cmsHomepageBanners", placements:["sitewide"] },
+      { id:"cmsHomepageHeroSlider", placements:["homepage","homepage-hero-slider"], slider:true, hero:true, intervalMs:2000 },
+      { id:"cmsHomepageSlider", placements:["homepage-slider"], grid:true },
       { id:"cmsCatalogBanners", placements:["category","campaign","sitewide"] },
       { id:"cmsProductBanners", placements:["product","sitewide"] },
       { id:"cmsBlogBanners", placements:["blog","sitewide"] }
     ];
-    const homeBanners = active.filter(b => slots[0].placements.includes(String(b.placement || "").toLowerCase()));
-    const heroSliderBanners = active.filter(b => String(b.placement || "").toLowerCase() === "homepage-hero-slider");
-    const legacyHero = document.querySelector(".store-banner");
-    if (legacyHero) legacyHero.classList.toggle("cms-banner-replaced", homeBanners.length > 0 || heroSliderBanners.length > 0);
     for (const slotInfo of slots) {
       const slot = document.getElementById(slotInfo.id);
       if (!slot) continue;
-      const banners = active.filter(b => slotInfo.placements.includes(String(b.placement || "").toLowerCase()));
+      const banners = ordered(active.filter(b => slotInfo.placements.includes(String(b.placement || "").toLowerCase())));
       if (!banners.length) { slot.hidden = true; slot.innerHTML = ""; continue; }
       injectStyles();
       slot.hidden = false;
       if (slotInfo.slider) {
-        slot.innerHTML = bannerSliderMarkup(banners);
-        initBannerSlider(slot);
+        slot.innerHTML = bannerSliderMarkup(banners, slotInfo.hero ? legacySlideMarkup : "");
+        initBannerSlider(slot, slotInfo.intervalMs || 5500);
+      } else if (slotInfo.grid) {
+        slot.innerHTML = bannerGridMarkup(banners);
       } else {
         slot.innerHTML = banners.map(bannerMarkup).join("");
       }
