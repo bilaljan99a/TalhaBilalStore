@@ -216,3 +216,38 @@ body.category-catalog-page .products-section .product-card .product-visual>.tag{
     padding:18px 0 48px!important;
   }
 }
+
+
+/* Product image fit and clean white image canvases — safe visual-only overrides */
+.product-visual,
+.product-visual picture,
+.product-card .product-image,
+.home-product-card .product-visual,
+.home-product-card img,
+.product-gallery-main,
+.product-gallery-main img,
+.product-main-image,
+.product-main-image img,
+.product-detail-gallery,
+.product-detail-gallery img {
+  background-color: #fff !important;
+}
+.product-visual {
+  overflow: hidden;
+}
+.product-visual .product-image,
+.product-card img.product-image,
+.home-product-card img,
+.product-gallery-main img,
+.product-main-image img,
+.product-detail-gallery img {
+  object-fit: contain !important;
+  object-position: center !important;
+  max-width: 100%;
+  max-height: 100%;
+}
+.product-visual .product-image {
+  display: block;
+  min-width: 0;
+  min-height: 0;
+}
