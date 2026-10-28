@@ -976,7 +976,7 @@ function cmsInitVariations(variations, product) {
     name: String(v.name || v.label || v.title || ("Option " + (i + 1))),
     color: String(v.color || ""),
     color_hex: String(v.color_hex || ""),
-    weight_kg: v.weight_kg != null ? Number(v.weight_kg) : (v.weight != null ? Number(v.weight) : (product?.weight_kg ?? 1)),
+    weight_kg: v.weight_kg != null ? Math.round(Number(v.weight_kg)*1000)/1000 : (v.weight != null ? Math.round(Number(v.weight)*1000)/1000 : (product?.weight_kg ?? 1)),
     price: v.sale_price != null ? Number(v.sale_price) : (v.price != null ? Number(v.price) : (product?.price ?? 0)),
     sale_price: v.sale_price != null ? Number(v.sale_price) : (v.price != null ? Number(v.price) : (product?.sale_price ?? product?.price ?? 0)),
     old_price: v.old_price != null && v.old_price !== "" ? Number(v.old_price) : (product?.old_price ?? ""),
@@ -1068,7 +1068,7 @@ function cmsSingleVariationCard(v, i) {
     '</div>' +
     '<div class="cms-var-field">' +
      '<label>Item / Pack Weight (kg)</label>' +
-     '<input type="number" id="vWeight_' + i + '" step="0.001" min="0" value="' + (v.weight_kg ?? '') + '" placeholder="e.g. 0.05 = 50g, 0.1 = 100g">' +
+     '<input type="number" id="vWeight_' + i + '" step="0.001" min="0" value="' + (v.weight_kg == null || v.weight_kg === '' ? '' : Math.round(Number(v.weight_kg)*1000)/1000) + '" placeholder="e.g. 0.05 = 50g, 0.1 = 100g">' +
     '</div>' +
     '<div class="cms-var-field">' +
      '<label>Sale / Selling Price (PKR) *</label>' +
@@ -1117,7 +1117,7 @@ function cmsSyncCurrentVariationsFromDom() {
    name: g("vName")?.value.trim() || "",
    color: g("vColor")?.value || "",
    color_hex: (g("vColor")?.value || "") ? (g("vColorHex")?.value || "") : "",
-   weight_kg: g("vWeight")?.value ? Number(g("vWeight").value) : null,
+   weight_kg: g("vWeight")?.value ? Math.round(Number(g("vWeight").value)*1000)/1000 : null,
    price: g("vPrice")?.value ? Number(g("vPrice").value) : 0,
    sale_price: g("vPrice")?.value ? Number(g("vPrice").value) : 0,
    old_price: g("vOldPrice")?.value ? Number(g("vOldPrice").value) : null,
@@ -1305,7 +1305,7 @@ function cmsCollectVariations() {
   name: v.name.trim(),
   color: v.color || null,
   color_hex: v.color ? (v.color_hex || null) : null,
-  weight_kg: v.weight_kg != null && Number.isFinite(Number(v.weight_kg)) ? Number(v.weight_kg) : null,
+  weight_kg: v.weight_kg != null && Number.isFinite(Number(v.weight_kg)) ? Math.round(Number(v.weight_kg)*1000)/1000 : null,
   price: v.sale_price != null && Number.isFinite(Number(v.sale_price)) ? Number(v.sale_price) : (Number(v.price) || 0),
   sale_price: v.sale_price != null && Number.isFinite(Number(v.sale_price)) ? Number(v.sale_price) : (Number(v.price) || 0),
   old_price: v.old_price != null && Number.isFinite(Number(v.old_price)) ? Number(v.old_price) : null,
@@ -1526,7 +1526,7 @@ async function cmsSaveProduct(id){
   const slug=g("pSlug").value.trim()||cmsSlugify(name);if(!slug)throw new Error("URL slug is required.");
   if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))throw new Error("Use a slug with lowercase letters, numbers and hyphens only.");
   const num=x=>{const v=g(x).value.trim();if(!v)return null;const n=Number(v);if(!Number.isFinite(n))throw new Error("Enter a valid number.");return n};
-  const weight=num("pWeight")??1;if(weight<=0||weight>1000)throw new Error("Product weight must be greater than 0 and no more than 1000 kg.");
+  const weight=Math.round((num("pWeight")??1)*1000)/1000;if(weight<=0||weight>1000)throw new Error("Product weight must be greater than 0 and no more than 1000 kg.");
   const images=g("pImages").value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
   const seo=Object.assign({},cmsFormSeo,{title:g("pSeoTitle").value.trim()||null,description:g("pSeoDesc").value.trim()||null,keywords:g("pSeoKeywords").value.split(",").map(x=>x.trim()).filter(Boolean)});
   const selectedPageIds=[...document.querySelectorAll("[data-product-page]:checked")].map(x=>Number(x.value)).filter(Number.isFinite);
