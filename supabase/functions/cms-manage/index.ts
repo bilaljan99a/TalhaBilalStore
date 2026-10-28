@@ -14,7 +14,7 @@ const TABLES: Record<string, { fields: string[]; order: string }> = {
   cms_products: { fields: ["name","slug","sku","short_description","description","category_id","price","sale_price","cost","stock","status","featured","best_seller","is_new","attributes","images","seo","weight_kg","old_price","tag","delivery_mode","delivery_fee","manual_delivery_fee","show_weight","variations","video_url"], order: "updated_at" },
   cms_categories: { fields: ["name","slug","description","image_url","parent_id","sort_order","is_active","seo"], order: "sort_order" },
   cms_pages: { fields: ["title","slug","status","sections","seo"], order: "updated_at" },
-  cms_banners: { fields: ["title","subtitle","image_url","mobile_image_url","button_text","button_url","placement","sort_order","starts_at","ends_at","is_active"], order: "sort_order" },
+  cms_banners: { fields: ["title","subtitle","image_url","mobile_image_url","button_text","button_url","placement","display_mode","text_color","text_position","button_position","sort_order","starts_at","ends_at","is_active"], order: "sort_order" },
   cms_blog_posts: { fields: ["title","slug","excerpt","content","featured_image_url","status","published_at","author_name","tags","related_product_ids","seo"], order: "updated_at" },
   cms_reviews: { fields: ["customer_name","rating","review_text","product_id","image_url","status","featured"], order: "created_at" },
   cms_faqs: { fields: ["question","answer","category","sort_order","is_active"], order: "sort_order" },
