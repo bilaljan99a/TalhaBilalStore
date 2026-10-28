@@ -181,27 +181,11 @@
         (subtitle ? '<p>' + esc(subtitle) + '</p>' : "") + '</div>' : "") +
       (buttonText ? '<span class="cms-banner-cta">' + esc(buttonText) + '</span>' : "") + '</a>';
   }
-  function legacyHeroBannerMarkup(b) {
-    const rawDest = String(b.button_url || "/products").trim();
-    const hasSafeDest = !!rawDest && !/^javascript:/i.test(rawDest) &&
-      (/^https?:\/\//i.test(rawDest) || !/^[a-z][a-z0-9+.-]*:/i.test(rawDest));
-    const dest = hasSafeDest ? rawDest : "/products";
-    const desktop = String(b.image_url || "/assets/here-banner.webp").trim();
-    const mobile = String(b.mobile_image_url || "").trim();
-    const picture = '<picture>' +
-      (mobile && mobile !== desktop ? '<source media="(max-width: 700px)" srcset="' + esc(mobile) + '">' : "") +
-      '<img src="' + esc(desktop) + '" alt="Talha Bilal Store Mango Pulp collection" loading="eager" fetchpriority="high" decoding="async"></picture>';
-    return '<section class="cms-legacy-hero-slide"><div class="container"><a href="' + esc(dest) +
-      '" aria-label="Shop Mango Pulp products">' + picture + '</a></div></section>';
-  }
-
-  function bannerSliderMarkup(banners, legacySlideMarkup) {
-    const hasLegacy = !!legacySlideMarkup;
-    const total = banners.length + (hasLegacy ? 1 : 0);
-    const legacySlide = hasLegacy ? '<div class="cms-banner-slide" data-cms-slide="0">' + legacySlideMarkup + '</div>' : '';
-    const slides = legacySlide + banners.map((b, i) => {
-      const position = i + (hasLegacy ? 1 : 0);
-      return '<div class="cms-banner-slide" data-cms-slide="' + position + '"' + (position ? " hidden" : "") + '>' + (Number(b.id) === LEGACY_HERO_BANNER_ID ? legacyHeroBannerMarkup(b) : bannerMarkup(b)) + '</div>';
+  function bannerSliderMarkup(banners) {
+    const total = banners.length;
+    const slides = banners.map((b, position) => {
+      return '<div class="cms-banner-slide" data-cms-slide="' + position + '"' +
+        (position ? " hidden" : "") + '>' + bannerMarkup(b) + '</div>';
     }).join("");
     const controls = total > 1
       ? '<button type="button" class="cms-slider-control cms-slider-prev" data-slider-prev aria-label="Previous hero slide">‹</button>' +
