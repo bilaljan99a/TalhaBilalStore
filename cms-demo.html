@@ -159,6 +159,7 @@ body.cms-back-visible #backBtn{display:inline-block}
 
 /* CMS product gallery ordering */
 .cms-image-order{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:10px}
+.cms-banner-manager{display:grid;gap:18px}.cms-banner-group{padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);min-width:0}.cms-banner-group-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}.cms-banner-group-head h2{margin:0 0 6px;font-size:18px}.cms-banner-group-head .hint{margin:0;max-width:720px}.cms-banner-group-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}.cms-banner-order-list{display:grid;gap:10px}.cms-banner-sort-card{display:grid;grid-template-columns:88px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);cursor:grab;min-width:0}.cms-banner-sort-card:active{cursor:grabbing}.cms-banner-sort-card.is-dragging{opacity:.45}.cms-banner-sort-card img{display:block;width:100%;height:72px;object-fit:cover;border-radius:8px}.cms-banner-sort-thumb{display:flex;align-items:center;justify-content:center;min-height:72px;overflow:hidden;border-radius:8px;background:var(--panel)}.cms-banner-sort-thumb span{font-size:11px;color:var(--muted)}.cms-banner-sort-main{min-width:0}.cms-banner-sort-main h3{margin:6px 0;font-size:15px;overflow-wrap:anywhere}.cms-banner-sort-main p{margin:4px 0;font-size:12px;color:var(--muted)}.cms-banner-sort-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.cms-banner-position,.cms-banner-placement,.cms-banner-status{display:inline-flex;padding:3px 7px;border-radius:999px;background:var(--panel);font-size:11px;font-weight:700}.cms-banner-status.is-active{color:#15803d}.cms-banner-status.is-off{color:var(--muted)}.cms-banner-sort-actions{display:grid;gap:10px;justify-items:end}.cms-banner-drag-handle{font-size:11px;color:var(--muted);white-space:nowrap}.cms-banner-empty{padding:16px;border:1px dashed var(--line);border-radius:10px;color:var(--muted)}@media(max-width:760px){.cms-banner-group-head{display:grid}.cms-banner-group-actions{justify-content:flex-start}.cms-banner-sort-card{grid-template-columns:66px minmax(0,1fr);gap:10px}.cms-banner-sort-card img{height:60px}.cms-banner-sort-actions{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center}.cms-banner-sort-main h3{font-size:14px}}
 .cms-image-order-card{display:grid;grid-template-columns:82px minmax(0,1fr);align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);cursor:grab}
 .cms-image-order-card:active{cursor:grabbing}
 .cms-image-order-card.is-dragging{opacity:.45}
@@ -297,6 +298,8 @@ let liveData=null;
 let cmsFormSeo={};
 let cmsCache={products:[],categories:[],pages:[],blog:[],banners:[],seo:[]};
 let cmsBannerPresetPlacement=null;
+let cmsBannerDraggedId=null;
+let cmsBannerDraggedGroup=null;
 let cmsOptionSets={};
 let cmsSavedRichRange=null;
 let cmsNavHistory=[];
@@ -468,11 +471,9 @@ async function cmsManage(page){
  cmsEditorBackModule=null;cmsUpdateBackButton();
  const labels={products:"Add Product",categories:"Add Category",pages:"Add Page",banners:"Add Banner",blog:"Add Blog Post",seo:"Add SEO Record"};
  const subs={products:"Add or update products, images, price, shipping weight, categories and SEO. Active products publish automatically.",categories:"Create and organise categories. Active categories and product filters sync to the website.",pages:"Create page drafts, assign products, and publish them to a page URL when status is Published.",banners:"Upload desktop/mobile images, set CTA links, placement, ordering and schedule. Active banners sync automatically.",blog:"Edit articles and upload images. Published posts update their public blog URL.",seo:"Manage titles, descriptions, canonical URLs, indexing, Open Graph and structured data. SEO settings sync to public pages."};
- const headerActions=page==="banners"
-  ? "<div class='topbar-tools'><button class='btn' onclick='cmsEdit(&quot;banners&quot;,null)'>+ Add Banner</button><button class='btn' onclick='cmsAddHomepageHeroSliderSlide()'>+ Add Hero Slider Slide</button><button class='btn primary' onclick='cmsAddHomepageSliderSlide()'>+ Add Below-Hero Slide</button></div>"
-  : "<button class='btn primary' onclick='cmsEdit(&quot;"+page+"&quot;,null)'>+ "+labels[page]+"</button>";
+ const headerActions=page==="banners"?"":"<button class='btn primary' onclick='cmsEdit(&quot;"+page+"&quot;,null)'>+ "+labels[page]+"</button>";
  app.innerHTML=head(cfg.title,subs[page]||"Website content management.",headerActions)+
- (page==="blog"?'<div class="module-note"><strong>Publishing:</strong> Published CMS posts update their public blog URL automatically. Imported article slugs are retained.</div>':page==="banners"?'<div class="module-note"><strong>Banner layout:</strong> Use <strong>Overlay</strong> for a full-width image with text and the CTA floating over it. Leave title/subtitle blank when the image already contains its own text. The CTA can sit in any corner. Choose <strong>Hero slider (replaces current hero)</strong> or <strong>Below-hero slider</strong>; set sort order 1, 2, 3 to control slides. Use a desktop creative around 1920 × 650 px and a mobile creative around 1080 × 720 px (3:2) for best results.</div>':'<div class="module-note"><strong>Automatic publishing:</strong> Active products/categories, published pages/blogs, active banners and SEO records sync to the public website after save. Checkout, orders and finance remain in the existing admin.</div>')+
+ (page==="blog"?'<div class="module-note"><strong>Publishing:</strong> Published CMS posts update their public blog URL automatically. Imported article slugs are retained.</div>':page==="banners"?'<div class="module-note"><strong>Homepage hero:</strong> the existing Mango Pulp hero is automatically included as the first slide. Add as many hero slides as needed; they rotate every 2 seconds. Drag cards to change the order of added slides. The separate below-hero section is a 4-column desktop grid (2 columns on mobile), suitable for category, sale and deal creatives. Keep hero images around 1920 × 650 px and make small grid creatives square for clean crops.</div>':'<div class="module-note"><strong>Automatic publishing:</strong> Active products/categories, published pages/blogs, active banners and SEO records sync to the public website after save. Checkout, orders and finance remain in the existing admin.</div>')+
  '<div class="panel"><div id="cmsRecords">Loading website content…</div></div>';
  try{
   const rows=await cmsRequest(cfg.table);cmsCache[page]=rows;
@@ -555,8 +556,21 @@ function cmsRowsMarkup(page,rows){
    '<div class="table-wrap"><table class="table"><thead><tr><th>Page</th><th>URL path</th><th>Type</th><th>Preview</th></tr></thead><tbody id="cmsWebsiteInventoryRows"></tbody></table></div><div class="cms-assignment-pagination" id="cmsWebsiteInventoryPagination"></div>';
  }
  if(page==="banners"){
-  body=rows.map(r=>'<tr><td>'+(r.image_url?'<img class="record-thumb" src="'+esc(r.image_url)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.title||"Untitled banner")+'</div><div class="record-meta">'+esc(r.subtitle||"")+'</div></td><td>'+esc(r.placement==="homepage-slider"?"Homepage slider":r.placement)+'</td><td>'+esc(r.is_active?"Active":"Off")+'</td><td>'+Number(r.sort_order||0)+'</td><td>'+actions(r.id)+'</td></tr>').join("");
-  return '<div class="table-wrap"><table class="table"><thead><tr><th>Preview</th><th>Banner</th><th>Placement</th><th>Status</th><th>Sort</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">For a rotating homepage slider, create multiple banners, choose “Homepage slider (below hero)” for each, and use Sort order to set slide sequence. The whole slide links to its Button URL. Desktop/mobile images and optional schedule dates are supported.</p>';
+  const sorted=items=>items.slice().sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0)||Number(a.id||0)-Number(b.id||0));
+  const hero=sorted(rows.filter(r=>["homepage","homepage-hero-slider"].includes(String(r.placement||"").toLowerCase())));
+  const grid=sorted(rows.filter(r=>String(r.placement||"").toLowerCase()==="homepage-slider"));
+  const catalog=sorted(rows.filter(r=>["category","campaign"].includes(String(r.placement||"").toLowerCase())));
+  const product=sorted(rows.filter(r=>String(r.placement||"").toLowerCase()==="product"));
+  const blog=sorted(rows.filter(r=>String(r.placement||"").toLowerCase()==="blog"));
+  const sitewide=sorted(rows.filter(r=>String(r.placement||"").toLowerCase()==="sitewide"));
+  return '<div class="cms-banner-manager">'+
+   cmsBannerGroupMarkup("Homepage Hero Slider","hero",hero,"The existing Mango Pulp hero stays first on the website. Add extra slides here; drag the cards below to set their order.","<button class=\"btn primary\" onclick=\"cmsAddHomepageHeroSliderSlide()\">+ Add Hero Slide</button>")+
+   cmsBannerGroupMarkup("Homepage Banner Grid (Below Hero)","grid",grid,"These banners show together as small square cards: four across on desktop and two across on mobile.","<button class=\"btn primary\" onclick=\"cmsAddHomepageSliderSlide()\">+ Add Grid Banner</button>")+
+   cmsBannerGroupMarkup("Category / Sale / Deals Banners","catalog",catalog,"Keep category and promotion creatives here. Use each banner's placement to distinguish category banners from deals; drag to arrange this shared banner area.","<button class=\"btn\" onclick=\"cmsAddCategoryBanner()\">+ Category Banner</button><button class=\"btn primary\" onclick=\"cmsAddCampaignBanner()\">+ Sale / Deal Banner</button>")+
+   cmsBannerGroupMarkup("Product Page Banners","product",product,"For product-specific promotions or information.","<button class=\"btn primary\" onclick=\"cmsAddProductBanner()\">+ Product Banner</button>")+
+   cmsBannerGroupMarkup("Blog / Editorial Banners","blog",blog,"For blog article and editorial promotions.","<button class=\"btn primary\" onclick=\"cmsAddBlogBanner()\">+ Blog Banner</button>")+
+   cmsBannerGroupMarkup("Site-wide Banners","sitewide",sitewide,"These are available across the site wherever the site-wide banner slot is present.","<button class=\"btn primary\" onclick=\"cmsAddSitewideBanner()\">+ Site-wide Banner</button>")+
+   '</div><div id="cmsBannerSortNotice" class="module-note" role="status" aria-live="polite">Drag a banner card up or down inside its section to save the display order.</div>';
  }
  if(page==="blog"){
   body=rows.map(r=>{const s=r.seo&&typeof r.seo==="object"?r.seo:{};return '<tr><td>'+(r.featured_image_url?'<img class="record-thumb" src="'+esc(r.featured_image_url)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.title)+'</div><div class="record-meta">'+esc(r.slug)+'</div>'+(s.live_url?'<div class="record-meta"><a href="'+esc(s.live_url)+'" target="_blank" rel="noopener">Open public post ↗</a></div>':'')+'</td><td>'+esc(r.status)+'</td><td>'+esc((r.excerpt||"").slice(0,180))+'</td><td>'+actions(r.id)+'</td></tr>'}).join("");
@@ -567,6 +581,54 @@ function cmsRowsMarkup(page,rows){
   return '<div class="table-wrap"><table class="table"><thead><tr><th>Target</th><th>Item</th><th>SEO title / description</th><th>Indexing</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">Create site-wide defaults or link SEO to a product, category, page, blog post or banner.</p>';
  }
  return '<div class="table-wrap"><table class="table"><tbody>'+(rows.map(r=>'<tr><td>'+esc(r.title||r.name||r.slug||("Record "+r.id))+'</td><td>'+actions(r.id)+'</td></tr>').join("")||empty)+'</tbody></table></div>';
+}
+function cmsBannerGroupMatches(row,group){
+ const p=String(row.placement||"").toLowerCase();
+ if(group==="hero")return p==="homepage"||p==="homepage-hero-slider";
+ if(group==="grid")return p==="homepage-slider";
+ if(group==="catalog")return p==="category"||p==="campaign";
+ return p===group;
+}
+function cmsBannerGroupRows(group,rows){
+ return (rows||[]).filter(r=>cmsBannerGroupMatches(r,group)).slice().sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0)||Number(a.id||0)-Number(b.id||0));
+}
+function cmsBannerPlacementLabel(placement){
+ const labels={"homepage":"Homepage Hero Slide (existing)","homepage-hero-slider":"Homepage Hero Slide","homepage-slider":"Homepage Grid","category":"Category","campaign":"Sale / Deal","product":"Product page","blog":"Blog / Editorial","sitewide":"Site-wide"};
+ return labels[String(placement||"").toLowerCase()]||String(placement||"Other");
+}
+function cmsBannerGroupMarkup(title,group,rows,note,buttons){
+ const cards=rows.map((r,index)=>{
+  const id=Number(r.id||0),placement=cmsBannerPlacementLabel(r.placement);
+  return '<article class="cms-banner-sort-card" draggable="true" data-banner-id="'+id+'" ondragstart="cmsBannerDragStart(event,&quot;'+group+'&quot;,'+id+')" ondragover="event.preventDefault()" ondrop="cmsBannerDrop(event,&quot;'+group+'&quot;,'+id+')">'+
+   '<div class="cms-banner-sort-thumb">'+(r.image_url?'<img src="'+esc(r.image_url)+'" alt="">':'<span>No image</span>')+'</div>'+
+   '<div class="cms-banner-sort-main"><div class="cms-banner-sort-meta"><span class="cms-banner-position">Position '+(index+1)+'</span><span class="cms-banner-placement">'+esc(placement)+'</span><span class="cms-banner-status '+(r.is_active?"is-active":"is-off")+'">'+(r.is_active?"Active":"Disabled")+'</span></div>'+
+   '<h3>'+esc(r.title||"Untitled banner")+'</h3>'+(r.subtitle?'<p>'+esc(r.subtitle)+'</p>':'')+'<div class="record-meta">Sort order: '+Number(r.sort_order||0)+(r.starts_at?' • Starts '+esc(new Date(r.starts_at).toLocaleString()):'')+(r.ends_at?' • Ends '+esc(new Date(r.ends_at).toLocaleString()):'')+'</div></div>'+
+   '<div class="cms-banner-sort-actions"><span class="cms-banner-drag-handle">↕ Drag to reorder</span><div><button class="btn" onclick="cmsEdit(&quot;banners&quot;,'+id+')">Edit</button> <button class="btn danger" onclick="cmsDelete(&quot;banners&quot;,'+id+')">Delete</button></div></div></article>';
+ }).join("");
+ return '<section class="cms-banner-group" data-banner-group="'+group+'"><div class="cms-banner-group-head"><div><h2>'+esc(title)+' <span class="record-meta">('+rows.length+')</span></h2><p class="hint">'+esc(note)+'</p></div><div class="cms-banner-group-actions">'+buttons+'</div></div><div class="cms-banner-order-list">'+(cards||'<div class="cms-banner-empty">No banners in this section yet. Use the button above to add one.</div>')+'</div></section>';
+}
+function cmsBannerDragStart(event,group,id){
+ cmsBannerDraggedId=Number(id);cmsBannerDraggedGroup=String(group||"");
+ if(event.dataTransfer){event.dataTransfer.effectAllowed="move";event.dataTransfer.setData("text/plain",String(id));}
+ if(event.currentTarget)event.currentTarget.classList.add("is-dragging");
+}
+async function cmsBannerDrop(event,group,targetId){
+ event.preventDefault();
+ const draggedId=Number(event.dataTransfer&&event.dataTransfer.getData("text/plain")||cmsBannerDraggedId),toId=Number(targetId);
+ if(!draggedId||draggedId===toId||cmsBannerDraggedGroup!==group)return;
+ const ordered=cmsBannerGroupRows(group,cmsCache.banners||[]),from=ordered.findIndex(r=>Number(r.id)===draggedId),to=ordered.findIndex(r=>Number(r.id)===toId);
+ if(from<0||to<0)return;
+ const moved=ordered.splice(from,1)[0];ordered.splice(to,0,moved);
+ const notice=document.getElementById("cmsBannerSortNotice");if(notice)notice.textContent="Saving banner order…";
+ try{
+  for(let i=0;i<ordered.length;i++)await cmsRequest("cms_banners","PATCH",Number(ordered[i].id),{sort_order:(i+1)*10});
+  cmsCache.banners=await cmsRequest("cms_banners");
+  const target=document.getElementById("cmsRecords");if(target)target.innerHTML=cmsRowsMarkup("banners",cmsCache.banners);
+  const saved=document.getElementById("cmsBannerSortNotice");if(saved)saved.textContent="Banner order saved.";
+ }catch(e){
+  alert("Could not save the banner order: "+e.message);
+  await cmsManage("banners");
+ }finally{cmsBannerDraggedId=null;cmsBannerDraggedGroup=null;}
 }
 async function cmsEdit(page,id){
  const cfg=CMS_SCHEMAS[page];if(!cfg)return;let r={};
@@ -1617,14 +1679,27 @@ async function cmsAddHomepageHeroSliderSlide(){
  cmsBannerPresetPlacement="homepage-hero-slider";
  try{await cmsEdit("banners",null)}finally{cmsBannerPresetPlacement=null}
 }
+async function cmsAddCategoryBanner(){cmsBannerPresetPlacement="category";try{await cmsEdit("banners",null)}finally{cmsBannerPresetPlacement=null}}
+async function cmsAddCampaignBanner(){cmsBannerPresetPlacement="campaign";try{await cmsEdit("banners",null)}finally{cmsBannerPresetPlacement=null}}
+async function cmsAddProductBanner(){cmsBannerPresetPlacement="product";try{await cmsEdit("banners",null)}finally{cmsBannerPresetPlacement=null}}
+async function cmsAddBlogBanner(){cmsBannerPresetPlacement="blog";try{await cmsEdit("banners",null)}finally{cmsBannerPresetPlacement=null}}
+async function cmsAddSitewideBanner(){cmsBannerPresetPlacement="sitewide";try{await cmsEdit("banners",null)}finally{cmsBannerPresetPlacement=null}}
+function cmsNextBannerSortOrder(placement){
+ const p=String(placement||"").toLowerCase();
+ const group=(p==="homepage"||p==="homepage-hero-slider")?"hero":p==="homepage-slider"?"grid":(["category","campaign"].includes(p)?"catalog":p);
+ const values=cmsBannerGroupRows(group,cmsCache.banners||[]).map(r=>Number(r.sort_order||0)).filter(Number.isFinite);
+ return (values.length?Math.max(0,...values):0)+10;
+}
 async function cmsEditBanner(r,id){
+ const defaultPlacement=String(r.placement||(id===null&&cmsBannerPresetPlacement?cmsBannerPresetPlacement:"homepage-hero-slider"));
+ const defaultSortOrder=cmsNextBannerSortOrder(defaultPlacement);
  const fields=cmsField("Banner title (optional)","bTitle",r.title,"text","Overlay titles sit over the image and do not add a separate text row.")+cmsField("Subtitle / offer (optional)","bSubtitle",r.subtitle,"text","Leave blank if your creative already includes the text.")+cmsField("Desktop image URL","bImage",r.image_url,"text")+cmsUploadField("Upload desktop banner","bImage","banners",false,"set","Recommended: 1920 × 650 px wide landscape, WebP/JPG, ideally under 500 KB. Keep important content away from edges.")+cmsField("Mobile image URL","bMobileImage",r.mobile_image_url,"text")+cmsUploadField("Upload mobile banner","bMobileImage","banners",false,"set","Recommended: 1080 × 720 px landscape (3:2), WebP/JPG, ideally under 350 KB. This keeps mobile banners readable without making them too tall.")+
- cmsSelect("Placement","bPlacement",[{value:"homepage",label:"Homepage hero banner"},{value:"homepage-hero-slider",label:"Hero slider (replaces current hero)"},{value:"homepage-slider",label:"Homepage slider (below hero)"},{value:"category",label:"Category page"},{value:"product",label:"Product page"},{value:"blog",label:"Blog / editorial"},{value:"campaign",label:"Campaign / promotion"},{value:"sitewide",label:"Site-wide"}],r.placement||(id===null&&cmsBannerPresetPlacement?cmsBannerPresetPlacement:"homepage"))+
+ cmsSelect("Section / placement","bPlacement",[{value:"homepage-hero-slider",label:"Homepage Hero Slide"},{value:"homepage",label:"Homepage Hero Slide (existing record)"},{value:"homepage-slider",label:"Homepage Banner Grid (below hero)"},{value:"category",label:"Category Banner"},{value:"campaign",label:"Sale / Deal Banner"},{value:"product",label:"Product Page Banner"},{value:"blog",label:"Blog / Editorial Banner"},{value:"sitewide",label:"Site-wide Banner"}],defaultPlacement,"Choose the section where this banner belongs. The current Mango Pulp hero is included as the first homepage hero slide automatically.")+
  cmsSelect("Banner layout","bDisplayMode",[{value:"overlay",label:"Full-width image with overlay text / button"},{value:"split",label:"Split layout (text beside image)"}],r.display_mode||"overlay","Overlay uses the full image width; split retains the older two-column layout.")+
  cmsField("Overlay text colour","bTextColor",r.text_color||"#ffffff","color","Choose a readable colour for title/subtitle text placed over the image.")+
  cmsSelect("Text position","bTextPosition",[{value:"top-left",label:"Top left"},{value:"top-center",label:"Top centre"},{value:"top-right",label:"Top right"},{value:"middle-left",label:"Middle left"},{value:"center",label:"Centre"},{value:"middle-right",label:"Middle right"},{value:"bottom-left",label:"Bottom left"},{value:"bottom-center",label:"Bottom centre"},{value:"bottom-right",label:"Bottom right"}],r.text_position||"bottom-left")+
  cmsSelect("CTA button corner","bButtonPosition",[{value:"top-left",label:"Top left"},{value:"top-right",label:"Top right"},{value:"bottom-left",label:"Bottom left"},{value:"bottom-right",label:"Bottom right"}],r.button_position||"bottom-right","The button overlays the image instead of taking up extra banner space.")+
- cmsField("Button text","bButtonText",r.button_text,"text")+cmsField("Button URL","bButtonUrl",r.button_url,"text")+cmsField("Sort order","bSort",r.sort_order??0,"number")+cmsField("Start time (optional)","bStart",cmsLocalDatetime(r.starts_at),"datetime-local")+cmsField("End time (optional)","bEnd",cmsLocalDatetime(r.ends_at),"datetime-local")+
+ cmsField("Button text","bButtonText",r.button_text,"text")+cmsField("Button URL","bButtonUrl",r.button_url,"text")+cmsField("Sort order","bSort",r.sort_order??defaultSortOrder,"number","Lower numbers appear first. Drag banner cards in the section list to set order more easily.")+cmsField("Start time (optional)","bStart",cmsLocalDatetime(r.starts_at),"datetime-local")+cmsField("End time (optional)","bEnd",cmsLocalDatetime(r.ends_at),"datetime-local")+
  cmsSelect("CMS status","bActive",[{value:"true",label:"Active in CMS"},{value:"false",label:"Disabled"}],String(r.is_active!==false))+
  '<div class="field full"><label>Image previews</label><div class="banner-preview-grid"><div><div class="field-help">Desktop creative</div><div class="preview-frame" id="bPreview">'+(r.image_url?'<img src="'+esc(r.image_url)+'" alt="Desktop banner preview">':'<span class="hint">Add a desktop image.</span>')+'</div></div><div><div class="field-help">Mobile creative (optional)</div><div class="preview-frame mobile-preview" id="bMobilePreview">'+(r.mobile_image_url?'<img src="'+esc(r.mobile_image_url)+'" alt="Mobile banner preview">':'<span class="hint">Add a mobile image.</span>')+'</div></div></div></div>';
  cmsEditorShell(id===null?"Add Banner / Slider":"Edit Banner / Slider","Upload a wide desktop image and optional portrait mobile image. With Overlay layout, text and the CTA float over the image. If text is already part of the creative, leave the title and subtitle blank.",fields,"cmsSaveBanner("+(id===null?"null":Number(id))+")","banners");
