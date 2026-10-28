@@ -60,6 +60,14 @@
       ".cms-banner-grid .cms-home-banner picture,.cms-banner-grid .cms-home-banner img{display:block;width:100%;height:100%;object-fit:contain}",
       ".cms-banner-grid .cms-home-banner-copy{padding:10px}",
       ".cms-banner-grid .cms-banner-cta{font-size:12px;padding:7px 10px}",
+      ".cms-banner-grid .cms-home-banner--grid{display:flex;flex-direction:column;align-items:stretch;aspect-ratio:auto;height:auto;overflow:hidden;box-sizing:border-box;border:1px solid #333;border-radius:12px;background:#1d1d1d;color:#f5f5f5;text-decoration:none;transition:border-color .15s ease,transform .15s ease}",
+      ".cms-banner-grid .cms-home-banner--grid:hover{border-color:#ff6a00;transform:translateY(-1px)}",
+      ".cms-banner-grid .cms-home-banner--grid:focus-visible{outline:2px solid #ff6a00;outline-offset:2px}",
+      ".cms-banner-grid .cms-home-banner--grid picture{display:block;width:100%;height:auto;aspect-ratio:1/1;overflow:hidden;flex:0 0 auto;background:#f3f4f6}",
+      ".cms-banner-grid .cms-home-banner--grid picture img{display:block;width:100%;height:100%;object-fit:contain}",
+      ".cms-banner-grid .cms-home-banner-grid-copy{display:block;box-sizing:border-box;padding:9px 10px 11px;background:#1d1d1d;color:#f5f5f5}",
+      ".cms-banner-grid .cms-home-banner-grid-copy h2{margin:0;font-size:13px;line-height:1.35;font-weight:750;color:inherit;text-shadow:none}",
+      ".cms-banner-grid .cms-home-banner-grid-copy p{margin:4px 0 0;font-size:12px;line-height:1.4;color:#b8b8b8;text-shadow:none}",
       ".cms-banner-slide>.cms-legacy-hero-slide{margin:0!important;padding:0!important}",
       ".cms-banner-slide>.cms-legacy-hero-slide .container{width:100%;max-width:none;margin:0;padding:0}",
       ".cms-banner-slide>.cms-legacy-hero-slide img{display:block;width:100%;height:auto;object-fit:contain}",
@@ -121,9 +129,11 @@
     box.innerHTML = ['<a class="cms-category-filter" href="/products" aria-current="'+(!selected)+'">All products</a>',
       ...cats.map(c => '<a class="cms-category-filter" href="/products?category='+encodeURIComponent(c.slug)+'" aria-current="'+(selected===c.slug)+'">'+esc(c.name)+'</a>')].join("");
   }
-  function bannerMarkup(b) {
-    const dest = /^javascript:/i.test(b.button_url || "") ? "/products" : (b.button_url || "/products");
-    const external = /^https?:\/\//i.test(dest) ? ' target="_blank" rel="noopener"' : "";
+  function bannerMarkup(b, gridCard = false) {
+    const rawDest = String(b.button_url || "").trim();
+    const hasSafeDest = !!rawDest && !/^javascript:/i.test(rawDest) &&
+      (/^https?:\/\//i.test(rawDest) || !/^[a-z][a-z0-9+.-]*:/i.test(rawDest));
+    const dest = hasSafeDest ? rawDest : "/products";
     const desktop = b.image_url || b.mobile_image_url || "";
     const mobile = b.mobile_image_url || "";
     const title = String(b.title || "").trim();
@@ -140,8 +150,20 @@
       ? '<picture>' + (mobile && mobile !== desktop ? '<source media="(max-width: 700px)" srcset="' + esc(mobile) + '">' : "") +
         '<img src="' + esc(desktop) + '" alt="' + esc(title || "Store promotion") + '" loading="lazy" decoding="async"></picture>'
       : "";
+    if (gridCard) {
+      const copy = (title || subtitle)
+        ? '<div class="cms-home-banner-grid-copy">' + (title ? '<h2>' + esc(title) + '</h2>' : "") +
+          (subtitle ? '<p>' + esc(subtitle) + '</p>' : "") + '</div>'
+        : "";
+      const content = pic + copy;
+      const className = "cms-home-banner cms-home-banner--grid";
+      // A grid card links to its configured URL in the same tab and never renders a CTA button.
+      return hasSafeDest
+        ? '<a class="' + className + '" href="' + esc(dest) + '">' + content + '</a>'
+        : '<div class="' + className + '">' + content + '</div>';
+    }
     if (mode === "split") {
-      return '<a class="cms-home-banner cms-home-banner--split" href="' + esc(dest) + '"' + external + '>' +
+      return '<a class="cms-home-banner cms-home-banner--split" href="' + esc(dest) + '">' +
         '<div class="cms-home-banner-copy">' + (title ? '<h2>' + esc(title) + '</h2>' : "") +
         (subtitle ? '<p>' + esc(subtitle) + '</p>' : "") +
         (buttonText ? '<span class="cms-banner-cta">' + esc(buttonText) + '</span>' : "") +
@@ -149,7 +171,7 @@
     }
     return '<a class="cms-home-banner cms-home-banner--overlay cms-home-banner--text-' + textPosition +
       ' cms-home-banner--button-' + buttonPosition + '" style="--cms-banner-text-color:' + textColor +
-      '" href="' + esc(dest) + '"' + external + '>' + pic +
+      '" href="' + esc(dest) + '">' + pic +
       ((title || subtitle) ? '<div class="cms-home-banner-copy">' + (title ? '<h2>' + esc(title) + '</h2>' : "") +
         (subtitle ? '<p>' + esc(subtitle) + '</p>' : "") + '</div>' : "") +
       (buttonText ? '<span class="cms-banner-cta">' + esc(buttonText) + '</span>' : "") + '</a>';
@@ -170,7 +192,7 @@
     return '<div class="cms-banner-slider" data-cms-slider aria-label="Homepage hero slider"><div class="cms-banner-slider-track" aria-live="polite">' + slides + '</div>' + controls + '</div>';
   }
   function bannerGridMarkup(banners) {
-    return '<div class="cms-banner-grid" aria-label="Homepage banner grid">' + banners.map(bannerMarkup).join("") + '</div>';
+    return '<div class="cms-banner-grid" aria-label="Homepage banner grid">' + banners.map(b => bannerMarkup(b, true)).join("") + '</div>';
   }
   function initBannerSlider(slot, intervalMs = 5500) {
     const slider = slot.querySelector("[data-cms-slider]");
