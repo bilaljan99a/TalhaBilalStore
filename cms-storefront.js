@@ -98,7 +98,7 @@
       ".cms-home-banner--split img{display:block;width:100%;max-height:220px;object-fit:contain;border-radius:10px}",
       ".cms-home-banner--split picture{display:block;width:100%;min-width:0}",
       ".cms-blog-card-image{width:100%;height:100%;min-height:270px;object-fit:cover}",
-      "@media(max-width:700px){.cms-home-banner--split{grid-template-columns:1fr;padding:15px;gap:12px}.cms-home-banner--split img{max-height:210px;grid-row:1}.cms-home-banner--overlay .cms-home-banner-copy{padding:16px}.cms-home-banner--overlay .cms-home-banner-copy h2{font-size:clamp(17px,4.7vw,25px);max-width:85%}.cms-home-banner--overlay .cms-home-banner-copy p{font-size:13px;max-width:85%}.cms-home-banner--overlay .cms-banner-cta{padding:8px 11px;font-size:12px}.cms-slider-control{width:32px;height:32px;font-size:22px}.cms-slider-prev{left:7px}.cms-slider-next{right:7px}.cms-blog-card-image{height:240px;min-height:0}}
+      "@media(max-width:700px){.cms-home-banner--split{grid-template-columns:1fr;padding:15px;gap:12px}.cms-home-banner--split img{max-height:210px;grid-row:1}.cms-home-banner--overlay .cms-home-banner-copy{padding:16px}.cms-home-banner--overlay .cms-home-banner-copy h2{font-size:clamp(17px,4.7vw,25px);max-width:85%}.cms-home-banner--overlay .cms-home-banner-copy p{font-size:13px;max-width:85%}.cms-home-banner--overlay .cms-banner-cta{padding:8px 11px;font-size:12px}.cms-slider-control{width:32px;height:32px;font-size:22px}.cms-slider-prev{left:7px}.cms-slider-next{right:7px}.cms-blog-card-image{height:240px;min-height:0}}",
     ].join("");
     document.head.appendChild(st);
   }
