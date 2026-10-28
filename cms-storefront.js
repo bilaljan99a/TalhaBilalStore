@@ -1,6 +1,7 @@
 (() => {
   "use strict";
   const ENDPOINT = "https://dxdjqeqlmyawqrzphzdb.supabase.co/functions/v1/cms-public";
+  const LEGACY_HERO_BANNER_ID = 4;
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   function firstImage(images) {
     if (!Array.isArray(images)) {
@@ -55,6 +56,11 @@
       ".cms-category-filter{display:inline-flex;padding:9px 14px;border:1px solid #e5e7eb;border-radius:999px;text-decoration:none;color:inherit;background:#fff;font-size:14px;font-weight:650}",
       ".cms-category-filter[aria-current=true],.cms-category-filter:hover{background:#17191d;color:#fff;border-color:#17191d}",
       ".cms-homepage-banners{display:grid;gap:14px;margin:18px auto 24px}",
+      ".cms-home-no-grid-banners #cmsHomepageHeroSlider.cms-homepage-banners{margin:4px auto 0;gap:0}",
+      ".cms-home-no-grid-banners #cmsHomepageHeroSlider .cms-banner-slider{padding-bottom:8px}",
+      ".cms-home-no-grid-banners #cmsHomepageHeroSlider .cms-slider-dots{padding:1px 0}",
+      ".cms-home-no-grid-banners .home-products.products-section{padding-top:28px!important}",
+      "@media(max-width:700px){.cms-home-no-grid-banners #cmsHomepageHeroSlider.cms-homepage-banners{margin:2px auto 0}.cms-home-no-grid-banners #cmsHomepageHeroSlider .cms-banner-slider{padding-bottom:6px}.cms-home-no-grid-banners .home-products.products-section{padding-top:16px!important}.cms-home-no-grid-banners .home-products .section-heading{margin-bottom:18px}}",
       ".cms-banner-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:100%}",
       ".cms-banner-grid .cms-home-banner{margin:0;width:100%;min-width:0;aspect-ratio:1/1;overflow:hidden;border-radius:12px;background:#f3f4f6}",
       ".cms-banner-grid .cms-home-banner picture,.cms-banner-grid .cms-home-banner img{display:block;width:100%;height:100%;object-fit:contain}",
@@ -176,13 +182,27 @@
         (subtitle ? '<p>' + esc(subtitle) + '</p>' : "") + '</div>' : "") +
       (buttonText ? '<span class="cms-banner-cta">' + esc(buttonText) + '</span>' : "") + '</a>';
   }
+  function legacyHeroBannerMarkup(b) {
+    const rawDest = String(b.button_url || "/products").trim();
+    const hasSafeDest = !!rawDest && !/^javascript:/i.test(rawDest) &&
+      (/^https?:\/\//i.test(rawDest) || !/^[a-z][a-z0-9+.-]*:/i.test(rawDest));
+    const dest = hasSafeDest ? rawDest : "/products";
+    const desktop = String(b.image_url || "/assets/here-banner.webp").trim();
+    const mobile = String(b.mobile_image_url || "").trim();
+    const picture = '<picture>' +
+      (mobile && mobile !== desktop ? '<source media="(max-width: 700px)" srcset="' + esc(mobile) + '">' : "") +
+      '<img src="' + esc(desktop) + '" alt="Talha Bilal Store Mango Pulp collection" loading="eager" fetchpriority="high" decoding="async"></picture>';
+    return '<section class="cms-legacy-hero-slide"><div class="container"><a href="' + esc(dest) +
+      '" aria-label="Shop Mango Pulp products">' + picture + '</a></div></section>';
+  }
+
   function bannerSliderMarkup(banners, legacySlideMarkup) {
     const hasLegacy = !!legacySlideMarkup;
     const total = banners.length + (hasLegacy ? 1 : 0);
     const legacySlide = hasLegacy ? '<div class="cms-banner-slide" data-cms-slide="0">' + legacySlideMarkup + '</div>' : '';
     const slides = legacySlide + banners.map((b, i) => {
       const position = i + (hasLegacy ? 1 : 0);
-      return '<div class="cms-banner-slide" data-cms-slide="' + position + '"' + (position ? " hidden" : "") + '>' + bannerMarkup(b) + '</div>';
+      return '<div class="cms-banner-slide" data-cms-slide="' + position + '"' + (position ? " hidden" : "") + '>' + (Number(b.id) === LEGACY_HERO_BANNER_ID ? legacyHeroBannerMarkup(b) : bannerMarkup(b)) + '</div>';
     }).join("");
     const controls = total > 1
       ? '<button type="button" class="cms-slider-control cms-slider-prev" data-slider-prev aria-label="Previous hero slide">‹</button>' +
@@ -220,11 +240,14 @@
   }
   function renderBanners(data) {
     const active = data.banners || [];
+    const hasHomepageGrid = active.some(b => String(b.placement || "").toLowerCase() === "homepage-slider");
+    if (document.getElementById("cmsHomepageHeroSlider")) document.body.classList.toggle("cms-home-no-grid-banners", !hasHomepageGrid);
+    injectStyles();
     const ordered = list => list.slice().sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0) || Number(a.id || 0) - Number(b.id || 0));
     const heroBanners = ordered(active.filter(b => ["homepage","homepage-hero-slider"].includes(String(b.placement || "").toLowerCase())));
     const legacyHero = document.querySelector(".store-banner");
     let legacySlideMarkup = "";
-    if (heroBanners.length && legacyHero) {
+    if (heroBanners.length && legacyHero && !heroBanners.some(b => Number(b.id) === LEGACY_HERO_BANNER_ID)) {
       const clone = legacyHero.cloneNode(true);
       clone.classList.remove("cms-banner-replaced","store-banner");
       clone.classList.add("cms-legacy-hero-slide");
