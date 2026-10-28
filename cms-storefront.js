@@ -86,10 +86,6 @@
       "#cmsHomepageBanners[hidden],#cmsHomepageHeroSlider[hidden],#cmsHomepageSlider[hidden]{display:none!important}",
       ".cms-banner-slider{position:relative;width:100%;padding:0 0 26px}",
       ".cms-banner-slider-track{position:relative;min-width:0}",
-      ".cms-banner-slider .cms-banner-slide:not([hidden]){animation:cms-slide-fade .35s ease}",
-      "@keyframes cms-slide-fade{from{opacity:0}to{opacity:1}}",
-      ".cms-banner-slider .cms-home-banner--overlay picture{display:block;width:100%;aspect-ratio:2/1;overflow:hidden;background:#f3f4f6}",
-      ".cms-banner-slider .cms-home-banner--overlay img{width:100%;height:100%;object-fit:contain;background:#f3f4f6}",
       ".cms-banner-slide[hidden]{display:none!important}",
       ".cms-banner-slider .cms-home-banner{margin:0;width:100%}",
       ".cms-banner-slider .cms-home-banner--split{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);min-height:220px}",
@@ -143,7 +139,7 @@
     box.innerHTML = ['<a class="cms-category-filter" href="/products" aria-current="'+(!selected)+'">All products</a>',
       ...cats.map(c => '<a class="cms-category-filter" href="/products?category='+encodeURIComponent(c.slug)+'" aria-current="'+(selected===c.slug)+'">'+esc(c.name)+'</a>')].join("");
   }
-  function bannerMarkup(b, gridCard = false, data = null, eager = false) {
+  function bannerMarkup(b, gridCard = false, data = null) {
     const rawDest = String(b.button_url || "").trim();
     const hasSafeDest = !!rawDest && !/^javascript:/i.test(rawDest) &&
       (/^https?:\/\//i.test(rawDest) || !/^[a-z][a-z0-9+.-]*:/i.test(rawDest));
@@ -162,7 +158,7 @@
     const textColor = /^#[0-9a-f]{6}$/i.test(rawColor) ? rawColor : "#ffffff";
     const pic = desktop
       ? '<picture>' + (mobile && mobile !== desktop ? '<source media="(max-width: 700px)" srcset="' + esc(mobile) + '">' : "") +
-        '<img src="' + esc(desktop) + '" alt="' + esc(title || "Store promotion") + '" loading="' + (eager ? "eager" : "lazy") + '" decoding="async"' + (eager ? ' fetchpriority="high"' : "") + '></picture>'
+        '<img src="' + esc(desktop) + '" alt="' + esc(title || "Store promotion") + '" loading="lazy" decoding="async"></picture>'
       : "";
     if (gridCard) {
       const copy = (title || subtitle)
@@ -208,7 +204,7 @@
     const total = banners.length;
     const slides = banners.map((b, position) => {
       return '<div class="cms-banner-slide" data-cms-slide="' + position + '"' +
-        (position ? " hidden" : "") + '>' + bannerMarkup(b, false, null, position === 0) + '</div>';
+        (position ? " hidden" : "") + '>' + bannerMarkup(b) + '</div>';
     }).join("");
     const controls = total > 1
       ? '<button type="button" class="cms-slider-control cms-slider-prev" data-slider-prev aria-label="Previous hero slide">‹</button>' +
