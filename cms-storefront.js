@@ -76,6 +76,7 @@
       ".cms-banner-grid .cms-home-banner-grid-copy p{margin:4px 0 0;font-size:11px;line-height:1.35;color:#5f6368;text-shadow:none;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}",
       ".cms-banner-grid .cms-grid-add{position:absolute;right:8px;bottom:8px;z-index:3;display:flex;align-items:center;justify-content:center;width:27px;height:27px;padding:0;border:0;border-radius:50%;background:#ff6a00;color:#fff;font-size:21px;line-height:1;font-weight:700;box-shadow:0 2px 7px #0002}",
       ".cms-banner-grid .cms-grid-add:hover{background:#e85f00}",
+      ".cms-banner-grid .cms-grid-add-icon{display:block;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}",
       ".cms-banner-grid .cms-grid-add:focus-visible{outline:2px solid #17191d;outline-offset:2px}",
       ".cms-banner-slide>.cms-legacy-hero-slide{margin:0!important;padding:0!important}",
       ".cms-banner-slide>.cms-legacy-hero-slide .container{width:100%;max-width:none;margin:0;padding:0}",
