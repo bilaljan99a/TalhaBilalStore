@@ -132,20 +132,19 @@
       : "";
     if (mode === "split") {
       return '<a class="cms-home-banner cms-home-banner--split" href="' + esc(dest) + '"' + external + '>' +
-        '<span class="cms-home-banner-copy">' + (title ? '<h2>' + esc(title) + '</h2>' : "") +
+        '<div class="cms-home-banner-copy">' + (title ? '<h2>' + esc(title) + '</h2>' : "") +
         (subtitle ? '<p>' + esc(subtitle) + '</p>' : "") +
         (buttonText ? '<span class="cms-banner-cta">' + esc(buttonText) + '</span>' : "") +
-        '</span>' + pic + '</a>';
+        '</div>' + pic + '</a>';
     }
     return '<a class="cms-home-banner cms-home-banner--overlay cms-home-banner--text-' + textPosition +
       ' cms-home-banner--button-' + buttonPosition + '" style="--cms-banner-text-color:' + textColor +
       '" href="' + esc(dest) + '"' + external + '>' + pic +
-      ((title || subtitle) ? '<span class="cms-home-banner-copy">' + (title ? '<h2>' + esc(title) + '</h2>' : "") +
-        (subtitle ? '<p>' + esc(subtitle) + '</p>' : "") + '</span>' : "") +
+      ((title || subtitle) ? '<div class="cms-home-banner-copy">' + (title ? '<h2>' + esc(title) + '</h2>' : "") +
+        (subtitle ? '<p>' + esc(subtitle) + '</p>' : "") + '</div>' : "") +
       (buttonText ? '<span class="cms-banner-cta">' + esc(buttonText) + '</span>' : "") + '</a>';
   }
-  
-function bannerSliderMarkup(banners) {
+  function bannerSliderMarkup(banners) {
     const slides = banners.map((b, i) => '<div class="cms-banner-slide" data-cms-slide="' + i + '"' + (i ? " hidden" : "") + '>' + bannerMarkup(b) + '</div>').join("");
     const controls = banners.length > 1
       ? '<button type="button" class="cms-slider-control cms-slider-prev" data-slider-prev aria-label="Previous promotion">‹</button>' +
