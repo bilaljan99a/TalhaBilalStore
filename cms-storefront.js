@@ -65,19 +65,23 @@
       ".cms-banner-grid .cms-home-banner picture,.cms-banner-grid .cms-home-banner img{display:block;width:100%;height:100%;object-fit:contain}",
       ".cms-banner-grid .cms-home-banner-copy{padding:10px}",
       ".cms-banner-grid .cms-banner-cta{font-size:12px;padding:7px 10px}",
-      ".cms-banner-grid .cms-home-banner--grid{display:flex;flex-direction:column;align-items:stretch;aspect-ratio:auto;height:auto;overflow:hidden;box-sizing:border-box;border:1px solid #333;border-radius:12px;background:#1d1d1d;color:#f5f5f5;text-decoration:none;transition:border-color .15s ease,transform .15s ease}",
+      ".cms-banner-grid .cms-home-banner--grid{position:relative;display:flex;flex-direction:column;align-items:stretch;aspect-ratio:auto;height:auto;min-width:0;overflow:hidden;box-sizing:border-box;border:1px solid #e5e7eb;border-radius:12px;background:#fff;color:#17191d;text-decoration:none;transition:border-color .15s ease,transform .15s ease}",
       ".cms-banner-grid .cms-home-banner--grid:hover{border-color:#ff6a00;transform:translateY(-1px)}",
+      ".cms-banner-grid .cms-home-banner-grid-link{display:block;min-width:0;color:inherit;text-decoration:none}",
       ".cms-banner-grid .cms-home-banner--grid:focus-visible{outline:2px solid #ff6a00;outline-offset:2px}",
-      ".cms-banner-grid .cms-home-banner--grid picture{display:block;width:100%;height:auto;aspect-ratio:1/1;overflow:hidden;flex:0 0 auto;background:#f3f4f6}",
-      ".cms-banner-grid .cms-home-banner--grid picture img{display:block;width:100%;height:100%;object-fit:contain}",
-      ".cms-banner-grid .cms-home-banner-grid-copy{display:block;box-sizing:border-box;padding:9px 10px 11px;background:#1d1d1d;color:#f5f5f5}",
-      ".cms-banner-grid .cms-home-banner-grid-copy h2{margin:0;font-size:13px;line-height:1.35;font-weight:750;color:inherit;text-shadow:none}",
-      ".cms-banner-grid .cms-home-banner-grid-copy p{margin:4px 0 0;font-size:12px;line-height:1.4;color:#b8b8b8;text-shadow:none}",
+      ".cms-banner-grid .cms-home-banner--grid picture{display:block;width:100%;height:auto;aspect-ratio:1/1;overflow:hidden;flex:0 0 auto;background:#fff}",
+      ".cms-banner-grid .cms-home-banner--grid picture img{display:block;width:100%;height:100%;object-fit:contain;background:#fff}",
+      ".cms-banner-grid .cms-home-banner-grid-copy{display:block;box-sizing:border-box;min-height:54px;padding:8px 34px 9px 9px;background:#fff;color:#17191d}",
+      ".cms-banner-grid .cms-home-banner-grid-copy h2{margin:0;font-size:12px;line-height:1.3;font-weight:750;color:inherit;text-shadow:none;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}",
+      ".cms-banner-grid .cms-home-banner-grid-copy p{margin:4px 0 0;font-size:11px;line-height:1.35;color:#5f6368;text-shadow:none;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}",
+      ".cms-banner-grid .cms-grid-add{position:absolute;right:8px;bottom:8px;z-index:3;display:flex;align-items:center;justify-content:center;width:27px;height:27px;padding:0;border:0;border-radius:50%;background:#ff6a00;color:#fff;font-size:21px;line-height:1;font-weight:700;box-shadow:0 2px 7px #0002}",
+      ".cms-banner-grid .cms-grid-add:hover{background:#e85f00}",
+      ".cms-banner-grid .cms-grid-add:focus-visible{outline:2px solid #17191d;outline-offset:2px}",
       ".cms-banner-slide>.cms-legacy-hero-slide{margin:0!important;padding:0!important}",
       ".cms-banner-slide>.cms-legacy-hero-slide .container{width:100%;max-width:none;margin:0;padding:0}",
       ".cms-banner-slide>.cms-legacy-hero-slide img{display:block;width:100%;height:auto;object-fit:contain}",
       "@media(max-width:900px){.cms-banner-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}",
-      "@media(max-width:480px){.cms-banner-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.cms-banner-grid .cms-home-banner--overlay{border-radius:8px}}",
+      "@media(max-width:480px){.cms-banner-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.cms-banner-grid .cms-home-banner--grid{border-radius:10px}.cms-banner-grid .cms-home-banner--grid picture{aspect-ratio:1/1}.cms-banner-grid .cms-home-banner-grid-copy{min-height:48px;padding:7px 30px 8px 8px}.cms-banner-grid .cms-home-banner-grid-copy h2{font-size:11px;line-height:1.25}.cms-banner-grid .cms-home-banner-grid-copy p{font-size:10px;line-height:1.3}.cms-banner-grid .cms-grid-add{right:6px;bottom:6px;width:24px;height:24px;font-size:19px}.cms-banner-grid .cms-home-banner--overlay{border-radius:8px}}",
       "#cmsHomepageBanners[hidden],#cmsHomepageHeroSlider[hidden],#cmsHomepageSlider[hidden]{display:none!important}",
       ".cms-banner-slider{position:relative;width:100%;padding:0 0 26px}",
       ".cms-banner-slider-track{position:relative;min-width:0}",
@@ -134,7 +138,7 @@
     box.innerHTML = ['<a class="cms-category-filter" href="/products" aria-current="'+(!selected)+'">All products</a>',
       ...cats.map(c => '<a class="cms-category-filter" href="/products?category='+encodeURIComponent(c.slug)+'" aria-current="'+(selected===c.slug)+'">'+esc(c.name)+'</a>')].join("");
   }
-  function bannerMarkup(b, gridCard = false) {
+  function bannerMarkup(b, gridCard = false, data = null) {
     const rawDest = String(b.button_url || "").trim();
     const hasSafeDest = !!rawDest && !/^javascript:/i.test(rawDest) &&
       (/^https?:\/\//i.test(rawDest) || !/^[a-z][a-z0-9+.-]*:/i.test(rawDest));
@@ -160,12 +164,26 @@
         ? '<div class="cms-home-banner-grid-copy">' + (title ? '<h2>' + esc(title) + '</h2>' : "") +
           (subtitle ? '<p>' + esc(subtitle) + '</p>' : "") + '</div>'
         : "";
-      const content = pic + copy;
       const className = "cms-home-banner cms-home-banner--grid";
-      // A grid card links to its configured URL in the same tab and never renders a CTA button.
-      return hasSafeDest
-        ? '<a class="' + className + '" href="' + esc(dest) + '">' + content + '</a>'
-        : '<div class="' + className + '">' + content + '</div>';
+      let linkedProduct = null;
+      if (hasSafeDest) {
+        try {
+          const path = new URL(dest, window.location.origin).pathname.replace(/\/$/, "");
+          const match = path.match(/^\/product\/([^/]+)$/i);
+          if (match) {
+            const key = decodeURIComponent(match[1]);
+            const products = (data && (data.siteProducts || data.products)) || window.PRODUCTS || [];
+            linkedProduct = products.find(p => String(p.id) === key || String(p.slug || "") === key) || null;
+          }
+        } catch (_) {}
+      }
+      const cardLink = hasSafeDest
+        ? '<a class="cms-home-banner-grid-link" href="' + esc(dest) + '" aria-label="View ' + esc(title || "product") + '">' + pic + copy + '</a>'
+        : pic + copy;
+      const addButton = linkedProduct
+        ? '<button class="cms-grid-add" type="button" data-add="' + esc(linkedProduct.id) + '" aria-label="Add ' + esc(linkedProduct.name || title || "product") + ' to cart" title="Add to cart">+</button>'
+        : "";
+      return '<div class="' + className + '">' + cardLink + addButton + '</div>';
     }
     if (mode === "split") {
       return '<a class="cms-home-banner cms-home-banner--split" href="' + esc(dest) + '">' +
@@ -194,8 +212,8 @@
       : "";
     return '<div class="cms-banner-slider" data-cms-slider aria-label="Homepage hero slider"><div class="cms-banner-slider-track" aria-live="polite">' + slides + '</div>' + controls + '</div>';
   }
-  function bannerGridMarkup(banners) {
-    return '<div class="cms-banner-grid" aria-label="Homepage banner grid">' + banners.map(b => bannerMarkup(b, true)).join("") + '</div>';
+  function bannerGridMarkup(banners, data) {
+    return '<div class="cms-banner-grid" aria-label="Homepage banner grid">' + banners.map(b => bannerMarkup(b, true, data)).join("") + '</div>';
   }
   function initBannerSlider(slot, intervalMs = 5500) {
     const slider = slot.querySelector("[data-cms-slider]");
@@ -246,7 +264,7 @@
         slot.innerHTML = bannerSliderMarkup(banners);
         initBannerSlider(slot, slotInfo.intervalMs || 5500);
       } else if (slotInfo.grid) {
-        slot.innerHTML = bannerGridMarkup(banners);
+        slot.innerHTML = bannerGridMarkup(banners, data);
       } else {
         slot.innerHTML = banners.map(bannerMarkup).join("");
       }
