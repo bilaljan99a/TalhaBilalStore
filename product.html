@@ -108,7 +108,7 @@ qMinus?.addEventListener('click',()=>{let q=parseInt(qInput?.value,10)||1;if(q>1
 qPlus?.addEventListener('click',()=>{let q=parseInt(qInput?.value,10)||1;if(q<99){qInput.value=q+1;syncMangoQty()}});
 qInput?.addEventListener('input',syncMangoQty);qInput?.addEventListener('change',syncMangoQty);
 document.querySelectorAll('[data-gallery-src]').forEach(btn=>btn.addEventListener('click',()=>{const main=document.getElementById('galleryMain');if(!main)return;main.src=btn.dataset.gallerySrc;main.alt=btn.dataset.galleryAlt;document.querySelectorAll('.gallery-thumb').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}))}
-async function loadReviews(){const box=document.getElementById('productReviews');if(!box)return;if(p?.isCmsProduct&&!p.isMangoPremix){box.innerHTML='<div class="empty-reviews">No reviews for this product yet.</div>';return}box.innerHTML=reviewMarkup([]);if(!supabaseClient)return;try{const {data,error}=await supabaseClient.from('reviews').select('customer_name,rating,review_text,image_urls,created_at').eq('approved',true).order('created_at',{ascending:false});if(!error)box.innerHTML=reviewMarkup(data||[])}catch{}}
+async function loadReviews(){const box=document.getElementById('productReviews');if(!box)return;if(p?.isCmsProduct&&!p.isMangoPremix){const sec=box.closest('.customer-reviews-section');if(sec){sec.hidden=true}else{box.innerHTML=''};return}box.innerHTML=reviewMarkup([]);if(!supabaseClient)return;try{const {data,error}=await supabaseClient.from('reviews').select('customer_name,rating,review_text,image_urls,created_at').eq('approved',true).order('created_at',{ascending:false});if(!error)box.innerHTML=reviewMarkup(data||[])}catch{}}
 function cmsDeliveryFee(weight,mode="weight",manualFee=0){
  if(mode==="manual")return Math.max(0,Number(manualFee)||0);
  const w=Math.max(0,Math.ceil(Number(weight)||0));
@@ -355,7 +355,7 @@ function renderCmsGenericProduct(){
  cmsProductVideoMarkup(p.videoUrl,p.name)+
  '<section class="detail-accordions"><div class="detail-static-product-details"><h2 class="detail-static-title">Product Details</h2><div class="accordion-content detail-rich-body">'+renderProductDescription(p.description)+'</div></div>'+
  '<details open><summary>Delivery Information <span>⌄</span></summary><div class="accordion-content"><p data-cms-delivery-copy>'+esc(deliveryCopy)+'</p></div></details></section>'+
- '<section class="detail-section customer-reviews-section"><div class="section-heading"><div><span class="eyebrow">CUSTOMER REVIEWS</span><h2>Reviews for this product</h2></div></div><div id="productReviews"><div class="empty-reviews">No reviews for this product yet.</div></div></section>'+cmsRelatedProductsMarkup(p)+
+ '<section class="detail-section customer-reviews-section"><div class="section-heading"><div><span class="eyebrow">CUSTOMER REVIEWS</span><h2>Reviews for this product</h2></div></div><div id="productReviews"></div></section>'+cmsRelatedProductsMarkup(p)+
  '<div class="detail-bottom-link"><a class="detail-back" href="/products">← All Products</a></div>';
 
  document.querySelectorAll('[data-cms-gallery]').forEach(btn=>btn.addEventListener('click',()=>{const im=document.getElementById('cmsGalleryMain');if(im)im.src=btn.dataset.cmsGallery;document.querySelectorAll('[data-cms-gallery]').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}));
