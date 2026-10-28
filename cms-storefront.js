@@ -181,7 +181,7 @@
         ? '<a class="cms-home-banner-grid-link" href="' + esc(dest) + '" aria-label="View ' + esc(title || "product") + '">' + pic + copy + '</a>'
         : pic + copy;
       const addButton = linkedProduct
-        ? '<button class="cms-grid-add" type="button" data-add="' + esc(linkedProduct.id) + '" aria-label="Add ' + esc(linkedProduct.name || title || "product") + ' to cart" title="Add to cart">+</button>'
+        ? '<button class="cms-grid-add" type="button" data-add="' + esc(linkedProduct.id) + '" aria-label="Add ' + esc(linkedProduct.name || title || "product") + ' to cart" title="Add to cart"><svg class="cms-grid-add-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 3h2l2.2 11.1a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.4L21 8H6"/><circle cx="10" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/><path d="M16 4v5M13.5 6.5h5"/></svg></button>'
         : "";
       return '<div class="' + className + '">' + cardLink + addButton + '</div>';
     }
