@@ -337,21 +337,42 @@ function renderBlogListing(data) {
     const bottomTitle = document.getElementById("categoryDescriptionTitle");
     const bottomText = document.getElementById("categoryDescriptionText");
 
-    // The All Products record is editable in CMS. The template used to ignore
-    // its title/content and always show the hard-coded catalogue introduction.
+    // All Products: title only at the top on every screen, like category
+    // pages. The catalogue introduction moves below the products instead
+    // of pushing them down, so the page opens on the products immediately.
+    // Best-seller / new-product views keep their previous behaviour.
     if (!categorySlug) {
-      if (bottom) bottom.hidden = true;
+      const viewParam = new URLSearchParams(location.search).get("view");
       const cataloguePage = (data.pages || []).find(page =>
         String(page.slug || "").toLowerCase() === "products" &&
         String(page.status || "published").toLowerCase() === "published"
       );
+      let pageTitle = "";
+      let pageIntro = "";
       if (cataloguePage) {
-        const pageTitle = String(cataloguePage.title || "").trim();
-        if (pageTitle) title.textContent = pageTitle;
+        pageTitle = String(cataloguePage.title || "").trim();
         const sections = Array.isArray(cataloguePage.sections) ? cataloguePage.sections : [];
         const introSection = sections.find(section => section && section.key === "cms-page-content");
-        const pageIntro = catalogPlainText(introSection && introSection.content);
+        pageIntro = catalogPlainText(introSection && introSection.content);
+      }
+      if (pageTitle) title.textContent = pageTitle;
+      if (viewParam) {
+        if (bottom) bottom.hidden = true;
         if (pageIntro) intro.textContent = pageIntro;
+        return;
+      }
+      if (!pageIntro) pageIntro = String(intro.textContent || "").trim();
+      if (intro) intro.hidden = true;
+      if (bottom && bottomTitle && bottomText) {
+        if (pageIntro) {
+          const eyebrow = bottom.querySelector(".eyebrow");
+          if (eyebrow) eyebrow.textContent = "ABOUT OUR CATALOGUE";
+          bottomTitle.textContent = "About Our Products";
+          bottomText.textContent = pageIntro;
+          bottom.hidden = false;
+        } else {
+          bottom.hidden = true;
+        }
       }
       return;
     }
