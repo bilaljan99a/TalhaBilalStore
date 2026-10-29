@@ -292,7 +292,7 @@ function faqs(){app.innerHTML=head('FAQs','Manage questions and answers shown ac
 function addFaq(){db.faqs.push({q:'New Question',a:'New Answer'});save();render('faqs')}
 function seo(){app.innerHTML=head('SEO Manager','Central place for page titles, meta descriptions and indexing controls.')+'<div class="panel"><div class="form-grid"><div class="field full"><label>Homepage SEO Title</label><input id="st" value="'+esc(db.seo.homeTitle)+'"></div><div class="field full"><label>Homepage Meta Description</label><textarea id="sm">'+esc(db.seo.homeMeta)+'</textarea></div><div class="field"><label>Indexing</label><select><option>Index, Follow</option><option>Noindex, Follow</option></select></div><div class="field"><label>Canonical</label><input placeholder="https://www.talhabilalstore.com/"></div></div><div class="section-actions"><button class="btn primary" onclick="db.seo.homeTitle=document.getElementById(\'st\').value;db.seo.homeMeta=document.getElementById(\'sm\').value;save();alert(\'Demo SEO settings saved.\')">Save SEO</button></div></div>'}
 function settings(){app.innerHTML=head('Website Settings','Store-wide information used by the website.')+'<div class="panel"><div class="form-grid"><div class="field"><label>Store Name</label><input id="sn" value="'+esc(db.settings.store)+'"></div><div class="field"><label>WhatsApp</label><input id="sw" value="'+esc(db.settings.whatsapp)+'"></div><div class="field full"><label>Announcement Bar</label><input id="sa" value="'+esc(db.settings.announcement)+'"></div></div><div class="section-actions"><button class="btn primary" onclick="db.settings.store=document.getElementById(\'sn\').value;db.settings.whatsapp=document.getElementById(\'sw\').value;db.settings.announcement=document.getElementById(\'sa\').value;save();alert(\'Demo settings saved.\')">Save Settings</button></div></div>'}
-function removeItem(type,i){if(confirm('Delete this demo item?')){db[type].splice(i,1);save();render(type==='products'?'products':type)}}
+function removeItem(type,i){cmsConfirmDialog('Delete this demo item?',()=>{db[type].splice(i,1);save();render(type==='products'?'products':type)});}
 document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-page]');if(b)render(b.dataset.page)});
 
 const SUPABASE_URL="https://dxdjqeqlmyawqrzphzdb.supabase.co";
@@ -1545,9 +1545,10 @@ function cmsMoveProductImage(index,direction){
 function cmsRemoveProductImage(index){
  const images=cmsReadProductImageLines();
  if(!Number.isInteger(index)||index<0||index>=images.length)return;
- if(!confirm("Remove this image from the product gallery? The uploaded file will remain in storage."))return;
- images.splice(index,1);
- cmsWriteProductImageLines(images);
+ cmsConfirmDialog("Remove this image from the product gallery? The uploaded file will remain in storage.",()=>{
+  images.splice(index,1);
+  cmsWriteProductImageLines(images);
+ }, "Remove");
 }
 function cmsRenderImageOrder(){
  const host=document.getElementById("cmsImageOrder"),input=document.getElementById("pImages");
@@ -2006,9 +2007,70 @@ async function cmsSave(page,id){const cfg=CMS_SCHEMAS[page],data={};try{
  }
  await cmsRequest(cfg.table,id===null?"POST":"PATCH",id,data);await cmsManage(page);
 }catch(e){const b=document.getElementById("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}
+// --- DOM confirm dialog (replaces native confirm() for deletes/removals) ---
+// Native confirm() cannot be driven by an automated browser (it dismisses it),
+// which is why automated record deletes never executed. This in-page dialog
+// keeps the same safety guard for a human (nothing is deleted until Confirm
+// is clicked) and works for automation too.
+// Stable ids: #cms-confirm-dialog, #cms-confirm-dialog-text,
+// #cms-confirm-dialog-confirm, #cms-confirm-dialog-cancel.
+let cmsConfirmDialogEl = null, cmsConfirmDialogAction = null;
+function cmsConfirmDialogBuild(){
+ if(cmsConfirmDialogEl) return cmsConfirmDialogEl;
+ const overlay = document.createElement("div");
+ overlay.id = "cms-confirm-dialog";
+ overlay.setAttribute("role", "dialog");
+ overlay.setAttribute("aria-modal", "true");
+ overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:none;align-items:center;justify-content:center;padding:16px";
+ const box = document.createElement("div");
+ box.style.cssText = "background:#fff;color:#111;border-radius:12px;padding:20px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.35)";
+ const title = document.createElement("h3");
+ title.style.cssText = "margin:0 0 10px;font-size:17px";
+ title.textContent = "Confirm delete";
+ const text = document.createElement("p");
+ text.id = "cms-confirm-dialog-text";
+ text.style.cssText = "margin:0;line-height:1.55;font-size:14px;color:#374151";
+ const row = document.createElement("div");
+ row.style.cssText = "display:flex;gap:8px;justify-content:flex-end;margin-top:16px";
+ const cancel = document.createElement("button");
+ cancel.type = "button"; cancel.id = "cms-confirm-dialog-cancel"; cancel.textContent = "Cancel";
+ cancel.style.cssText = "padding:9px 16px;border:1px solid #cbd5e1;background:#fff;border-radius:8px;cursor:pointer";
+ cancel.onclick = cmsConfirmDialogClose;
+ const confirmBtn = document.createElement("button");
+ confirmBtn.type = "button"; confirmBtn.id = "cms-confirm-dialog-confirm"; confirmBtn.textContent = "Delete";
+ confirmBtn.style.cssText = "padding:9px 16px;border:0;background:#dc2626;color:#fff;border-radius:8px;cursor:pointer;font-weight:700";
+ confirmBtn.onclick = cmsConfirmDialogRun;
+ row.appendChild(cancel); row.appendChild(confirmBtn);
+ box.appendChild(title); box.appendChild(text); box.appendChild(row);
+ overlay.appendChild(box);
+ overlay.addEventListener("click", function(e){ if(e.target === overlay) cmsConfirmDialogClose(); });
+ document.addEventListener("keydown", function(e){ if(e.key === "Escape" && overlay.style.display === "flex") cmsConfirmDialogClose(); });
+ document.body.appendChild(overlay);
+ cmsConfirmDialogEl = overlay;
+ return overlay;
+}
+function cmsConfirmDialog(message, onConfirm, confirmLabel){
+ const dlg = cmsConfirmDialogBuild();
+ const text = document.getElementById("cms-confirm-dialog-text");
+ const btn = document.getElementById("cms-confirm-dialog-confirm");
+ if(text) text.textContent = message;
+ if(btn) btn.textContent = confirmLabel || "Delete";
+ cmsConfirmDialogAction = onConfirm;
+ dlg.style.display = "flex";
+}
+function cmsConfirmDialogClose(){
+ if(cmsConfirmDialogEl) cmsConfirmDialogEl.style.display = "none";
+ cmsConfirmDialogAction = null;
+}
+function cmsConfirmDialogRun(){
+ const action = cmsConfirmDialogAction;
+ cmsConfirmDialogClose();
+ if(typeof action === "function") action();
+}
 async function cmsDelete(page,id){
- if(!confirm("Delete this CMS record? This does not delete live storefront products or orders."))return;
- try{await cmsRequest(CMS_SCHEMAS[page].table,"DELETE",id);await cmsManage(page)}catch(e){alert(e.message)}
+ cmsConfirmDialog("Delete this CMS record? This does not delete live storefront products or orders.", async ()=>{
+  try{await cmsRequest(CMS_SCHEMAS[page].table,"DELETE",id);await cmsManage(page)}catch(e){alert(e.message)}
+ });
 }
 const oldRenderForCms=render;
 render=function(page="dashboard"){
