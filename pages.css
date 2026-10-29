@@ -4,5 +4,5 @@
 .category-description-bottom[hidden]{display:none!important}
 .category-description-bottom .container{max-width:980px}
 .category-description-bottom h2{font-size:clamp(22px,3vw,30px);line-height:1.2;letter-spacing:-.025em;margin:8px 0 12px}
-.category-description-bottom p{max-width:900px;color:var(--muted);font-size:14px;line-height:1.8;margin:0}
+.category-description-bottom p{max-width:900px;color:var(--muted);font-size:14px;line-height:1.8;margin:0;white-space:pre-line}
 @media(max-width:560px){.category-description-bottom{padding:24px 0 34px}.category-description-bottom p{font-size:13px;line-height:1.7}}
