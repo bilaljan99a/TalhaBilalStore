@@ -5,4 +5,13 @@
 .category-description-bottom .container{max-width:980px}
 .category-description-bottom h2{font-size:clamp(22px,3vw,30px);line-height:1.2;letter-spacing:-.025em;margin:8px 0 12px}
 .category-description-bottom p{max-width:900px;color:var(--muted);font-size:14px;line-height:1.8;margin:0;white-space:pre-line}
-@media(max-width:560px){.category-description-bottom{padding:24px 0 34px}.category-description-bottom p{font-size:13px;line-height:1.7}}
+.category-description-bottom .category-description-text{max-width:900px;color:var(--muted);font-size:14px;line-height:1.8;white-space:pre-line}
+.category-description-bottom .category-description-text p{white-space:normal;margin:0 0 12px}
+.category-description-bottom .category-description-text h2{font-size:22px;line-height:1.3;color:var(--ink);margin:20px 0 10px}
+.category-description-bottom .category-description-text h3{font-size:18px;line-height:1.35;color:var(--ink);margin:18px 0 8px}
+.category-description-bottom .category-description-text h4{font-size:15px;line-height:1.4;color:var(--ink);margin:16px 0 8px}
+.category-description-bottom .category-description-text ul,.category-description-bottom .category-description-text ol{margin:0 0 14px;padding-left:22px}
+.category-description-bottom .category-description-text li{margin:0 0 6px}
+.category-description-bottom .category-description-text img{max-width:100%;height:auto;border-radius:10px}
+.category-description-bottom .category-description-text blockquote{border-left:3px solid var(--orange);margin:14px 0;padding:8px 14px;color:var(--muted)}
+@media(max-width:560px){.category-description-bottom{padding:24px 0 34px}.category-description-bottom p{font-size:13px;line-height:1.7}.category-description-bottom .category-description-text{font-size:13px;line-height:1.7}}

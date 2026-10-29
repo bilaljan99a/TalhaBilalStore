@@ -327,6 +327,24 @@ function renderBlogListing(data) {
     template.innerHTML = String(value || "");
     return (template.content.textContent || "").replace(/\\s+/g, " ").trim();
   }
+  // Same safety rules as the admin editor sanitizer: admin-authored HTML is
+  // allowed, but scripts, embeds, forms and event-handler attributes are not.
+  function catalogSafeHtml(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    const template = document.createElement("template");
+    template.innerHTML = raw;
+    template.content.querySelectorAll("script,iframe,object,embed,form,input,button").forEach(x => x.remove());
+    template.content.querySelectorAll("*").forEach(el => {
+      [...el.attributes].forEach(attr => {
+        const attrName = attr.name.toLowerCase();
+        if (/^on/i.test(attrName)) el.removeAttribute(attr.name);
+        if (["href", "src", "xlink:href"].includes(attrName) && /^\s*javascript:/i.test(attr.value)) el.removeAttribute(attr.name);
+      });
+      if (el.tagName === "IMG") el.setAttribute("loading", "lazy");
+    });
+    return template.innerHTML;
+  }
   function renderCatalogHero(data) {
     const title = document.getElementById("catalogTitle");
     const intro = document.getElementById("catalogIntro");
@@ -389,15 +407,17 @@ function renderBlogListing(data) {
     }
 
     const name = String(category.name || "Shop by Category").trim();
-    const description = catalogPlainText(category.description);
+    const rawDescription = String(category.description || "").trim();
+    const descriptionHasMarkup = /<(?:h[1-6]|p|div|img|ul|ol|li|section|header|figure|table|blockquote|a|hr|br|strong|b|em|i|u|span)\b/i.test(rawDescription);
     const fallbackDescription = "Explore " + name + " products at Talha Bilal Store. Cash on Delivery available across Pakistan.";
     title.textContent = name;
     if (intro) intro.hidden = true;
 
     if (bottom && bottomTitle && bottomText) {
-      if (description) {
+      if (rawDescription) {
         bottomTitle.textContent = "About " + name;
-        bottomText.textContent = description;
+        if (descriptionHasMarkup) bottomText.innerHTML = catalogSafeHtml(rawDescription);
+        else bottomText.textContent = rawDescription;
         bottom.hidden = false;
       } else {
         bottom.hidden = true;
