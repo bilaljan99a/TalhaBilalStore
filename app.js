@@ -11,7 +11,8 @@ function catalogCategorySlug(product){if(product?.categorySlug)return product.ca
 function catalogCategoryName(product){return product?.categoryName||CATEGORY_LABELS[catalogCategorySlug(product)]||'';}
 let catalogSearchQuery=productGrid?(new URLSearchParams(location.search).get('q')||'').trim():'';
 const CATALOG_SORT_OPTIONS=['featured','best-selling','newest','oldest','price-asc','price-desc','name-asc','name-desc'];
-const requestedSort=productGrid?new URLSearchParams(location.search).get('sort')||'featured':'featured';
+const catalogParams=productGrid?new URLSearchParams(location.search):null;
+const requestedSort=productGrid?(catalogParams.get('sort')||(catalogParams.get('view')==='new-products'?'newest':'featured')):'featured';
 let catalogSort=CATALOG_SORT_OPTIONS.includes(requestedSort)?requestedSort:'featured';
 function catalogSearchMatches(product,query){if(!query)return true;const hay=[product?.name,product?.description,product?.shortDescription,product?.short_description,product?.tag,catalogCategoryName(product),product?.id].filter(Boolean).join(' ').toLowerCase();return query.toLowerCase().split(/\s+/).filter(Boolean).every(word=>hay.includes(word));}
 function renderCatalogToolbar(filteredList){
