@@ -331,7 +331,8 @@ function renderBlogListing(data) {
     const intro = document.getElementById("catalogIntro");
     if (!title || !intro) return;
 
-    const categorySlug = new URLSearchParams(location.search).get("category");
+    const categoryParams = new URLSearchParams(location.search);
+    const categorySlug = (categoryParams.get("category") || categoryParams.get("cat") || "").trim().toLowerCase().replace(/[&_\s]+/g, "-").replace(/-+/g, "-");
     const bottom = document.getElementById("categoryDescriptionBottom");
     const bottomTitle = document.getElementById("categoryDescriptionTitle");
     const bottomText = document.getElementById("categoryDescriptionText");
@@ -357,9 +358,11 @@ function renderBlogListing(data) {
 
     // Category title and description are driven directly by the active CMS
     // category record, not a hard-coded list in products.html.
-    const category = (data.categories || []).find(c => String(c.slug) === categorySlug);
+    const category = (data.categories || []).find(c => String(c.slug || "").trim().toLowerCase().replace(/[&_\s]+/g, "-").replace(/-+/g, "-") === categorySlug);
     if (!category) {
       if (bottom) bottom.hidden = true;
+      // Never show the generic All Products introduction on a category URL.
+      if (intro) intro.hidden = true;
       return;
     }
 
