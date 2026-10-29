@@ -277,7 +277,7 @@ function cmsRelatedProductsMarkup(product){
 }
 function renderCmsGenericProduct(){
  detail.classList.add("cms-generic-detail");
- const images=(Array.isArray(p.images)&&p.images.length?p.images:[p.image]).filter(Boolean).slice(0,8);
+ const images=(Array.isArray(p.images)&&p.images.length?p.images:[p.image]).filter(Boolean);
  const title=(p.seo?.meta_title||p.seo?.title)||(p.name+" | Talha Bilal Store");
  const description=(p.seo?.meta_description||p.seo?.description)||p.shortDescription||p.name;
  document.title=title;
