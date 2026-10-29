@@ -127,6 +127,8 @@
       ".cms-home-banner--split img{display:block;width:100%;max-height:220px;object-fit:contain;border-radius:10px}",
       ".cms-home-banner--split picture{display:block;width:100%;min-width:0}",
       ".cms-blog-card-image{width:100%;height:100%;min-height:270px;object-fit:cover}",
+      ".blog-card-img-link{display:block}",
+      ".blog-card-title-link{color:inherit;text-decoration:none}",
       "@media(max-width:700px){.cms-home-banner--split{grid-template-columns:1fr;padding:15px;gap:12px}.cms-home-banner--split img{max-height:210px;grid-row:1}.cms-home-banner--overlay .cms-home-banner-copy{padding:16px}.cms-home-banner--overlay .cms-home-banner-copy h2{font-size:clamp(17px,4.7vw,25px);max-width:85%}.cms-home-banner--overlay .cms-home-banner-copy p{font-size:13px;max-width:85%}.cms-home-banner--overlay .cms-banner-cta{padding:8px 11px;font-size:12px}.cms-slider-control{width:32px;height:32px;font-size:22px}.cms-slider-prev{left:7px}.cms-slider-next{right:7px}.cms-blog-card-image{height:240px;min-height:0}}",
     ].join("");
     document.head.appendChild(st);
@@ -281,7 +283,7 @@ function renderBlogListing(data) {
       const date = p.published_at ? new Date(p.published_at) : null;
       const label = date && Number.isFinite(date.getTime()) ? date.toLocaleDateString("en-GB",{month:"short",year:"numeric"}) : "Latest Article";
       const url = p.url || ("/blog/"+encodeURIComponent(p.slug)+".html");
-      return '<article class="blog-card"><img class="cms-blog-card-image" src="'+esc(p.featured_image_url || "/assets/here-banner.webp")+'" alt="'+esc(p.title)+'" loading="lazy"><div class="blog-card-copy"><div class="blog-meta">'+esc(label)+'</div><h2>'+esc(p.title)+'</h2><p>'+esc(p.excerpt || "")+'</p><a class="blog-read" href="'+esc(url)+'">Read article →</a></div></article>';
+      return '<article class="blog-card"><a class="blog-card-img-link" href="'+esc(url)+'"><img class="cms-blog-card-image" src="'+esc(p.featured_image_url || "/assets/here-banner.webp")+'" alt="'+esc(p.title)+'" loading="lazy"></a><div class="blog-card-copy"><div class="blog-meta">'+esc(label)+'</div><a class="blog-card-title-link" href="'+esc(url)+'"><h2>'+esc(p.title)+'</h2></a><p>'+esc(p.excerpt || "")+'</p><a class="blog-read" href="'+esc(url)+'">Read article →</a></div></article>';
     }).join("");
   }
   function setMeta(selector, key, value) {

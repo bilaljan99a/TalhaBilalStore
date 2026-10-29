@@ -4,6 +4,11 @@ const TEMPLATE_PATH='/blog/how-to-make-mango-drink-from-mango-pulp-premix.html';
 function htmlEscape(value){
   return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+function linkifyProductUrls(html){
+  const parts=String(html).split(/(<a\b[^>]*>[\s\S]*?<\/a>)/gi);
+  const urlRe=/(https?:\/\/www\.talhabilalstore\.com\/product\/[A-Za-z0-9\-_]+)/g;
+  return parts.map(part=>/^<a\b/i.test(part)?part:part.replace(urlRe,'<a class="article-product-btn" href="$1">View Product →</a>')).join('');
+}
 function safeArticleHtml(value,title,excerpt,heroImage){
   const raw=String(value||'').trim();
   if(!raw){
@@ -11,18 +16,21 @@ function safeArticleHtml(value,title,excerpt,heroImage){
   }
   let content=raw;
   const looksLikeHtml=/<(?:h[1-6]|p|div|img|ul|ol|li|section|header|figure|table|blockquote|a|hr|br|strong|em)\b/i.test(raw);
+  if(looksLikeHtml&&!/article-header/i.test(raw)&&!/class="back-link"/i.test(raw)){
+    content='<a class="back-link" href="/blog.html">← Back to Blog</a><header class="article-header"><div class="article-meta">Talha Bilal Store • Article</div><h1>'+htmlEscape(title)+'</h1><p>'+htmlEscape(excerpt||'')+'</p></header>'+(heroImage?'<img class="article-hero" src="'+htmlEscape(heroImage)+'" alt="'+htmlEscape(title)+'" loading="eager">':'')+'<div class="article-body">'+raw+'</div>';
+  }
   if(!looksLikeHtml){
     let blocks=raw.split(/\n\s*\n+/).map(x=>x.trim()).filter(Boolean);
     if(blocks.length){const first=blocks[0].replace(/\s+/g,' ').trim().toLowerCase(),heading=String(title||'').replace(/\s+/g,' ').trim().toLowerCase();if(first===heading||first.startsWith(heading+':'))blocks.shift();}
     const body=blocks.map(x=>'<p>'+htmlEscape(x).replace(/\n/g,'<br>')+'</p>').join('');
     content='<a class="back-link" href="/blog.html">← Back to Blog</a><header class="article-header"><div class="article-meta">Talha Bilal Store • Article</div><h1>'+htmlEscape(title)+'</h1><p>'+htmlEscape(excerpt||'')+'</p></header>'+(heroImage?'<img class="article-hero" src="'+htmlEscape(heroImage)+'" alt="'+htmlEscape(title)+'" loading="eager">':'')+'<div class="article-body">'+body+'</div>';
   }
-  return content
+  return linkifyProductUrls(content
     .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi,'')
     .replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe\s*>/gi,'')
     .replace(/<(?:object|embed|form)\b[^>]*>[\s\S]*?<\/(?:object|embed|form)\s*>/gi,'')
     .replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi,'')
-    .replace(/(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi,'$1="#"');
+    .replace(/(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi,'$1="#"'));
 }
 function blogSchema(post,url,image){
   return {
@@ -46,7 +54,7 @@ async function fetchCmsPost(slug){
   if(!post)return null;
   const seoRow=(data.seo||[]).find(item=>item.entity_type==='blog'&&Number(item.entity_id)===Number(post.id))||{};
   const siteSeo=(data.seo||[]).find(item=>item.entity_type==='site'&&(item.entity_id==null||item.entity_id===''))||{};
-  return {...post,seo:{...(post.seo||{}),...seoRow},siteSeo};
+  return {...post,products:data.products||[],seo:{...(post.seo||{}),...seoRow},siteSeo};
 }
 export async function onRequestGet(context){
   const requestUrl=new URL(context.request.url);
@@ -69,6 +77,19 @@ export async function onRequestGet(context){
   const metaDescription=(post.seo&&(post.seo.meta_description||post.seo.description))||post.excerpt||post.siteSeo?.description||'Helpful guides and tips from Talha Bilal Store.';
   const image=post.featured_image_url||'https://www.talhabilalstore.com/assets/here-banner.webp';
   const content=safeArticleHtml(post.content,post.title,post.excerpt,image);
+  let relatedBox='';
+  const relatedIds=Array.isArray(post.related_product_ids)?post.related_product_ids:[];
+  const allProducts=Array.isArray(post.products)?post.products:[];
+  const related=relatedIds.map(rid=>allProducts.find(p=>String(p.id)===String(rid)||p.slug===rid)).filter(Boolean);
+  if(related.length){
+    const cards=related.map(p=>{
+      const img=(Array.isArray(p.images)&&p.images[0])||p.image||'';
+      const price=(p.price!=null&&p.price!=='')?'Rs. '+Number(p.price).toLocaleString('en-PK'):'';
+      const old=(p.old_price!=null&&p.old_price!=='')?'<span class="rp-old">Rs. '+Number(p.old_price).toLocaleString('en-PK')+'</span>':'';
+      return '<div class="related-product-card">'+(img?'<img src="'+htmlEscape(img)+'" alt="'+htmlEscape(p.name)+'" loading="lazy">':'')+'<div class="rp-copy"><div class="rp-name">'+htmlEscape(p.name)+'</div><div class="rp-price">'+price+old+'</div><a class="article-product-btn" href="/product/'+htmlEscape(p.slug)+'">View Product →</a></div></div>';
+    }).join('');
+    relatedBox='<section class="related-products"><h2>Featured Product</h2>'+cards+'</section>';
+  }
   let schemaValue=post.seo?.schema_json;
   if(typeof schemaValue==='string'){try{schemaValue=JSON.parse(schemaValue)}catch{schemaValue=null}}
   if(!schemaValue||typeof schemaValue!=='object'||!Object.keys(schemaValue).length)schemaValue=blogSchema(post,canonical,image);
@@ -84,6 +105,7 @@ export async function onRequestGet(context){
     .on('meta[property="og:url"]',{element(el){el.setAttribute('content',canonical)}})
     .on('link[rel="canonical"]',{element(el){el.setAttribute('href',canonical)}})
     .on('script[type="application/ld+json"]',{element(el){el.setInnerContent(schema)}})
-    .on('article.article',{element(el){el.setInnerContent(content,{html:true})}})
+    .on('head',{element(el){el.append('<style>.article-product-btn{display:inline-block;background:#ff6a00;color:#fff!important;padding:12px 24px;border-radius:999px;font-weight:700;text-decoration:none;margin:6px 0}.article-product-btn:hover{background:#e55e00}.related-products{margin:32px 0 0;padding:24px;border:1px solid #eee;border-radius:16px;background:#fafafa}.related-products h2{margin-top:0}.related-product-card{display:flex;gap:16px;align-items:center}.related-product-card img{width:96px;height:96px;object-fit:cover;border-radius:12px}.related-product-card .rp-name{font-weight:700;margin-bottom:6px}.related-product-card .rp-price{margin-bottom:10px}.related-product-card .rp-old{color:#888;text-decoration:line-through;margin-left:8px}</style>',{html:true})}})
+    .on('article.article',{element(el){el.setInnerContent(content+relatedBox,{html:true})}})
     .transform(template);
 }
