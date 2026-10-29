@@ -504,3 +504,4 @@
 
 @media(max-width:700px){#cmsHomepageSlider.cms-homepage-banners{margin-bottom:8px}.home-products.products-section{padding-top:24px!important}}
 @media(max-width:380px){.site-header .nav-wrap{grid-template-columns:38px minmax(0,1fr) auto auto}.site-search-toggle{width:34px;height:34px}}
+@media(min-width:901px){.site-search{display:none}.site-search-toggle{display:grid;place-items:center;width:42px;height:42px;border:1px solid #e5e7eb;border-radius:50%;background:#fff;cursor:pointer;font-size:18px;line-height:1}.site-header.search-open .nav-wrap{flex-wrap:wrap;height:auto;padding-bottom:12px;row-gap:12px}.site-header.search-open .site-search{display:flex;flex:1 1 100%;order:10}.site-header.search-open .site-search input{width:auto;flex:1 1 auto;min-width:0}.site-header.search-open .site-search button{flex:0 0 auto}}
