@@ -20,6 +20,14 @@ function renderCatalogToolbar(filteredList){
   const seen=new Map();for(const item of [...PRODUCTS]){const slug=catalogCategorySlug(item);if(!slug)continue;if(!seen.has(slug))seen.set(slug,catalogCategoryName(item)||slug);}
   const linkFor=(slug)=>{const u=new URL('/products',location.origin);if(slug)u.searchParams.set('category',slug);if(q)u.searchParams.set('q',q);return u.pathname+u.search;};
   filtersBox.innerHTML='<a class="catalog-filter'+(!currentNorm?' active':'')+'" href="'+linkFor('')+'" aria-current="'+(!currentNorm)+'">All products</a>'+[...seen.entries()].map(([slug,label])=>'<a class="catalog-filter'+(currentNorm===slug?' active':'')+'" href="'+linkFor(slug)+'" aria-current="'+(currentNorm===slug)+'">'+appEsc(label)+'</a>').join('');
+  const selectEl=document.getElementById('catalogCategorySelect');
+  if(selectEl){
+   const opts=[['','All products'],...seen.entries()];
+   const sig=opts.map(([s,l])=>s+'='+l).join('|');
+   if(selectEl.dataset.sig!==sig){selectEl.dataset.sig=sig;selectEl.innerHTML=opts.map(([slug,label])=>'<option value="'+appEsc(slug)+'"'+(currentNorm===slug?' selected':'')+'>'+appEsc(label)+'</option>').join('');}
+   selectEl.value=currentNorm||'';
+   if(!window.__catalogCategorySelectWired){window.__catalogCategorySelectWired=true;selectEl.addEventListener('change',()=>{location.href=linkFor(selectEl.value);});}
+  }
  }
  if(countEl){
   const params=new URLSearchParams(location.search);const hasFilter=!!params.get('category')||!!catalogSearchQuery;
