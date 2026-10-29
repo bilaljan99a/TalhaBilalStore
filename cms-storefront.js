@@ -366,31 +366,13 @@ function renderBlogListing(data) {
     const name = String(category.name || "Shop by Category").trim();
     const description = catalogPlainText(category.description);
     const fallbackDescription = "Explore " + name + " products at Talha Bilal Store. Cash on Delivery available across Pakistan.";
-    const fullDescription = description || fallbackDescription;
-    const firstSentence = (fullDescription.match(/^.{1,140}?[.!?](?:\\s|$)/) || [""])[0].trim();
-    let shortDescription = firstSentence;
-    if (!shortDescription) {
-      shortDescription = fullDescription.length > 140
-        ? fullDescription.slice(0, 137).replace(/\\s+\\S*$/, "") + "…"
-        : fullDescription;
-    }
-
     title.textContent = name;
-    intro.textContent = shortDescription;
+    if (intro) intro.hidden = true;
 
     if (bottom && bottomTitle && bottomText) {
-      let remainingDescription = "";
-      if (description && shortDescription) {
-        const displayedLength = shortDescription.endsWith("…")
-          ? shortDescription.length - 1
-          : shortDescription.length;
-        remainingDescription = description.slice(displayedLength)
-          .replace(/^[\\s.!?;:—-]+/, "")
-          .trim();
-      }
-      if (remainingDescription) {
+      if (description) {
         bottomTitle.textContent = "About " + name;
-        bottomText.textContent = remainingDescription;
+        bottomText.textContent = description;
         bottom.hidden = false;
       } else {
         bottom.hidden = true;
