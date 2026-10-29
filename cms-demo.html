@@ -740,6 +740,56 @@ async function cmsUploadFiles(input,targetId,folder,mode){
  finally{input.disabled=false;input.value=""}
 }
 
+// --- Insert an existing gallery image into the product description ---
+// Second, prompt-free way to put an image into a description: pick an image
+// that is already in the product gallery (no re-upload, no URL typing) and
+// insert it at the remembered cursor position, using the same saved-range
+// mechanism as the inline upload. Stable ids for automation:
+// #pDescGalleryPick (select) and #pDescGalleryInsert (button).
+function cmsGalleryImageAlt(url, index){
+ const base = String(url || "").split("/").pop().split("?")[0];
+ const stem = base.replace(/\.[^.]+$/, "");
+ const parts = stem.split("-");
+ let name = stem;
+ if(/^\d+$/.test(parts[0] || "") && parts.length > 6) name = parts.slice(6).join("-");
+ const clean = name.replace(/[-_]+/g, " ").trim();
+ return clean || ("Product image " + (index + 1));
+}
+function cmsRenderDescGalleryPicker(){
+ const sel = document.getElementById("pDescGalleryPick");
+ const input = document.getElementById("pImages");
+ if(!sel || !input) return;
+ const urls = input.value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+ const current = sel.value;
+ sel.innerHTML = urls.length
+  ? urls.map((u,i)=>'<option value="'+esc(u)+'">Image '+(i+1)+' — '+esc(u.split("/").pop())+'</option>').join("")
+  : '<option value="">No gallery images yet — add image URLs above first</option>';
+ if(urls.indexOf(current) !== -1) sel.value = current;
+}
+function cmsInsertGalleryImageIntoDescription(){
+ const sel = document.getElementById("pDescGalleryPick");
+ const editor = document.getElementById("pDescription");
+ if(!sel || !sel.value || !editor) return;
+ const url = sel.value;
+ const input = document.getElementById("pImages");
+ const urls = input ? input.value.split(/\n+/).map(x=>x.trim()).filter(Boolean) : [];
+ const alt = cmsGalleryImageAlt(url, Math.max(0, urls.indexOf(url)));
+ editor.focus();
+ const selection = window.getSelection();
+ if(selection && cmsSavedRichRange && editor.contains(cmsSavedRichRange.commonAncestorContainer)){
+  selection.removeAllRanges(); selection.addRange(cmsSavedRichRange);
+ }
+ const figure = document.createElement("figure");
+ const img = document.createElement("img"); img.src = url; img.alt = alt; img.loading = "lazy";
+ figure.appendChild(img);
+ if(selection && selection.rangeCount && editor.contains(selection.getRangeAt(0).commonAncestorContainer)){
+  const range = selection.getRangeAt(0); range.deleteContents(); range.insertNode(figure);
+  range.setStartAfter(figure); range.collapse(true); selection.removeAllRanges(); selection.addRange(range);
+  cmsSavedRichRange = range.cloneRange();
+ } else { editor.appendChild(figure); }
+ cmsUpdateRichStats("pDescription");
+}
+
 function cmsPreviewImage(input,boxId){const x=document.getElementById(input),box=document.getElementById(boxId);if(!x||!box)return;const value=x.value.trim().split(/\r?\n/).map(v=>v.trim()).filter(Boolean)[0]||"";box.innerHTML=value?'<img src="'+esc(value)+'" alt="Preview">':'<span class="hint">Image preview appears here.</span>'}
 // --- CMS Safe HTML Sanitizer ---
 function cmsEditorSafeHtml(value){
@@ -775,31 +825,117 @@ function cmsRichExec(targetId, command, value = null){
  cmsUpdateRichStats(targetId);
 }
 
-function cmsRichLink(targetId){
- const url = window.prompt("Enter a web link (https://...) or relative URL:");
- if(!url) return;
- if(/^\s*javascript:/i.test(url)){alert("JavaScript links are not allowed.");return}
- cmsRichExec(targetId, "createLink", url.trim());
+// --- DOM dialog for Link / Image URL (replaces native prompt() + alert()) ---
+// Native prompt()/alert() dialogs cannot be driven by an automated browser,
+// which is why Image URL / Link inserts failed under automation. This in-page
+// dialog uses plain DOM inputs and buttons, so it works identically for a human
+// clicking the toolbar and for an automated browser driving the same controls.
+// Stable ids for automation: #cms-rich-dialog-url, #cms-rich-dialog-alt,
+// #cms-rich-dialog-insert, #cms-rich-dialog-cancel.
+let cmsRichDialogEl = null, cmsRichDialogMode = "link", cmsRichDialogTarget = "", cmsRichDialogRange = null;
+function cmsRichDialogBuild(){
+ if(cmsRichDialogEl) return cmsRichDialogEl;
+ const overlay = document.createElement("div");
+ overlay.id = "cms-rich-dialog";
+ overlay.setAttribute("role", "dialog");
+ overlay.setAttribute("aria-modal", "true");
+ overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:none;align-items:center;justify-content:center;padding:16px";
+ const box = document.createElement("div");
+ box.style.cssText = "background:#fff;color:#111;border-radius:12px;padding:20px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.35)";
+ const title = document.createElement("h3");
+ title.id = "cms-rich-dialog-title";
+ title.style.cssText = "margin:0 0 12px;font-size:17px";
+ const urlLabel = document.createElement("label");
+ urlLabel.style.cssText = "display:block;font-weight:700;font-size:13px;margin-bottom:4px";
+ urlLabel.textContent = "URL";
+ const urlInput = document.createElement("input");
+ urlInput.id = "cms-rich-dialog-url";
+ urlInput.type = "text";
+ urlInput.placeholder = "https://...";
+ urlInput.style.cssText = "width:100%;padding:9px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;box-sizing:border-box";
+ const altLabel = document.createElement("label");
+ altLabel.id = "cms-rich-dialog-alt-label";
+ altLabel.style.cssText = "display:block;font-weight:700;font-size:13px;margin:10px 0 4px";
+ altLabel.textContent = "Image alt text (optional)";
+ const altInput = document.createElement("input");
+ altInput.id = "cms-rich-dialog-alt";
+ altInput.type = "text";
+ altInput.placeholder = "e.g. Posture Corrector Belt";
+ altInput.style.cssText = urlInput.style.cssText;
+ const error = document.createElement("div");
+ error.id = "cms-rich-dialog-error";
+ error.style.cssText = "display:none;color:#b91c1c;font-size:13px;margin-top:10px";
+ const row = document.createElement("div");
+ row.style.cssText = "display:flex;gap:8px;justify-content:flex-end;margin-top:16px";
+ const cancel = document.createElement("button");
+ cancel.type = "button"; cancel.id = "cms-rich-dialog-cancel"; cancel.textContent = "Cancel";
+ cancel.style.cssText = "padding:9px 16px;border:1px solid #cbd5e1;background:#fff;border-radius:8px;cursor:pointer";
+ cancel.onclick = cmsRichDialogClose;
+ const insert = document.createElement("button");
+ insert.type = "button"; insert.id = "cms-rich-dialog-insert"; insert.textContent = "Insert";
+ insert.style.cssText = "padding:9px 16px;border:0;background:#f97316;color:#fff;border-radius:8px;cursor:pointer;font-weight:700";
+ insert.onclick = cmsRichDialogInsert;
+ row.appendChild(cancel); row.appendChild(insert);
+ box.appendChild(title); box.appendChild(urlLabel); box.appendChild(urlInput); box.appendChild(altLabel); box.appendChild(altInput); box.appendChild(error); box.appendChild(row);
+ overlay.appendChild(box);
+ overlay.addEventListener("click", function(e){ if(e.target === overlay) cmsRichDialogClose(); });
+ document.addEventListener("keydown", function(e){ if(e.key === "Escape" && overlay.style.display === "flex") cmsRichDialogClose(); });
+ document.body.appendChild(overlay);
+ cmsRichDialogEl = overlay;
+ return overlay;
 }
-
-function cmsRichPromptImage(targetId){
- const url = window.prompt("Enter image URL (https://...):");
- if(!url) return;
- if(!/^https?:\/\//i.test(url) && !url.startsWith("/")){
-  alert("Enter a valid image URL starting with http:// or https://");
-  return;
- }
- const alt = window.prompt("Enter image alt text / caption (optional):") || "";
+function cmsRichDialogOpen(mode, targetId){
  const editor = document.getElementById(targetId);
  if(!editor) return;
+ const sel = window.getSelection();
+ let range = null;
+ if(sel && sel.rangeCount && editor.contains(sel.getRangeAt(0).commonAncestorContainer)) range = sel.getRangeAt(0).cloneRange();
+ else if(cmsSavedRichRange && editor.contains(cmsSavedRichRange.commonAncestorContainer)) range = cmsSavedRichRange.cloneRange();
+ cmsRichDialogMode = mode; cmsRichDialogTarget = targetId; cmsRichDialogRange = range;
+ const dlg = cmsRichDialogBuild();
+ const title = document.getElementById("cms-rich-dialog-title");
+ const altLabel = document.getElementById("cms-rich-dialog-alt-label");
+ const altInput = document.getElementById("cms-rich-dialog-alt");
+ const urlInput = document.getElementById("cms-rich-dialog-url");
+ const error = document.getElementById("cms-rich-dialog-error");
+ if(title) title.textContent = mode === "image" ? "Insert image by URL" : "Insert link";
+ const showAlt = mode === "image";
+ if(altLabel) altLabel.style.display = showAlt ? "block" : "none";
+ if(altInput){ altInput.style.display = showAlt ? "block" : "none"; altInput.value = ""; }
+ if(urlInput) urlInput.value = "";
+ if(error){ error.style.display = "none"; error.textContent = ""; }
+ dlg.style.display = "flex";
+ if(urlInput) urlInput.focus();
+}
+function cmsRichDialogClose(){
+ if(cmsRichDialogEl) cmsRichDialogEl.style.display = "none";
+}
+function cmsRichDialogInsert(){
+ const urlInput = document.getElementById("cms-rich-dialog-url");
+ const altInput = document.getElementById("cms-rich-dialog-alt");
+ const error = document.getElementById("cms-rich-dialog-error");
+ const url = urlInput ? urlInput.value.trim() : "";
+ const alt = altInput ? altInput.value.trim() : "";
+ const fail = function(msg){ if(error){ error.textContent = msg; error.style.display = "block"; } };
+ if(!url){ fail("Enter a URL first."); return; }
+ if(cmsRichDialogMode === "link" && /^\s*javascript:/i.test(url)){ fail("JavaScript links are not allowed."); return; }
+ if(cmsRichDialogMode === "image" && !/^https?:\/\//i.test(url) && !url.startsWith("/")){ fail("Enter a valid image URL starting with http:// or https://"); return; }
+ cmsRichDialogClose();
+ const editor = document.getElementById(cmsRichDialogTarget);
+ if(!editor) return;
  editor.focus();
+ const sel = window.getSelection();
+ if(sel && cmsRichDialogRange && editor.contains(cmsRichDialogRange.commonAncestorContainer)){
+  sel.removeAllRanges(); sel.addRange(cmsRichDialogRange);
+ }
+ if(cmsRichDialogMode === "link"){
+  cmsRichExec(cmsRichDialogTarget, "createLink", url);
+  return;
+ }
  const figure = document.createElement("figure");
  const img = document.createElement("img");
- img.src = url.trim();
- img.alt = alt.trim();
- img.loading = "lazy";
+ img.src = url; img.alt = alt; img.loading = "lazy";
  figure.appendChild(img);
- const sel = window.getSelection();
  if(sel && sel.rangeCount && editor.contains(sel.getRangeAt(0).commonAncestorContainer)){
   const range = sel.getRangeAt(0);
   range.deleteContents();
@@ -808,7 +944,14 @@ function cmsRichPromptImage(targetId){
  } else {
   editor.appendChild(figure);
  }
- cmsUpdateRichStats(targetId);
+ cmsUpdateRichStats(cmsRichDialogTarget);
+}
+function cmsRichLink(targetId){
+ cmsRichDialogOpen("link", targetId);
+}
+
+function cmsRichPromptImage(targetId){
+ cmsRichDialogOpen("image", targetId);
 }
 
 function cmsUpdateRichStats(targetId){
@@ -1478,6 +1621,7 @@ async function cmsEditProduct(r,id){
  cmsRenderRichEditor("pDescription",r.description,"Full description (Product Details)","Shown inside Product Details on the product page. Use bold text, headings, bullet points and images to build an attractive, high-converting product description.")+
  cmsField("Product video link (optional)","pVideoUrl",r.video_url,"text","Paste a YouTube watch, youtu.be, Shorts or embed link. The player appears on this product page; the actual video remains on YouTube and does not use Supabase Storage.")+
  cmsUploadField("Upload image inside product description","pDescription","products/description",false,"inline","Recommended: 1200 px wide, proportional height, WebP/JPG, ideally 150–300 KB. Use this for in-article illustrations, not the main product gallery.")+
+ '<div class="field full"><label for="pDescGalleryPick">Insert an existing gallery image into the description</label><p class="field-help">Pick a gallery image from the list, click inside the description where the image should go, then press Insert. No re-upload and no URL typing needed.</p><div style="display:flex;gap:8px"><select id="pDescGalleryPick"></select><button type="button" class="btn" id="pDescGalleryInsert" onclick="cmsInsertGalleryImageIntoDescription()">Insert into description</button></div></div>'+
  cmsRenderVariationsManager(r.variations, r)+
  cmsField("Image URL(s), one per line","pImages",imgs.join("\n"),"textarea","For new products, use square 1:1 images at least 500 × 500 px; 1200 × 1200 px is recommended. Keep the product centred and use the same framing for every gallery image.")+
  cmsUploadField("Upload product image(s)","pImages","products",true,"append-lines","MINIMUM: 500 × 500 px, square (1:1). RECOMMENDED: 1200 × 1200 px square, WebP preferred, ideally 150–300 KB per image. Keep the product centred with consistent padding and use the same square size for every gallery image. Applies to new CMS product images; existing products are not changed. Upload limit: 8 MB each.")+
@@ -1495,8 +1639,9 @@ async function cmsEditProduct(r,id){
  previewFields.forEach(id=>{const node=document.getElementById(id);if(node){node.addEventListener("input",cmsRenderProductLivePreview);node.addEventListener("change",cmsRenderProductLivePreview)}});
  const categorySelect=document.getElementById("pCat");if(categorySelect)categorySelect.addEventListener("change",cmsRenderProductLivePreview);
  const imageInput=document.getElementById("pImages");
- if(imageInput)imageInput.addEventListener("input",()=>{cmsPreviewImage("pImages","pPreview");cmsRenderProductLivePreview();cmsRenderImageOrder()});
+ if(imageInput)imageInput.addEventListener("input",()=>{cmsPreviewImage("pImages","pPreview");cmsRenderProductLivePreview();cmsRenderImageOrder();cmsRenderDescGalleryPicker()});
  cmsRenderImageOrder();
+ cmsRenderDescGalleryPicker();
  cmsRenderProductLivePreview();
 }
 
@@ -1792,11 +1937,8 @@ function cmsRichCommand(command,value){
  }catch(e){console.warn("Rich text command could not be applied",e)}
  cmsRememberRichSelection("blogContent");
 }
-function cmsRichLink(){
- const url=window.prompt("Enter a web link (https://...) or a relative page URL:");
- if(!url)return;
- if(/^\s*javascript:/i.test(url)){alert("JavaScript links are not allowed.");return}
- cmsRichCommand("createLink",url.trim());
+function cmsRichLink(targetId){
+ cmsRichDialogOpen("link", targetId || "blogContent");
 }
 function cmsRichButton(label,command,value,title){
  const call=value?"cmsRichCommand('"+command+"','"+value+"')":"cmsRichCommand('"+command+"')";
