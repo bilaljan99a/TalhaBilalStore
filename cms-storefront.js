@@ -436,7 +436,7 @@ function renderBlogListing(data) {
   }
   async function load() {
     try {
-      const res = await fetch(ENDPOINT, {headers:{Accept:"application/json"},cache:"default"});
+      const res = await fetch(ENDPOINT, {headers:{Accept:"application/json"},cache:"no-store"});
       if (!res.ok) throw new Error("CMS public request failed");
       const data = await res.json(); if (!data || !data.ok) throw new Error("Invalid CMS response");
       for (const key of ["products","categories","pages","banners","blog_posts","seo"]) if (!Array.isArray(data[key])) data[key]=[];
