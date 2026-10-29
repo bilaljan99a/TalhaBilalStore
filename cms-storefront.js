@@ -43,6 +43,7 @@
       images:images.map(x => typeof x === "string" ? x : (x?.url || x?.src || "")).filter(Boolean),
       tag:String(row.tag || cat?.name || "NEW PRODUCT"), categoryId:Number(row.category_id || 0) || null,
       categorySlug:cat?.slug || "", categoryName:cat?.name || "", featured:!!row.featured,
+      createdAt:row.created_at || undefined, ordersCount:typeof row.orders_count === "number" ? row.orders_count : undefined,
       bestSellerRank:row.best_seller ? 1 : undefined, newProductRank:row.is_new ? 1 : undefined,
       seo:row.seo && typeof row.seo === "object" ? row.seo : {}
     };
@@ -417,6 +418,13 @@ function renderBlogListing(data) {
         const list=window.PRODUCTS, hidden=new Set(data.hidden_static_product_ids||[]);
         for(let i=list.length-1;i>=0;i--)if(hidden.has(list[i].id))list.splice(i,1);
         for(const row of data.products){const p=mapProduct(row,data.categories),idx=list.findIndex(x=>x.id===p.id);if(idx>=0)list[idx]=p;else list.push(p);}
+        // Real order counts for static products (e.g. mango packs, whose ids
+        // are slugs and never come from cms_products rows). CMS products keep
+        // the orders_count mapped above. Without the counts map (old function
+        // version) every static product stays without ordersCount, which the
+        // storefront treats as "counts unavailable" and falls back to flags.
+        const counts=(data.orders_count_by_product&&typeof data.orders_count_by_product==="object")?data.orders_count_by_product:null;
+        for(const p of list){if(p.isCmsProduct)continue;delete p.ordersCount;if(counts){const v=counts[p.id];p.ordersCount=typeof v==="number"?v:0;}}
         data.siteProducts=list;
       }
       renderCatalogHero(data); renderFilters(data); renderBanners(data); renderBlogListing(data); applySeo(data);

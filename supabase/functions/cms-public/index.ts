@@ -38,7 +38,7 @@ Deno.serve(async (req: Request) => {
 
     const [productsQ, categoriesQ, pagesQ, bannersQ, blogsQ, seoQ, hiddenQ] = await Promise.all([
       db.from("cms_products")
-        .select("id,name,slug,short_description,description,category_id,price,sale_price,old_price,weight_kg,tag,featured,best_seller,is_new,images,attributes,seo,status,delivery_mode,manual_delivery_fee,show_weight,variations")
+        .select("id,name,slug,short_description,description,category_id,price,sale_price,old_price,weight_kg,tag,featured,best_seller,is_new,images,attributes,seo,status,delivery_mode,manual_delivery_fee,show_weight,variations,created_at")
         .eq("status", "active")
         .order("created_at", { ascending: true }),
       db.from("cms_categories")
@@ -67,6 +67,34 @@ Deno.serve(async (req: Request) => {
     const err = [productsQ,categoriesQ,pagesQ,bannersQ,blogsQ,seoQ,hiddenQ].find(x => x.error);
     if (err?.error) return reply({ error: "Could not load published website content." }, 500);
 
+    // Real order demand per product: total ordered quantity per order-item id
+    // (product slug, or numeric CMS id as a string). Quantities only — no
+    // customer data leaves the server. Cancelled and failed-delivery orders
+    // do not count. If this read fails, counts stay empty and the storefront
+    // falls back to its manual Best Seller flags instead of breaking.
+    let ordersCountByKey: Record<string, number> = {};
+    try {
+      const allOrders: any[] = [];
+      for (let from = 0; ; from += 1000) {
+        const { data: page, error: pageError } = await db.from("orders")
+          .select("items,status").range(from, from + 999);
+        if (pageError || !Array.isArray(page)) break;
+        allOrders.push(...page);
+        if (page.length < 1000) break;
+      }
+      for (const o of allOrders) {
+        const status = String((o as any).status || "");
+        if (status === "Cancelled" || status === "Delivery Failed") continue;
+        const items = Array.isArray((o as any).items) ? (o as any).items : [];
+        for (const it of items) {
+          const key = String((it as any)?.id ?? "");
+          const qty = Number((it as any)?.quantity) || 0;
+          if (!key || qty <= 0) continue;
+          ordersCountByKey[key] = (ordersCountByKey[key] || 0) + qty;
+        }
+      }
+    } catch { ordersCountByKey = {}; }
+
     const now = Date.now();
     const banners = (bannersQ.data || []).filter((b: any) => {
       const starts = b.starts_at ? Date.parse(b.starts_at) : NaN;
@@ -88,7 +116,11 @@ Deno.serve(async (req: Request) => {
     const payload = {
       ok: true,
       fetched_at: new Date().toISOString(),
-      products: productsQ.data || [],
+      products: (productsQ.data || []).map((p: any) => ({
+        ...p,
+        orders_count: (ordersCountByKey[String(p.slug)] || 0) + (ordersCountByKey[String(p.id)] || 0)
+      })),
+      orders_count_by_product: ordersCountByKey,
       categories: categoriesQ.data || [],
       pages: pagesQ.data || [],
       banners,

@@ -10,7 +10,7 @@ const CATEGORY_LABELS={'grocery-beverages':'Grocery & Beverages','beauty-persona
 function catalogCategorySlug(product){if(product?.categorySlug)return product.categorySlug==='home-gadgets'?'home-gadget':product.categorySlug;if(/^mango-/i.test(String(product?.id||'')))return 'grocery-beverages';return '';}
 function catalogCategoryName(product){return product?.categoryName||CATEGORY_LABELS[catalogCategorySlug(product)]||'';}
 let catalogSearchQuery=productGrid?(new URLSearchParams(location.search).get('q')||'').trim():'';
-const CATALOG_SORT_OPTIONS=['featured','best-selling','newest','price-asc','price-desc','name-asc','name-desc'];
+const CATALOG_SORT_OPTIONS=['featured','best-selling','newest','oldest','price-asc','price-desc','name-asc','name-desc'];
 const requestedSort=productGrid?new URLSearchParams(location.search).get('sort')||'featured':'featured';
 let catalogSort=CATALOG_SORT_OPTIONS.includes(requestedSort)?requestedSort:'featured';
 function catalogSearchMatches(product,query){if(!query)return true;const hay=[product?.name,product?.description,product?.shortDescription,product?.short_description,product?.tag,catalogCategoryName(product),product?.id].filter(Boolean).join(' ').toLowerCase();return query.toLowerCase().split(/\s+/).filter(Boolean).every(word=>hay.includes(word));}
@@ -210,9 +210,17 @@ function productList(){
      return a.index-b.index;
     }).map(entry=>entry.product);
   }
-  // User-chosen sort overrides the view/assigned order; Featured keeps it.
-  if(catalogSort==='best-selling')list.sort((a,b)=>(a.bestSellerRank||99)-(b.bestSellerRank||99));
-  else if(catalogSort==='newest')list.sort((a,b)=>(b.newProductRank||0)-(a.newProductRank||0));
+  // Featured: items flagged Featured in admin come first on catalogue pages.
+  // Best Sellers / New Products views keep their own ranking instead, and an
+  // explicit sort overrides the view/assigned order everywhere else.
+  if(catalogSort==='featured'&&!view)list.sort((a,b)=>(a.featured?0:1)-(b.featured?0:1));
+  else if(catalogSort==='best-selling'){
+   const useCounts=list.some(p=>typeof p.ordersCount==='number');
+   if(useCounts)list.sort((a,b)=>((b.ordersCount||0)-(a.ordersCount||0))||((a.bestSellerRank||99)-(b.bestSellerRank||99)));
+   else list.sort((a,b)=>(a.bestSellerRank||99)-(b.bestSellerRank||99));
+  }
+  else if(catalogSort==='newest')list.sort((a,b)=>{const ta=Date.parse(a.createdAt||''),tb=Date.parse(b.createdAt||'');const va=Number.isFinite(ta),vb=Number.isFinite(tb);if(va&&vb)return tb-ta;if(va)return -1;if(vb)return 1;return (b.newProductRank||0)-(a.newProductRank||0);});
+  else if(catalogSort==='oldest')list.sort((a,b)=>{const ta=Date.parse(a.createdAt||''),tb=Date.parse(b.createdAt||'');const va=Number.isFinite(ta),vb=Number.isFinite(tb);if(va&&vb)return ta-tb;if(va)return -1;if(vb)return 1;return 0;});
   else if(catalogSort==='price-asc')list.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0));
   else if(catalogSort==='price-desc')list.sort((a,b)=>(Number(b.price)||0)-(Number(a.price)||0));
   else if(catalogSort==='name-asc')list.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
