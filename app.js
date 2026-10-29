@@ -10,15 +10,21 @@ const CATEGORY_LABELS={'grocery-beverages':'Grocery & Beverages','beauty-persona
 function catalogCategorySlug(product){if(product?.categorySlug)return product.categorySlug==='home-gadgets'?'home-gadget':product.categorySlug;if(/^mango-/i.test(String(product?.id||'')))return 'grocery-beverages';return '';}
 function catalogCategoryName(product){return product?.categoryName||CATEGORY_LABELS[catalogCategorySlug(product)]||'';}
 let catalogSearchQuery=productGrid?(new URLSearchParams(location.search).get('q')||'').trim():'';
+const CATALOG_SORT_OPTIONS=['featured','best-selling','newest','price-asc','price-desc','name-asc','name-desc'];
+const requestedSort=productGrid?new URLSearchParams(location.search).get('sort')||'featured':'featured';
+let catalogSort=CATALOG_SORT_OPTIONS.includes(requestedSort)?requestedSort:'featured';
 function catalogSearchMatches(product,query){if(!query)return true;const hay=[product?.name,product?.description,product?.shortDescription,product?.short_description,product?.tag,catalogCategoryName(product),product?.id].filter(Boolean).join(' ').toLowerCase();return query.toLowerCase().split(/\s+/).filter(Boolean).every(word=>hay.includes(word));}
 function renderCatalogToolbar(filteredList){
  const filtersBox=document.getElementById('catalogFilters');const countEl=document.getElementById('catalogResultCount');const searchInput=document.getElementById('catalogSearchInput');
  if(searchInput&&document.activeElement!==searchInput)searchInput.value=catalogSearchQuery||'';
  if(!window.__catalogSearchWired&&searchInput){window.__catalogSearchWired=true;searchInput.addEventListener('input',()=>{catalogSearchQuery=searchInput.value.trim();const url=new URL(location.href);if(catalogSearchQuery)url.searchParams.set('q',catalogSearchQuery);else url.searchParams.delete('q');history.replaceState(null,'',url);renderProducts();});}
+ const sortSelect=document.getElementById('catalogSortSelect');
+ if(sortSelect){sortSelect.value=catalogSort;
+  if(!window.__catalogSortWired){window.__catalogSortWired=true;sortSelect.addEventListener('change',()=>{catalogSort=CATALOG_SORT_OPTIONS.includes(sortSelect.value)?sortSelect.value:'featured';const url=new URL(location.href);if(catalogSort==='featured')url.searchParams.delete('sort');else url.searchParams.set('sort',catalogSort);history.replaceState(null,'',url);renderProducts();});}}
  if(filtersBox){
   const params=new URLSearchParams(location.search);const current=params.get('category');const currentNorm=current==='home-gadgets'?'home-gadget':current;const q=catalogSearchQuery||'';
   const seen=new Map();for(const item of [...PRODUCTS]){const slug=catalogCategorySlug(item);if(!slug)continue;if(!seen.has(slug))seen.set(slug,catalogCategoryName(item)||slug);}
-  const linkFor=(slug)=>{const u=new URL('/products',location.origin);if(slug)u.searchParams.set('category',slug);if(q)u.searchParams.set('q',q);return u.pathname+u.search;};
+  const linkFor=(slug)=>{const u=new URL('/products',location.origin);if(slug)u.searchParams.set('category',slug);if(q)u.searchParams.set('q',q);if(catalogSort&&catalogSort!=='featured')u.searchParams.set('sort',catalogSort);return u.pathname+u.search;};
   filtersBox.innerHTML='<a class="catalog-filter'+(!currentNorm?' active':'')+'" href="'+linkFor('')+'" aria-current="'+(!currentNorm)+'">All products</a>'+[...seen.entries()].map(([slug,label])=>'<a class="catalog-filter'+(currentNorm===slug?' active':'')+'" href="'+linkFor(slug)+'" aria-current="'+(currentNorm===slug)+'">'+appEsc(label)+'</a>').join('');
   const sheetList=document.getElementById('catalogFilterSheetList');
   if(sheetList){
@@ -204,6 +210,13 @@ function productList(){
      return a.index-b.index;
     }).map(entry=>entry.product);
   }
+  // User-chosen sort overrides the view/assigned order; Featured keeps it.
+  if(catalogSort==='best-selling')list.sort((a,b)=>(a.bestSellerRank||99)-(b.bestSellerRank||99));
+  else if(catalogSort==='newest')list.sort((a,b)=>(b.newProductRank||0)-(a.newProductRank||0));
+  else if(catalogSort==='price-asc')list.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0));
+  else if(catalogSort==='price-desc')list.sort((a,b)=>(Number(b.price)||0)-(Number(a.price)||0));
+  else if(catalogSort==='name-asc')list.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
+  else if(catalogSort==='name-desc')list.sort((a,b)=>String(b.name||'').localeCompare(String(a.name||'')));
   return list;
  }
  const customPage=location.pathname.match(/^\/page\/([^/]+)\/?$/i);
