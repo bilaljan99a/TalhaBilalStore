@@ -56,6 +56,10 @@
   .product-qty-btn{width:36px!important;height:36px!important;font-size:16px!important}
   .product-qty-field{width:46px!important;height:36px!important;font-size:14px!important}
 }
+
+/* Main gallery image must always fit fully inside its box — never cropped at the bottom */
+.gallery-main{aspect-ratio:auto!important}
+.gallery-main img{width:100%!important;height:auto!important;max-height:none!important;object-fit:contain!important;object-position:center!important}
 </style>
 <!-- Meta Pixel Code -->
 <script>
