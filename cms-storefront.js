@@ -355,6 +355,9 @@ function renderBlogListing(data) {
     const bottom = document.getElementById("categoryDescriptionBottom");
     const bottomTitle = document.getElementById("categoryDescriptionTitle");
     const bottomText = document.getElementById("categoryDescriptionText");
+    const heroImageWrap = document.getElementById("catalogHeroImageWrap");
+    const heroImage = document.getElementById("catalogHeroImage");
+    if (heroImageWrap) heroImageWrap.hidden = true;
 
     // All Products: title only at the top on every screen, like category
     // pages. The catalogue introduction moves below the products instead
@@ -412,6 +415,11 @@ function renderBlogListing(data) {
     const fallbackDescription = "Explore " + name + " products at Talha Bilal Store. Cash on Delivery available across Pakistan.";
     title.textContent = name;
     if (intro) intro.hidden = true;
+    if (heroImageWrap && heroImage && category.image_url) {
+      heroImage.src = category.image_url;
+      heroImage.alt = name;
+      heroImageWrap.hidden = false;
+    }
 
     if (bottom && bottomTitle && bottomText) {
       if (rawDescription) {

@@ -14,4 +14,9 @@
 .category-description-bottom .category-description-text li{margin:0 0 6px}
 .category-description-bottom .category-description-text img{max-width:100%;height:auto;border-radius:10px}
 .category-description-bottom .category-description-text blockquote{border-left:3px solid var(--orange);margin:14px 0;padding:8px 14px;color:var(--muted)}
+/* Category hero image: the image set in CMS admin now shows on the live category page. */
+.catalog-hero-image{margin:0 0 20px}
+.catalog-hero-image[hidden]{display:none!important}
+.catalog-hero-image img{display:block;width:100%;height:280px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:16px}
+@media(max-width:700px){.catalog-hero-image img{height:180px}}
 @media(max-width:560px){.category-description-bottom{padding:24px 0 34px}.category-description-bottom p{font-size:13px;line-height:1.7}.category-description-bottom .category-description-text{font-size:13px;line-height:1.7}}
