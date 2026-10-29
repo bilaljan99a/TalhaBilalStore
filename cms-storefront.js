@@ -84,7 +84,7 @@
       ".cms-banner-slide>.cms-legacy-hero-slide img{display:block;width:100%;height:auto;object-fit:contain}",
       "@media(max-width:900px){.cms-banner-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}",
       "@media(max-width:480px){.cms-banner-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.cms-banner-grid .cms-home-banner--grid{border-radius:10px}.cms-banner-grid .cms-home-banner--grid picture{aspect-ratio:1/1}.cms-banner-grid .cms-home-banner-grid-copy{min-height:48px;padding:7px 30px 8px 8px}.cms-banner-grid .cms-home-banner-grid-copy h2{font-size:11px;line-height:1.25}.cms-banner-grid .cms-home-banner-grid-copy p{font-size:10px;line-height:1.3}.cms-banner-grid .cms-grid-add{right:6px;bottom:6px;width:24px;height:24px;font-size:19px}.cms-banner-grid .cms-home-banner--overlay{border-radius:8px}}",
-      "#cmsHomepageBanners[hidden],#cmsHomepageHeroSlider[hidden],#cmsHomepageSlider[hidden]{display:none!important}",
+      "#cmsHomepageBanners[hidden],#cmsHomepageHeroSlider[hidden],#cmsHomepageSlider[hidden],#cmsCatalogBanners[hidden],#cmsProductBanners[hidden],#cmsBlogBanners[hidden]{display:none!important}",
       ".cms-banner-slider{position:relative;width:100%;padding:0 0 26px}",
       ".cms-banner-slider-track{position:relative;min-width:0}",
       ".cms-banner-slide[hidden]{display:none!important}",
