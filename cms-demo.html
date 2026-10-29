@@ -891,6 +891,12 @@ function cmsRenderRichEditor(targetId, initialContent, label, helpText){
     '<button type="button" class="cms-tb-btn" title="Horizontal Divider" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'insertHorizontalRule\')">— Divider</button>' +
    '</div>' +
    '<div class="cms-rich-grp">' +
+    '<button type="button" class="cms-tb-btn" title="Align Left" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'justifyLeft\')">Left</button>' +
+    '<button type="button" class="cms-tb-btn" title="Align Center" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'justifyCenter\')">Center</button>' +
+    '<button type="button" class="cms-tb-btn" title="Align Right" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'justifyRight\')">Right</button>' +
+    '<button type="button" class="cms-tb-btn" title="Justify Text" onmousedown="event.preventDefault()" onclick="cmsRichExec(\'' + targetId + '\', \'justifyFull\')">Justify</button>' +
+   '</div>' +
+   '<div class="cms-rich-grp">' +
     '<button type="button" class="cms-tb-btn" title="Insert Link" onmousedown="event.preventDefault()" onclick="cmsRichLink(\'' + targetId + '\')">🔗 Link</button>' +
     '<button type="button" class="cms-tb-btn" title="Insert Image by URL" onmousedown="event.preventDefault()" onclick="cmsRichPromptImage(\'' + targetId + '\')">🖼️ Image URL</button>' +
     '<button type="button" class="cms-tb-btn" title="Edit alt text of the selected image" onclick="cmsRichEditImageAlt(\'' + targetId + '\')">🖼️ Alt</button>' +
