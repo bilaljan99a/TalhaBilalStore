@@ -1903,8 +1903,12 @@ async function cmsEditPage(r,id){
  cmsPageAssignmentProducts=products;cmsPageSelectedIds=new Set(cmsPageProductIds(r).map(Number).filter(id=>Number.isFinite(id)&&id>0));cmsPageProductOrder=cmsPageProductIds(r).map(Number).filter(id=>Number.isFinite(id)&&id>0);cmsReconcilePageProductOrder();cmsPageAssignmentCurrentPage=1;
  const categories=cmsCache.categories||[];
  const categoryOptions='<option value="">All categories</option>'+categories.map(x=>'<option value="'+Number(x.id)+'">'+esc(x.name)+'</option>').join("");
+ const assignSection=(Array.isArray(r.sections)?r.sections:[]).find(x=>x&&x.key==="cms-product-assignments");
+ const assignLimitRaw=Number(assignSection?.limit);
+ const assignLimitValue=Number.isFinite(assignLimitRaw)&&assignLimitRaw>0?Math.min(Math.floor(assignLimitRaw),1000):12;
  const fields=cmsField("Page title","pgTitle",r.title,"text")+cmsField("URL slug","pgSlug",r.slug,"text","Use home for the homepage assignment, products for the catalogue, or a custom slug such as kids-care (published at /page/kids-care).")+
  cmsSelect("CMS status","pgStatus",[{value:"draft",label:"Draft — not public"},{value:"published",label:"Published"}],r.status||"draft")+cmsField("Page content / intro","pgContent",content,"textarea",["home","homepage"].includes(String(r.slug||"").toLowerCase())?"The homepage keeps its existing storefront template. Use Banners / Sliders to manage homepage promotional creative.":String(r.slug||"").toLowerCase()==="products"?"This updates the heading and intro on the live /products catalogue page after you save. The product grid and checkout remain template-managed.":"This content is rendered on a published custom CMS page.")+
+ (String(r.slug||"").toLowerCase()==="products"?"":cmsField("Items to show on this page","pgItemsLimit",assignLimitValue,"number","How many assigned products show on this page (default 12). Type a number to show fewer or more — for example 50 to show up to 50."))+
  '<div class="field full cms-assignment-manager"><label>Assign products to this page</label><p class="field-help">Search by product name, slug or SKU; filter by category/status. Your selections stay saved in the editor when you change filters or pages.</p>'+
  '<div class="cms-assignment-filters"><div><label for="pgProductSearch">Search products</label><input id="pgProductSearch" type="search" placeholder="Search product name, slug or SKU…" oninput="cmsPageAssignmentFilterChanged()" autocomplete="off"></div>'+
  '<div><label for="pgProductCategory">Category</label><select id="pgProductCategory" onchange="cmsPageAssignmentFilterChanged()">'+categoryOptions+'</select></div>'+
@@ -1919,7 +1923,7 @@ async function cmsSavePage(id){const g=x=>document.getElementById(x);try{
  const title=g("pgTitle").value.trim();if(!title)throw new Error("Page title is required.");const slug=g("pgSlug").value.trim()||cmsSlugify(title);if(!slug)throw new Error("Page slug is required.");
  const all=id===null?[]:await cmsRequest("cms_pages"),old=all.find(x=>Number(x.id)===Number(id)),s=Array.isArray(old?.sections)?old.sections:[];
  const keep=s.filter(x=>!x||(x.key!=="cms-page-content"&&x.key!=="cms-product-assignments")),content=g("pgContent").value.trim();if(content)keep.push({type:"content",key:"cms-page-content",content});
- cmsReconcilePageProductOrder();const ids=[...cmsPageProductOrder].map(Number).filter(x=>Number.isFinite(x)&&x>0);if(ids.length)keep.push({type:"product-grid",key:"cms-product-assignments",title:"Assigned Products",product_ids:ids});
+ cmsReconcilePageProductOrder();const ids=[...cmsPageProductOrder].map(Number).filter(x=>Number.isFinite(x)&&x>0);const limitEl=g("pgItemsLimit");const limitNum=limitEl?Math.floor(Number(limitEl.value)):NaN;const limit=Number.isFinite(limitNum)&&limitNum>0?Math.min(limitNum,1000):12;if(ids.length)keep.push({type:"product-grid",key:"cms-product-assignments",title:"Assigned Products",product_ids:ids,...(limitEl?{limit}:{})});
  const seo=Object.assign({},old?.seo||{},cmsFormSeo,{title:g("pgSeoTitle").value.trim()||null,description:g("pgSeoDesc").value.trim()||null});
  await cmsRequest("cms_pages",id===null?"POST":"PATCH",id,{title,slug,status:g("pgStatus").value,sections:keep,seo});await cmsManage("pages");
 }catch(e){const b=g("cmsFormError");if(b)b.textContent=e.message;else alert(e.message)}}

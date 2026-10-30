@@ -190,6 +190,12 @@ function assignedCmsProductIds(slug){
  const section=(Array.isArray(page?.sections)?page.sections:[]).find(x=>x&&x.key==="cms-product-assignments");
  return Array.isArray(section?.product_ids)?section.product_ids.map(Number):[];
 }
+function assignedCmsProductLimit(slug){
+ const page=(window.CMS_SITE_DATA?.pages||[]).find(x=>x.slug===slug&&x.status==="published");
+ const section=(Array.isArray(page?.sections)?page.sections:[]).find(x=>x&&x.key==="cms-product-assignments");
+ const n=Number(section?.limit);
+ return Number.isFinite(n)&&n>0?Math.min(Math.floor(n),1000):12;
+}
 function productList(){
  let list=[...PRODUCTS];
  const params=new URLSearchParams(location.search),view=params.get("view");
@@ -229,10 +235,11 @@ function productList(){
   return list;
  }
  const customPage=location.pathname.match(/^\/page\/([^/]+)\/?$/i);
- const assigned=assignedCmsProductIds(customPage?decodeURIComponent(customPage[1]):"home");
+ const pageSlug=customPage?decodeURIComponent(customPage[1]):"home";
+ const assigned=assignedCmsProductIds(pageSlug);
  if(assigned.length){
   const ordered=assigned.map(id=>list.find(p=>Number(p.cmsRecordId)===id)).filter(Boolean);
-  return ordered.slice(0,12);
+  return ordered.slice(0,assignedCmsProductLimit(pageSlug));
  }
  if(customPage)return [];
  const featured=list.filter(p=>p.featured);
