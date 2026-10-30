@@ -43,6 +43,7 @@ body.cms-authenticated #logoutBtn{display:inline-block}
 .cms-assignment-pagination span{font-size:12px;color:var(--muted)}
 .cms-route-filters{display:grid;grid-template-columns:minmax(220px,2fr) minmax(180px,1fr) minmax(190px,1fr);align-items:center;gap:10px;margin:12px 0}
 .cms-route-filters input,.cms-route-filters select{box-sizing:border-box;min-width:0;width:100%;min-height:40px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text)}
+.cms-route-filters.cms-route-filters-wide{grid-template-columns:minmax(220px,2fr) minmax(150px,1fr) minmax(150px,1fr) minmax(190px,1fr)}
 @media(max-width:750px){.cms-route-filters{grid-template-columns:1fr 1fr}.cms-route-filters input{grid-column:1/-1}.cms-route-filters .cms-assignment-summary{grid-column:1/-1}}
 @media(max-width:750px){.cms-assignment-filters{grid-template-columns:1fr 1fr}.cms-assignment-filters>div:first-child{grid-column:1/-1}}
 @media(max-width:480px){.cms-assignment-filters{grid-template-columns:1fr}.cms-assignment-filters>div:first-child{grid-column:auto}.cms-assignment-pagination{flex-wrap:wrap}}
@@ -317,7 +318,7 @@ let cmsPageAssignmentCurrentPage=1;
 const CMS_PAGE_ASSIGNMENT_PAGE_SIZE=40;
 let cmsWebsiteInventory=[];
 let cmsWebsiteInventoryCurrentPage=1;
-const CMS_WEBSITE_INVENTORY_PAGE_SIZE=50;
+let CMS_WEBSITE_INVENTORY_PAGE_SIZE=50;
 function cmsUpdateBackButton(){document.body.classList.toggle("cms-back-visible",document.body.classList.contains("cms-authenticated")&&!!(cmsEditorBackModule||cmsNavHistory.length));}
 function cmsGoBack(){
  if(cmsEditorBackModule){const page=cmsEditorBackModule;cmsEditorBackModule=null;cmsManage(page);cmsUpdateBackButton();return;}
@@ -485,7 +486,7 @@ async function cmsManage(page){
   if(page==="pages"||page==="blog"){cmsCache.products=await cmsRequest("cms_products");cmsCache.pages=page==="pages"?rows:await cmsRequest("cms_pages")}
   if(page==="pages")cmsCache.categories=await cmsRequest("cms_categories");
   if(page==="seo"){const d=await Promise.all([cmsRequest("cms_products"),cmsRequest("cms_categories"),cmsRequest("cms_pages"),cmsRequest("cms_blog_posts"),cmsRequest("cms_banners")]);cmsCache.products=d[0];cmsCache.categories=d[1];cmsCache.pages=d[2];cmsCache.blog=d[3];cmsCache.banners=d[4]}
-  const target=document.getElementById("cmsRecords");if(target){target.innerHTML=cmsRowsMarkup(page,rows);if(page==="pages")cmsRenderWebsiteInventory();}
+  const target=document.getElementById("cmsRecords");if(target){target.innerHTML=cmsRowsMarkup(page,rows);if(page==="pages")cmsRenderWebsiteInventory();cmsListAttach(page);}
  }catch(e){const target=document.getElementById("cmsRecords");if(target)target.innerHTML='<p class="live-error">'+esc(e.message)+'</p><button class="btn" onclick="cmsManage(&quot;'+page+'&quot;)">Retry</button>'}
 }
 function cmsWebsiteInventoryFiltered(){
@@ -511,6 +512,58 @@ function cmsRenderWebsiteInventory(){
  const pager=document.getElementById("cmsWebsiteInventoryPagination");
  if(pager)pager.innerHTML='<button type="button" class="btn" onclick="cmsChangeWebsiteInventoryPage(-1)" '+(cmsWebsiteInventoryCurrentPage<=1?'disabled':'')+'>← Previous</button><span>Page '+cmsWebsiteInventoryCurrentPage+' of '+pageCount+'</span><button type="button" class="btn" onclick="cmsChangeWebsiteInventoryPage(1)" '+(cmsWebsiteInventoryCurrentPage>=pageCount?'disabled':'')+'>Next →</button>';
 }
+/* Admin list controls: a search box plus a per-page filter on every CMS list.
+   The bar sits OUTSIDE #cmsRecords, so typing never loses focus when the table
+   re-renders, and the pager sits right under the table. Filtering happens on the
+   rendered rows, so it works for every section without changing each renderer.
+   State survives cmsManage() re-renders, so a search/page view is kept after saving. */
+const CMS_LIST_PAGE_SIZES=[10,25,50,100];
+const cmsListState={};
+function cmsListStateFor(page){if(!cmsListState[page])cmsListState[page]={q:"",perPage:25,page:1};return cmsListState[page];}
+function cmsListScope(page){
+ const records=document.getElementById("cmsRecords");if(!records)return null;
+ if(page==="banners")return {rows:[...records.querySelectorAll(".cms-banner-sort-card")]};
+ const wrap=records.querySelector(".table-wrap");if(!wrap)return null;
+ return {rows:[...wrap.querySelectorAll("tbody tr")],wrap};
+}
+function cmsListApply(page){
+ const st=cmsListStateFor(page),scope=cmsListScope(page);if(!scope)return;
+ const q=st.q.trim().toLowerCase();
+ const matched=scope.rows.filter(r=>!q||String(r.textContent||"").toLowerCase().includes(q));
+ const perPage=page==="banners"?0:(st.perPage||0),pageCount=perPage?Math.max(1,Math.ceil(matched.length/perPage)):1;
+ st.page=Math.min(Math.max(1,st.page),pageCount);
+ const start=perPage?(st.page-1)*perPage:0,visible=perPage?matched.slice(start,start+perPage):matched;
+ const visibleSet=new Set(visible);
+ scope.rows.forEach(r=>{r.style.display=visibleSet.has(r)?"":"none";});
+ const summary=document.getElementById("cmsListSummary-"+page);
+ if(summary)summary.textContent=matched.length?("Showing "+(start+1)+"–"+(start+visible.length)+" of "+matched.length+" matches"):"No matches for this search.";
+ const pager=document.getElementById("cmsListPager-"+page);
+ if(pager)pager.innerHTML='<button type="button" class="btn" onclick="cmsListChangePage(&quot;'+page+'&quot;,-1)" '+(st.page<=1?"disabled":"")+'>← Previous</button><span>Page '+st.page+' of '+pageCount+'</span><button type="button" class="btn" onclick="cmsListChangePage(&quot;'+page+'&quot;,1)" '+(st.page>=pageCount?"disabled":"")+'>Next →</button>';
+}
+function cmsListOnSearch(page,value){const st=cmsListStateFor(page);st.q=String(value||"");st.page=1;cmsListApply(page);}
+function cmsListOnPerPage(page,value){const st=cmsListStateFor(page);st.perPage=Number(value||25);st.page=1;cmsListApply(page);}
+function cmsListChangePage(page,delta){const st=cmsListStateFor(page);st.page=Math.max(1,st.page+Number(delta||0));cmsListApply(page);}
+function cmsListAttach(page){
+ const records=document.getElementById("cmsRecords");if(!records||!records.parentElement)return;
+ const old=document.getElementById("cmsListControls-"+page);if(old)old.remove();
+ const oldPager=document.getElementById("cmsListPager-"+page);if(oldPager)oldPager.remove();
+ const st=cmsListStateFor(page),placeholders={products:"Search products by name, slug, category or status…",categories:"Search categories by name or slug…",pages:"Search CMS pages by title, slug or status…",blog:"Search blog posts by title, slug or excerpt…",seo:"Search SEO records by target, title or description…",banners:"Search banners by title, subtitle or placement…"};
+ const bar=document.createElement("div");
+ bar.id="cmsListControls-"+page;
+ bar.className="cms-route-filters";
+ bar.innerHTML='<input type="search" placeholder="'+(placeholders[page]||"Search…")+'" value="'+esc(st.q)+'" oninput="cmsListOnSearch(&quot;'+page+'&quot;,this.value)" aria-label="Search '+page+'">'+(page==="banners"?"":'<select onchange="cmsListOnPerPage(&quot;'+page+'&quot;,this.value)" aria-label="Results per page">'+CMS_LIST_PAGE_SIZES.map(n=>'<option value="'+n+'" '+(st.perPage===n?"selected":"")+'>'+n+' per page</option>').join("")+'<option value="0" '+(st.perPage===0?"selected":"")+'>Show all</option></select>')+'<span id="cmsListSummary-'+page+'" class="cms-assignment-summary"></span>';
+ records.parentElement.insertBefore(bar,records);
+ if(page!=="banners"){
+  const wrap=records.querySelector(".table-wrap");
+  if(wrap){
+   const pager=document.createElement("div");
+   pager.id="cmsListPager-"+page;pager.className="cms-assignment-pagination";
+   wrap.after(pager);
+  }
+ }
+ cmsListApply(page);
+}
+function cmsRoutePerPage(value){CMS_WEBSITE_INVENTORY_PAGE_SIZE=Number(value||50);cmsWebsiteInventoryCurrentPage=1;cmsRenderWebsiteInventory();}
 function cmsRowsMarkup(page,rows){
  const actions=id=>'<div class="item-actions"><button class="btn" onclick="cmsEdit(&quot;'+page+'&quot;,'+Number(id)+')">Edit</button> '+(page==="banners"&&Number(id)===4?'<span class="cms-banner-placement">Built-in hero</span>':'<button class="btn danger" onclick="cmsDelete(&quot;'+page+'&quot;,'+Number(id)+')">Delete</button>')+'</div>';
  const empty='<tr><td colspan="8">No records yet. Use Add to create the first record.</td></tr>';let body="";
@@ -556,7 +609,7 @@ function cmsRowsMarkup(page,rows){
    '<h2 style="margin:18px 0 8px">Editable CMS Pages <span class="record-meta">('+rows.length+')</span></h2><p class="hint">Edit Homepage and All Products assignments here, or create a custom CMS page. Use the product search and filters inside the editor to manage large catalogues.</p>'+
    '<div class="table-wrap"><table class="table"><thead><tr><th>CMS page</th><th>URL path</th><th>Status</th><th>Products assigned</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div>'+
    '<h2 style="margin:26px 0 8px">Existing Website Routes <span class="record-meta">('+cmsWebsiteInventory.length+')</span></h2><p class="hint">Search or filter this read-only inventory; 50 routes are shown at a time, even when the catalogue grows.</p>'+
-   '<div class="cms-route-filters"><input id="cmsRouteSearch" type="search" placeholder="Search page title or URL…" oninput="cmsFilterWebsiteInventory()" aria-label="Search website routes"><select id="cmsRouteType" onchange="cmsFilterWebsiteInventory()" aria-label="Filter website route type"><option value="">All route types</option>'+[...new Set(cmsWebsiteInventory.map(p=>p.type))].sort().map(t=>'<option value="'+esc(t)+'">'+esc(t)+'</option>').join("")+'</select><span id="cmsRouteSummary" class="cms-assignment-summary"></span></div>'+
+   '<div class="cms-route-filters cms-route-filters-wide"><input id="cmsRouteSearch" type="search" placeholder="Search page title or URL…" oninput="cmsFilterWebsiteInventory()" aria-label="Search website routes"><select id="cmsRouteType" onchange="cmsFilterWebsiteInventory()" aria-label="Filter website route type"><option value="">All route types</option>'+[...new Set(cmsWebsiteInventory.map(p=>p.type))].sort().map(t=>'<option value="'+esc(t)+'">'+esc(t)+'</option>').join("")+'</select><select id="cmsRoutePerPage" onchange="cmsRoutePerPage(this.value)" aria-label="Routes per page"><option value="10">10 per page</option><option value="25">25 per page</option><option value="50" selected>50 per page</option><option value="100">100 per page</option></select><span id="cmsRouteSummary" class="cms-assignment-summary"></span></div>'+
    '<div class="table-wrap"><table class="table"><thead><tr><th>Page</th><th>URL path</th><th>Type</th><th>Preview</th></tr></thead><tbody id="cmsWebsiteInventoryRows"></tbody></table></div><div class="cms-assignment-pagination" id="cmsWebsiteInventoryPagination"></div>';
  }
  if(page==="banners"){
@@ -627,7 +680,7 @@ async function cmsBannerDrop(event,group,targetId){
  try{
   for(let i=0;i<ordered.length;i++)await cmsRequest("cms_banners","PATCH",Number(ordered[i].id),{sort_order:(i+1)*10});
   cmsCache.banners=await cmsRequest("cms_banners");
-  const target=document.getElementById("cmsRecords");if(target)target.innerHTML=cmsRowsMarkup("banners",cmsCache.banners);
+  const target=document.getElementById("cmsRecords");if(target){target.innerHTML=cmsRowsMarkup("banners",cmsCache.banners);cmsListApply("banners");}
   const saved=document.getElementById("cmsBannerSortNotice");if(saved)saved.textContent="Banner order saved.";
  }catch(e){
   alert("Could not save the banner order: "+e.message);
