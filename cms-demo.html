@@ -197,6 +197,7 @@ body.cms-back-visible #backBtn{display:inline-block}
 <button data-page="pages">Website Pages</button>
 <button data-page="banners">Banners &amp; Sliders</button>
 <button data-page="blog">Blog Posts</button>
+<button data-page="reviews">Reviews</button>
 <button data-page="seo">SEO Manager</button>
 </nav>
 </aside>
@@ -437,7 +438,7 @@ const CMS_SCHEMAS = {
  pages:{table:"cms_pages",title:"Website Pages",fields:[["title","Page title","text"],["slug","Slug","text"],["status","Status: draft/published","text"],["sections","Sections JSON","json"],["seo","SEO JSON","json"]],summary:["title","slug","status","sections"]},
  banners:{table:"cms_banners",title:"Banners / Sliders",fields:[["title","Title","text"],["subtitle","Subtitle","text"],["image_url","Desktop image URL","text"],["mobile_image_url","Mobile image URL","text"],["button_text","Button text","text"],["button_url","Button URL","text"],["placement","Placement","text"],["display_mode","Display mode","text"],["text_color","Overlay text colour","text"],["text_position","Text position","text"],["button_position","Button corner","text"],["sort_order","Sort order","number"],["starts_at","Start time (ISO)","text"],["ends_at","End time (ISO)","text"],["is_active","Active (true/false)","boolean"]],summary:["title","placement","display_mode","is_active","sort_order"]},
  blog:{table:"cms_blog_posts",title:"Blog Posts",fields:[["title","Title","text"],["slug","Slug","text"],["excerpt","Excerpt","textarea"],["content","Article content","textarea"],["featured_image_url","Featured image URL","text"],["status","Status: draft/published","text"],["published_at","Publish time (ISO)","text"],["author_name","Author","text"],["tags","Tags JSON array","json"],["related_product_ids","Related product IDs JSON array","json"],["seo","SEO JSON","json"]],summary:["title","slug","status"]},
- reviews:{table:"cms_reviews",title:"Reviews (CMS Draft)",fields:[["customer_name","Customer name","text"],["rating","Rating 1–5","number"],["review_text","Review","textarea"],["product_id","Product ID","number"],["image_url","Image URL","text"],["status","Status: pending/approved/rejected","text"],["featured","Featured (true/false)","boolean"]],summary:["customer_name","rating","status"]},
+ reviews:{table:"cms_reviews",title:"Reviews",fields:[["customer_name","Customer name","text"],["rating","Rating 1–5","number"],["review_text","Review","textarea"],["product_id","Product ID","number"],["image_url","Image URL","text"],["status","Status: pending/approved/rejected","text"],["featured","Featured (true/false)","boolean"]],summary:["customer_name","rating","status"]},
  faqs:{table:"cms_faqs",title:"FAQs (CMS Draft)",fields:[["question","Question","text"],["answer","Answer","textarea"],["category","Category","text"],["sort_order","Sort order","number"],["is_active","Active (true/false)","boolean"]],summary:["question","category","is_active"]},
  promotions:{table:"cms_promotions",title:"Promotions (CMS Draft)",fields:[["name","Promotion name","text"],["type","Type","text"],["value","Value","number"],["min_order_value","Minimum order value","number"],["code","Coupon code","text"],["starts_at","Start time (ISO)","text"],["ends_at","End time (ISO)","text"],["rules","Rules JSON","json"],["is_active","Active (true/false)","boolean"]],summary:["name","type","code","is_active"]},
  media:{table:"cms_media",title:"Media Library",fields:[["name","Asset name","text"],["url","Asset URL","text"],["type","Type (image/video/file)","text"],["alt_text","Alt text","text"],["folder","Folder","text"]],summary:["name","type","url"]},
@@ -474,15 +475,16 @@ function cmsValueText(v){if(v===null||v===undefined)return "—";if(typeof v==="
 async function cmsManage(page){
  const cfg=CMS_SCHEMAS[page];if(!cfg)return;
  cmsEditorBackModule=null;cmsUpdateBackButton();
- const labels={products:"Add Product",categories:"Add Category",pages:"Add Page",banners:"Add Banner",blog:"Add Blog Post",seo:"Add SEO Record"};
- const subs={products:"Add or update products, images, price, shipping weight, categories and SEO. Active products publish automatically.",categories:"Create and organise categories. Active categories and product filters sync to the website.",pages:"Create page drafts, assign products, and publish them to a page URL when status is Published.",banners:"Upload desktop/mobile images, set CTA links, placement, ordering and schedule. Active banners sync automatically.",blog:"Edit articles and upload images. Published posts update their public blog URL.",seo:"Manage titles, descriptions, canonical URLs, indexing, Open Graph and structured data. SEO settings sync to public pages."};
+ const labels={products:"Add Product",categories:"Add Category",pages:"Add Page",banners:"Add Banner",blog:"Add Blog Post",seo:"Add SEO Record",reviews:"Add Review"};
+ const subs={products:"Add or update products, images, price, shipping weight, categories and SEO. Active products publish automatically.",categories:"Create and organise categories. Active categories and product filters sync to the website.",pages:"Create page drafts, assign products, and publish them to a page URL when status is Published.",banners:"Upload desktop/mobile images, set CTA links, placement, ordering and schedule. Active banners sync automatically.",blog:"Edit articles and upload images. Published posts update their public blog URL.",seo:"Manage titles, descriptions, canonical URLs, indexing, Open Graph and structured data. SEO settings sync to public pages.",reviews:"Add customer reviews, assign them to products, and choose whether they appear on the homepage."};
  const headerActions=page==="banners"?"":"<button class='btn primary' onclick='cmsEdit(&quot;"+page+"&quot;,null)'>+ "+labels[page]+"</button>";
  app.innerHTML=head(cfg.title,subs[page]||"Website content management.",headerActions)+
- (page==="blog"?'<div class="module-note"><strong>Publishing:</strong> Published CMS posts update their public blog URL automatically. Imported article slugs are retained.</div>':page==="banners"?'<div class="module-note"><strong>Homepage hero:</strong> the existing Mango Pulp hero is automatically included as the first slide. Add as many hero slides as needed; they rotate every 2 seconds. Drag cards to change the order of added slides. The separate below-hero section is a 4-column desktop grid (2 columns on mobile), suitable for category, sale and deal creatives. Keep hero images around 1920 × 650 px and make small grid creatives square for clean crops.</div>':'<div class="module-note"><strong>Automatic publishing:</strong> Active products/categories, published pages/blogs, active banners and SEO records sync to the public website after save. Checkout, orders and finance remain in the existing admin.</div>')+
+ (page==="blog"?'<div class="module-note"><strong>Publishing:</strong> Published CMS posts update their public blog URL automatically. Imported article slugs are retained.</div>':page==="reviews"?'<div class="module-note"><strong>Reviews:</strong> Approved reviews show on the website: on the homepage when Show on homepage is ticked, and on the assigned product page. A review with no product assigned is a general review and shows on Mango Pulp pages.</div>':page==="banners"?'<div class="module-note"><strong>Homepage hero:</strong> the existing Mango Pulp hero is automatically included as the first slide. Add as many hero slides as needed; they rotate every 2 seconds. Drag cards to change the order of added slides. The separate below-hero section is a 4-column desktop grid (2 columns on mobile), suitable for category, sale and deal creatives. Keep hero images around 1920 × 650 px and make small grid creatives square for clean crops.</div>':'<div class="module-note"><strong>Automatic publishing:</strong> Active products/categories, published pages/blogs, active banners and SEO records sync to the public website after save. Checkout, orders and finance remain in the existing admin.</div>')+
  '<div class="panel"><div id="cmsRecords">Loading website content…</div></div>';
  try{
   const rows=await cmsRequest(cfg.table);cmsCache[page]=rows;
   if(page==="products"||page==="categories")cmsCache.categories=page==="categories"?rows:await cmsRequest("cms_categories");
+  if(page==="reviews")cmsCache.products=await cmsRequest("cms_products");
   if(page==="pages"||page==="blog"){cmsCache.products=await cmsRequest("cms_products");cmsCache.pages=page==="pages"?rows:await cmsRequest("cms_pages")}
   if(page==="pages")cmsCache.categories=await cmsRequest("cms_categories");
   if(page==="seo"){const d=await Promise.all([cmsRequest("cms_products"),cmsRequest("cms_categories"),cmsRequest("cms_pages"),cmsRequest("cms_blog_posts"),cmsRequest("cms_banners")]);cmsCache.products=d[0];cmsCache.categories=d[1];cmsCache.pages=d[2];cmsCache.blog=d[3];cmsCache.banners=d[4]}
@@ -634,6 +636,10 @@ function cmsRowsMarkup(page,rows){
   body=rows.map(r=>'<tr><td>'+esc(r.entity_type)+'</td><td>'+esc(cmsSeoTargetLabel(r))+'</td><td><div class="record-title">'+esc(r.title||"No title")+'</div><div class="record-meta">'+esc((r.description||"").slice(0,130))+'</div></td><td>'+esc(r.robots||"index,follow")+'</td><td>'+actions(r.id)+'</td></tr>').join("");
   return '<div class="table-wrap"><table class="table"><thead><tr><th>Target</th><th>Item</th><th>SEO title / description</th><th>Indexing</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">Create site-wide defaults or link SEO to a product, category, page, blog post or banner.</p>';
  }
+ if(page==="reviews"){
+  body=rows.map(r=>{const pr=(cmsCache.products||[]).find(x=>Number(x.id)===Number(r.product_id));const st=String(r.status||"pending");return '<tr><td>'+(r.image_url?'<img class="record-thumb" src="'+esc(r.image_url)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.customer_name||"Customer")+'</div><div class="record-meta">'+'★'.repeat(Math.min(5,Number(r.rating)||5))+'☆'.repeat(Math.max(0,5-(Number(r.rating)||5)))+'</div></td><td>'+esc((r.review_text||"").slice(0,160))+'</td><td>'+esc(pr?pr.name:"General review")+'</td><td>'+(r.featured?"Yes":"No")+'</td><td>'+esc(st==="approved"?"Live":st==="pending"?"Hidden":st)+'</td><td>'+actions(r.id)+'</td></tr>'}).join("");
+  return '<div class="table-wrap"><table class="table"><thead><tr><th>Photo</th><th>Customer</th><th>Review</th><th>Product</th><th>Homepage</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">'+rows.length+' reviews. Approved reviews show on the website; use Edit to change the product, photo or homepage setting.</p>';
+ }
  return '<div class="table-wrap"><table class="table"><tbody>'+(rows.map(r=>'<tr><td>'+esc(r.title||r.name||r.slug||("Record "+r.id))+'</td><td>'+actions(r.id)+'</td></tr>').join("")||empty)+'</tbody></table></div>';
 }
 function cmsBannerGroupMatches(row,group){
@@ -689,7 +695,37 @@ async function cmsEdit(page,id){
  if(id!==null)app.innerHTML=head("Loading…","Opening editor…")+'<div class="panel"><p>Loading editor…</p></div>';
  try{if(id!==null){const rows=await cmsRequest(cfg.table);r=rows.find(x=>Number(x.id)===Number(id));if(!r)throw new Error("Record not found.")}}catch(e){alert(e.message);cmsManage(page);return}
  cmsFormSeo=r.seo&&typeof r.seo==="object"?Object.assign({},r.seo):{};
- if(page==="products")return cmsEditProduct(r,id);if(page==="categories")return cmsEditCategory(r,id);if(page==="pages")return cmsEditPage(r,id);if(page==="banners")return cmsEditBanner(r,id);if(page==="blog")return cmsEditBlog(r,id);if(page==="seo")return cmsEditSeo(r,id);
+ if(page==="products")return cmsEditProduct(r,id);if(page==="categories")return cmsEditCategory(r,id);if(page==="pages")return cmsEditPage(r,id);if(page==="banners")return cmsEditBanner(r,id);if(page==="blog")return cmsEditBlog(r,id);if(page==="seo")return cmsEditSeo(r,id);if(page==="reviews")return cmsEditReview(r,id);
+}
+function cmsEditReview(r,id){
+ const prods=(cmsCache.products||[]).slice().sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+ const opts=[{value:"",label:"General review (no specific product)"}].concat(prods.map(p=>({value:String(p.id),label:p.name})));
+ const fields=cmsField("Customer name","rvName",r.customer_name,"text","The name shown with the review on the website.")
+ +cmsField("Rating (1-5)","rvRating",(r.rating??5),"number","Whole stars shown with the review.")
+ +cmsField("Review","rvText",r.review_text,"textarea","The customer’s own words. Keep it exactly as shared.")
+ +cmsSearchSelect("Show on product","rvProduct",opts,(r.product_id??""),"A review assigned to a product shows on that product’s page. A general review shows on Mango Pulp pages.")
+ +cmsField("Image URL","rvImage",r.image_url,"text","Optional photo, for example a WhatsApp screenshot.")
+ +cmsUploadField("Upload review photo","rvImage","reviews",false,"set","JPG, PNG, WEBP, GIF or AVIF, up to 8 MB. The uploaded image URL fills the Image URL field automatically.")
+ +cmsSelect("Status","rvStatus",[{value:"approved",label:"Live (approved) — shows on the website"},{value:"pending",label:"Hidden (pending) — does not show"}],(r.status||"approved"))
+ +cmsCheck("Show on homepage","rvFeatured",!!r.featured)
+ +'<p class="field-help">Ticked reviews appear in the homepage review slider. Unticked reviews only appear on their product page (and the Customer Reviews page).</p>';
+ cmsEditorShell(id===null?"Add Review":"Edit Review","Customer reviews shown on the homepage and product pages.",fields,"cmsSaveReview("+JSON.stringify(id)+")","reviews");
+}
+async function cmsSaveReview(id){
+ const err=document.getElementById("cmsFormError");
+ try{
+  const name=document.getElementById("rvName").value.trim();
+  const text=document.getElementById("rvText").value.trim();
+  if(!name)throw new Error("Customer name is required.");
+  if(!text)throw new Error("Review text is required.");
+  let rating=Number(document.getElementById("rvRating").value);
+  if(!Number.isFinite(rating))rating=5;
+  rating=Math.min(5,Math.max(1,Math.round(rating)));
+  const pv=document.getElementById("rvProduct").value;
+  const data={customer_name:name,rating:rating,review_text:text,product_id:pv===""?null:Number(pv),image_url:document.getElementById("rvImage").value.trim()||null,status:document.getElementById("rvStatus").value,featured:!!document.getElementById("rvFeatured").checked};
+  await cmsRequest("cms_reviews",id===null?"POST":"PATCH",id,data);
+  await cmsManage("reviews");
+ }catch(e){if(err)err.textContent=e.message;else alert(e.message)}
 }
 function cmsUpdateCharacterCount(id,limit){
  const input=document.getElementById(id),count=document.getElementById(id+"Count");if(!input||!count)return;
