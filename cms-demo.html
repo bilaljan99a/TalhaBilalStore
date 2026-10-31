@@ -521,7 +521,7 @@ function cmsRenderWebsiteInventory(){
    State survives cmsManage() re-renders, so a search/page view is kept after saving. */
 const CMS_LIST_PAGE_SIZES=[10,25,50,100];
 const cmsListState={};
-function cmsListStateFor(page){if(!cmsListState[page])cmsListState[page]={q:"",perPage:25,page:1};return cmsListState[page];}
+function cmsListStateFor(page){if(!cmsListState[page])cmsListState[page]={q:"",perPage:25,page:1,sort:"newest"};return cmsListState[page];}
 function cmsListScope(page){
  const records=document.getElementById("cmsRecords");if(!records)return null;
  if(page==="banners")return {rows:[...records.querySelectorAll(".cms-banner-sort-card")]};
@@ -530,6 +530,7 @@ function cmsListScope(page){
 }
 function cmsListApply(page){
  const st=cmsListStateFor(page),scope=cmsListScope(page);if(!scope)return;
+ if(["products","blog","reviews"].includes(page)&&scope.rows.length>1){const tbody=scope.rows[0].parentElement;if(tbody&&tbody.tagName==="TBODY"){const oldest=st.sort==="oldest";const ts=v=>{const t=Date.parse(String(v||""));return Number.isFinite(t)?t:null};const key=r=>ts(r.getAttribute("data-sort-date"));const sorted=scope.rows.slice().sort((a,b)=>{const ka=key(a),kb=key(b);if(oldest)return (ka??Infinity)-(kb??Infinity);return (kb??-1)-(ka??-1)});sorted.forEach(r=>tbody.appendChild(r));scope.rows=sorted;}}
  const q=st.q.trim().toLowerCase();
  const matched=scope.rows.filter(r=>!q||String(r.textContent||"").toLowerCase().includes(q));
  const perPage=page==="banners"?0:(st.perPage||0),pageCount=perPage?Math.max(1,Math.ceil(matched.length/perPage)):1;
@@ -544,6 +545,7 @@ function cmsListApply(page){
 }
 function cmsListOnSearch(page,value){const st=cmsListStateFor(page);st.q=String(value||"");st.page=1;cmsListApply(page);}
 function cmsListOnPerPage(page,value){const st=cmsListStateFor(page);st.perPage=Number(value||25);st.page=1;cmsListApply(page);}
+function cmsListOnSort(page,value){const st=cmsListStateFor(page);st.sort=value==="oldest"?"oldest":"newest";st.page=1;cmsListApply(page);}
 function cmsListChangePage(page,delta){const st=cmsListStateFor(page);st.page=Math.max(1,st.page+Number(delta||0));cmsListApply(page);}
 function cmsListAttach(page){
  const records=document.getElementById("cmsRecords");if(!records||!records.parentElement)return;
@@ -553,7 +555,7 @@ function cmsListAttach(page){
  const bar=document.createElement("div");
  bar.id="cmsListControls-"+page;
  bar.className="cms-route-filters";
- bar.innerHTML='<input type="search" placeholder="'+(placeholders[page]||"Search…")+'" value="'+esc(st.q)+'" oninput="cmsListOnSearch(&quot;'+page+'&quot;,this.value)" aria-label="Search '+page+'">'+(page==="banners"?"":'<select onchange="cmsListOnPerPage(&quot;'+page+'&quot;,this.value)" aria-label="Results per page">'+CMS_LIST_PAGE_SIZES.map(n=>'<option value="'+n+'" '+(st.perPage===n?"selected":"")+'>'+n+' per page</option>').join("")+'<option value="0" '+(st.perPage===0?"selected":"")+'>Show all</option></select>')+'<span id="cmsListSummary-'+page+'" class="cms-assignment-summary"></span>';
+ bar.innerHTML='<input type="search" placeholder="'+(placeholders[page]||"Search…")+'" value="'+esc(st.q)+'" oninput="cmsListOnSearch(&quot;'+page+'&quot;,this.value)" aria-label="Search '+page+'">'+(page==="banners"?"":'<select onchange="cmsListOnPerPage(&quot;'+page+'&quot;,this.value)" aria-label="Results per page">'+CMS_LIST_PAGE_SIZES.map(n=>'<option value="'+n+'" '+(st.perPage===n?"selected":"")+'>'+n+' per page</option>').join("")+'<option value="0" '+(st.perPage===0?"selected":"")+'>Show all</option></select>')+((["products","blog","reviews"].includes(page))?'<select onchange="cmsListOnSort(&quot;'+page+'&quot;,this.value)" aria-label="Sort order"><option value="newest" '+(st.sort!=="oldest"?"selected":"")+'>Newest to Oldest</option><option value="oldest" '+(st.sort==="oldest"?"selected":"")+'>Oldest to Newest</option></select>':'')+'<span id="cmsListSummary-'+page+'" class="cms-assignment-summary"></span>';
  records.parentElement.insertBefore(bar,records);
  if(page!=="banners"){
   const wrap=records.querySelector(".table-wrap");
@@ -570,7 +572,7 @@ function cmsRowsMarkup(page,rows){
  const actions=id=>'<div class="item-actions"><button class="btn" onclick="cmsEdit(&quot;'+page+'&quot;,'+Number(id)+')">Edit</button> '+(page==="banners"&&Number(id)===4?'<span class="cms-banner-placement">Built-in hero</span>':'<button class="btn danger" onclick="cmsDelete(&quot;'+page+'&quot;,'+Number(id)+')">Delete</button>')+'</div>';
  const empty='<tr><td colspan="8">No records yet. Use Add to create the first record.</td></tr>';let body="";
  if(page==="products"){
-  body=rows.map(r=>{const im=cmsFirstImage(r.images),cat=(cmsCache.categories||[]).find(x=>Number(x.id)===Number(r.category_id));return '<tr><td>'+(im?'<img class="record-thumb" src="'+esc(im)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.name)+'</div><div class="record-meta">'+esc(r.slug)+'</div></td><td>'+esc(cat?cat.name:"Unassigned")+'</td><td>'+money(r.sale_price??r.price)+'</td><td>'+esc(r.status)+'</td><td>'+(r.created_at&&!isNaN(new Date(r.created_at))?esc(new Date(r.created_at).toLocaleDateString("en-PK",{day:"numeric",month:"short",year:"numeric"})):"—")+'</td><td>'+actions(r.id)+'</td></tr>'}).join("");
+  body=rows.map(r=>{const im=cmsFirstImage(r.images),cat=(cmsCache.categories||[]).find(x=>Number(x.id)===Number(r.category_id));return '<tr data-sort-date="'+esc(r.created_at||r.updated_at||"")+'"><td>'+(im?'<img class="record-thumb" src="'+esc(im)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.name)+'</div><div class="record-meta">'+esc(r.slug)+'</div></td><td>'+esc(cat?cat.name:"Unassigned")+'</td><td>'+money(r.sale_price??r.price)+'</td><td>'+esc(r.status)+'</td><td>'+(r.created_at&&!isNaN(new Date(r.created_at))?esc(new Date(r.created_at).toLocaleDateString("en-PK",{day:"numeric",month:"short",year:"numeric"})):"—")+'</td><td>'+actions(r.id)+'</td></tr>'}).join("");
   return '<div class="table-wrap"><table class="table"><thead><tr><th>Image</th><th>Product</th><th>Category</th><th>Price</th><th>Status</th><th>Date added</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">'+rows.length+' CMS products. Use Website Pages to assign products to pages.</p>';
  }
  if(page==="categories"){
@@ -629,7 +631,7 @@ function cmsRowsMarkup(page,rows){
    '</div><div id="cmsBannerSortNotice" class="module-note" role="status" aria-live="polite">Drag a banner card up or down inside its section to save the display order.</div>';
  }
  if(page==="blog"){
-  body=rows.map(r=>{const s=r.seo&&typeof r.seo==="object"?r.seo:{};return '<tr><td>'+(r.featured_image_url?'<img class="record-thumb" src="'+esc(r.featured_image_url)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.title)+'</div><div class="record-meta">'+esc(r.slug)+'</div>'+(s.live_url?'<div class="record-meta"><a href="'+esc(s.live_url)+'" target="_blank" rel="noopener">Open public post ↗</a></div>':'')+'</td><td>'+esc(r.status)+'</td><td>'+esc((r.excerpt||"").slice(0,180))+'</td><td>'+actions(r.id)+'</td></tr>'}).join("");
+  body=rows.map(r=>{const s=r.seo&&typeof r.seo==="object"?r.seo:{};return '<tr data-sort-date="'+esc(r.published_at||r.created_at||"")+'"><td>'+(r.featured_image_url?'<img class="record-thumb" src="'+esc(r.featured_image_url)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.title)+'</div><div class="record-meta">'+esc(r.slug)+'</div>'+(s.live_url?'<div class="record-meta"><a href="'+esc(s.live_url)+'" target="_blank" rel="noopener">Open public post ↗</a></div>':'')+'</td><td>'+esc(r.status)+'</td><td>'+esc((r.excerpt||"").slice(0,180))+'</td><td>'+actions(r.id)+'</td></tr>'}).join("");
   return '<div class="table-wrap"><table class="table"><thead><tr><th>Image</th><th>Article</th><th>CMS status</th><th>Excerpt</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">'+rows.length+' CMS blog posts. Edits here do not replace public HTML files.</p>';
  }
  if(page==="seo"){
@@ -637,7 +639,7 @@ function cmsRowsMarkup(page,rows){
   return '<div class="table-wrap"><table class="table"><thead><tr><th>Target</th><th>Item</th><th>SEO title / description</th><th>Indexing</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">Create site-wide defaults or link SEO to a product, category, page, blog post or banner.</p>';
  }
  if(page==="reviews"){
-  body=rows.map(r=>{const pr=(cmsCache.products||[]).find(x=>Number(x.id)===Number(r.product_id));const st=String(r.status||"pending");return '<tr><td>'+(r.image_url?'<img class="record-thumb" src="'+esc(r.image_url)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.customer_name||"Customer")+'</div><div class="record-meta">'+'★'.repeat(Math.min(5,Number(r.rating)||5))+'☆'.repeat(Math.max(0,5-(Number(r.rating)||5)))+'</div></td><td>'+esc((r.review_text||"").slice(0,160))+'</td><td>'+esc(pr?pr.name:"General review")+'</td><td>'+(r.featured?"Yes":"No")+'</td><td>'+esc(st==="approved"?"Live":st==="pending"?"Hidden":st)+'</td><td>'+actions(r.id)+'</td></tr>'}).join("");
+  body=rows.map(r=>{const pr=(cmsCache.products||[]).find(x=>Number(x.id)===Number(r.product_id));const st=String(r.status||"pending");return '<tr data-sort-date="'+esc(r.created_at||"")+'"><td>'+(r.image_url?'<img class="record-thumb" src="'+esc(r.image_url)+'" alt="">':'—')+'</td><td><div class="record-title">'+esc(r.customer_name||"Customer")+'</div><div class="record-meta">'+'★'.repeat(Math.min(5,Number(r.rating)||5))+'☆'.repeat(Math.max(0,5-(Number(r.rating)||5)))+'</div></td><td>'+esc((r.review_text||"").slice(0,160))+'</td><td>'+esc(pr?pr.name:"General review")+'</td><td>'+(r.featured?"Yes":"No")+'</td><td>'+esc(st==="approved"?"Live":st==="pending"?"Hidden":st)+'</td><td>'+actions(r.id)+'</td></tr>'}).join("");
   return '<div class="table-wrap"><table class="table"><thead><tr><th>Photo</th><th>Customer</th><th>Review</th><th>Product</th><th>Homepage</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+(body||empty)+'</tbody></table></div><p class="hint">'+rows.length+' reviews. Approved reviews show on the website; use Edit to change the product, photo or homepage setting.</p>';
  }
  return '<div class="table-wrap"><table class="table"><tbody>'+(rows.map(r=>'<tr><td>'+esc(r.title||r.name||r.slug||("Record "+r.id))+'</td><td>'+actions(r.id)+'</td></tr>').join("")||empty)+'</tbody></table></div>';
