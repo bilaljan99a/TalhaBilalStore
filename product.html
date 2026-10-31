@@ -30,6 +30,8 @@
 .cms-var-prices{font-size:11.5px!important;margin-top:1px!important;display:flex!important;align-items:baseline!important;gap:5px!important}
 .cms-var-price{color:var(--orange)!important;font-weight:800!important}
 .cms-var-old{color:var(--muted)!important;font-size:10.5px!important;text-decoration:line-through!important}
+.cms-var-per-unit{font-size:11px!important;color:#15803d!important;font-weight:700!important;margin-top:1px!important}
+.cms-pack-save-line{font-size:13.5px!important;color:#15803d!important;font-weight:700!important;margin:6px 0 0!important}
 .cms-var-check{display:none;width:15px;height:15px;background:var(--orange);color:#fff;border-radius:50%;font-size:9.5px;line-height:15px;text-align:center;font-weight:800;margin-left:4px;flex-shrink:0}
 .cms-var-option-card.active .cms-var-check{display:inline-block}
 
@@ -196,6 +198,10 @@ function cmsNormalizeProductVariations(variations){
  return list;
 }
 
+function cmsPackCount(name){const m=String(name||'').match(/pack of\s*(\d+)/i);return m?parseInt(m[1],10):1}
+function cmsFmtUnit(v){return 'Rs. '+Number(v).toLocaleString('en-PK',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function cmsPackSinglePrice(variants,basePrice){const one=(variants||[]).find(v=>cmsPackCount(v.name)===1);return one&&one.price!=null?one.price:(Number(basePrice)||0)}
+function cmsPackSaveText(variant,variants,basePrice){const n=cmsPackCount(variant&&variant.name);if(n<2||variant.price==null)return '';const single=cmsPackSinglePrice(variants,basePrice);const save=single*n-variant.price;const unit=cmsFmtUnit(variant.price/n)+' per piece';return save>0?unit+' · You save '+currency(save)+' vs buying '+n+' singles':unit}
 function cmsInitialVariant(variations){
  const norm=cmsNormalizeProductVariations(variations);
  if(norm.length)return norm[0];
@@ -309,6 +315,7 @@ function renderCmsGenericProduct(){
    const pStr=v.price!=null?'<strong class="cms-var-price">'+currency(v.price)+'</strong>':'';
    const oldStr=v.old_price&&v.old_price>(v.price||0)?'<del class="cms-var-old">'+currency(v.old_price)+'</del>':'';
    const thumb=v.image?'<img class="cms-var-thumb" src="'+esc(v.image)+'" alt="'+esc(v.name)+'" width="34" height="34" loading="lazy" style="width:34px!important;height:34px!important;min-width:34px!important;max-width:34px!important;min-height:34px!important;max-height:34px!important;object-fit:cover!important;border-radius:6px!important;border:1px solid #edf2f7!important;flex-shrink:0!important;display:block!important;">':'';
+   const packN=cmsPackCount(v.name);const perUnit=packN>=2&&v.price!=null?'<span class="cms-var-per-unit">'+cmsFmtUnit(v.price/packN)+' per piece</span>':'';
    const dot=v.color_hex?'<span class="cms-var-color-dot" style="background:'+esc(v.color_hex)+';width:16px!important;height:16px!important;min-width:16px!important;min-height:16px!important;border-radius:50%!important;border:2px solid #fff!important;box-shadow:0 0 0 1px #cbd5e1!important;flex-shrink:0!important;display:inline-block!important;" title="'+esc(v.color||v.name)+'"></span>':'';
    return '<button type="button" class="cms-var-option-card '+(i===0?'active':'')+'" '+
     'data-var-index="'+i+'" '+
@@ -323,7 +330,7 @@ function renderCmsGenericProduct(){
     'role="radio" aria-checked="'+(i===0?'true':'false')+'">'+
     thumb+dot+
     '<div class="cms-var-option-text"><span class="cms-var-name">'+esc(v.name)+'</span>'+
-    (pStr||oldStr?'<span class="cms-var-prices">'+pStr+oldStr+'</span>':'')+
+    (pStr||oldStr?'<span class="cms-var-prices">'+pStr+oldStr+'</span>':'')+perUnit+
     '</div>'+
     '<span class="cms-var-check">✓</span></button>';
   }).join('')+
@@ -344,7 +351,7 @@ function renderCmsGenericProduct(){
  detail.innerHTML='<div class="detail-breadcrumb"><a href="/">Home</a> / <a href="'+esc(breadcrumbCategoryHref)+'">'+esc(breadcrumbCategoryName)+'</a> / '+esc(p.name)+'</div>'+
  '<section class="detail-top"><div><div class="product-gallery"><div class="gallery-main"><img id="cmsGalleryMain" src="'+esc(mainImage)+'" alt="'+esc(p.name)+'"></div><div class="gallery-thumbs" role="list">'+thumbs+'</div></div></div>'+
  '<div class="detail-info" data-product-id="'+esc(p.id)+'"><span class="eyebrow">'+esc(p.categoryName||p.tag||'PRODUCT')+'</span><h1>'+esc(p.name)+'</h1><p class="detail-description">'+esc(p.shortDescription||'')+'</p>'+
- '<div class="detail-price"><span data-cms-current-price>'+currency(displayPrice)+'</span>'+oldPriceMarkup+'</div>'+
+ '<div class="detail-price"><span data-cms-current-price>'+currency(displayPrice)+'</span>'+oldPriceMarkup+'</div>'+'<p class="cms-pack-save-line" data-cms-pack-save hidden></p>'+
  (showWeight?'<p class="pack-info" data-cms-weight-info><strong>Weight:</strong> <span data-cms-current-weight>'+displayWeight+'</span> kg</p>':'')+
  variationMarkup+
  '<p class="cms-detail-delivery">Delivery fee for this item: <strong data-cms-current-delivery>'+currency(itemDeliveryFee)+'</strong></p>'+
@@ -363,7 +370,9 @@ function renderCmsGenericProduct(){
  '<div class="detail-bottom-link"><a class="detail-back" href="/products">← All Products</a></div>';
 
  document.querySelectorAll('[data-cms-gallery]').forEach(btn=>btn.addEventListener('click',()=>{const im=document.getElementById('cmsGalleryMain');if(im)im.src=btn.dataset.cmsGallery;document.querySelectorAll('[data-cms-gallery]').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}));
+ syncPackSaveLine(defaultVariant);
 
+ function syncPackSaveLine(variant){const el=document.querySelector('[data-cms-pack-save]');if(!el)return;const text=variant?cmsPackSaveText(variant,normVariants,Number(p.price)||0):'';if(text){el.textContent=text;el.hidden=false}else{el.hidden=true}}
  let activeUnitPrice=displayPrice,activeWeight=displayWeight;
  const qInput=document.getElementById('productQtyInput'),qMinus=document.getElementById('productQtyMinus'),qPlus=document.getElementById('productQtyPlus'),qTotal=document.querySelector('[data-cms-qty-total]');
  function syncCmsQty(){
@@ -408,6 +417,7 @@ function renderCmsGenericProduct(){
    }
    if(weightLabel)weightLabel.textContent=String(weight);
    syncCmsQty();
+   syncPackSaveLine(v);
    if(v.image){
     const main=document.getElementById('cmsGalleryMain');
     if(main)main.src=v.image;
@@ -424,6 +434,7 @@ function renderCmsGenericProduct(){
   if(old)old.hidden=!(Number(p.oldPrice)>price);
   if(weightLabel)weightLabel.textContent=String(weight);
   syncCmsQty();
+  syncPackSaveLine({name:String(Object.values(chosen)[0]||''),price:price});
  }));
 }
 function renderProduct(){
