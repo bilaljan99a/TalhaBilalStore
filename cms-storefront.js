@@ -435,31 +435,80 @@ function renderBlogListing(data) {
       }
     }
   }
+  // Cache-first catalogue load (2026-11-01): the product page used to show
+  // "Loading product details..." until the cms-public fetch returned (often
+  // 0.4-1.7s server time), on EVERY visit, because the fetch was no-store.
+  // Now the last good response is kept in localStorage: on a repeat visit it
+  // is applied synchronously, so details render immediately, and the network
+  // fetch still runs in the background (still no-store) to refresh the cache
+  // and re-render only if the data actually changed. A CMS edit therefore
+  // still reaches the visitor: on the current page via the background refresh
+  // (listings) and at the latest on the next page view (product pages).
+  // First visits have no cache and behave exactly as before.
+  const CMS_CACHE_KEY = "tb_cms_public_v1";
+  function normalizeCmsData(data) {
+    if (!data || !data.ok) return null;
+    for (const key of ["products","categories","pages","banners","blog_posts","seo"]) if (!Array.isArray(data[key])) data[key]=[];
+    return data;
+  }
+  function applyCmsData(data) {
+    window.CMS_SITE_DATA = data;
+    window.CMS_SITE_STATUS = "ready";
+    if (Array.isArray(window.PRODUCTS)) {
+      const list=window.PRODUCTS, hidden=new Set(data.hidden_static_product_ids||[]);
+      for(let i=list.length-1;i>=0;i--)if(hidden.has(list[i].id))list.splice(i,1);
+      for(const row of data.products){const p=mapProduct(row,data.categories),idx=list.findIndex(x=>x.id===p.id);if(idx>=0)list[idx]=p;else list.push(p);}
+      // Real order counts for static products (e.g. mango packs, whose ids
+      // are slugs and never come from cms_products rows). CMS products keep
+      // the orders_count mapped above. Without the counts map (old function
+      // version) every static product stays without ordersCount, which the
+      // storefront treats as "counts unavailable" and falls back to flags.
+      const counts=(data.orders_count_by_product&&typeof data.orders_count_by_product==="object")?data.orders_count_by_product:null;
+      for(const p of list){if(p.isCmsProduct)continue;delete p.ordersCount;if(counts){const v=counts[p.id];p.ordersCount=typeof v==="number"?v:0;}}
+      data.siteProducts=list;
+    }
+    renderCatalogHero(data); renderFilters(data); renderBanners(data); renderBlogListing(data); applySeo(data);
+    document.dispatchEvent(new CustomEvent("cms-site-data-ready",{detail:data}));
+  }
+  function readCmsCache() {
+    try {
+      const raw = window.localStorage.getItem(CMS_CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      const data = normalizeCmsData(parsed && parsed.data);
+      return data ? {data, json: JSON.stringify(parsed.data)} : null;
+    } catch (error) { return null; }
+  }
+  function saveCmsCache(data) {
+    // siteProducts is derived locally by applyCmsData (the merged PRODUCTS
+    // list), not server data: strip it before saving, or the saved payload
+    // never string-matches a fresh response and every repeat visit would
+    // re-render a second time for identical data.
+    try {
+      const copy = Object.assign({}, data);
+      delete copy.siteProducts;
+      window.localStorage.setItem(CMS_CACHE_KEY, JSON.stringify({savedAt: Date.now(), data: copy}));
+    } catch (error) {}
+  }
+  let appliedCmsJson = null;
   async function load() {
     try {
       const res = await fetch(ENDPOINT, {headers:{Accept:"application/json"},cache:"no-store"});
       if (!res.ok) throw new Error("CMS public request failed");
-      const data = await res.json(); if (!data || !data.ok) throw new Error("Invalid CMS response");
-      for (const key of ["products","categories","pages","banners","blog_posts","seo"]) if (!Array.isArray(data[key])) data[key]=[];
-      window.CMS_SITE_DATA = data;
-      window.CMS_SITE_STATUS = "ready";
-      if (Array.isArray(window.PRODUCTS)) {
-        const list=window.PRODUCTS, hidden=new Set(data.hidden_static_product_ids||[]);
-        for(let i=list.length-1;i>=0;i--)if(hidden.has(list[i].id))list.splice(i,1);
-        for(const row of data.products){const p=mapProduct(row,data.categories),idx=list.findIndex(x=>x.id===p.id);if(idx>=0)list[idx]=p;else list.push(p);}
-        // Real order counts for static products (e.g. mango packs, whose ids
-        // are slugs and never come from cms_products rows). CMS products keep
-        // the orders_count mapped above. Without the counts map (old function
-        // version) every static product stays without ordersCount, which the
-        // storefront treats as "counts unavailable" and falls back to flags.
-        const counts=(data.orders_count_by_product&&typeof data.orders_count_by_product==="object")?data.orders_count_by_product:null;
-        for(const p of list){if(p.isCmsProduct)continue;delete p.ordersCount;if(counts){const v=counts[p.id];p.ordersCount=typeof v==="number"?v:0;}}
-        data.siteProducts=list;
+      const data = normalizeCmsData(await res.json());
+      if (!data) throw new Error("Invalid CMS response");
+      const freshJson = JSON.stringify(data);
+      if (freshJson !== appliedCmsJson) {
+        appliedCmsJson = freshJson;
+        applyCmsData(data);
       }
-      renderCatalogHero(data); renderFilters(data); renderBanners(data); renderBlogListing(data); applySeo(data);
-      document.dispatchEvent(new CustomEvent("cms-site-data-ready",{detail:data}));
+      saveCmsCache(data);
       return data;
     } catch (error) {
+      if (window.CMS_SITE_DATA) {
+        console.warn("Website CMS sync failed; showing the last saved catalogue.", error);
+        return {ok:false, error:String(error), cached:true};
+      }
       window.CMS_SITE_STATUS = "error";
       window.CMS_SITE_DATA = window.CMS_SITE_DATA || null;
       document.dispatchEvent(new CustomEvent("cms-site-data-error", {detail:{error:String(error)}}));
@@ -467,6 +516,8 @@ function renderBlogListing(data) {
     }
   }
   window.CMS_SITE_STATUS = "loading";
+  const cached = readCmsCache();
+  if (cached) { appliedCmsJson = cached.json; applyCmsData(cached.data); }
   window.CMS_SITE_READY = load();
   // app.js may finish loading before or after this catalogue request. Explicitly
   // refresh it once the CMS promise resolves so newly published items appear in
@@ -474,7 +525,7 @@ function renderBlogListing(data) {
   window.CMS_SITE_READY.then(data => {
     if (data && data.ok && typeof window.refreshFromCms === "function") {
       window.refreshFromCms();
-    } else if (data && !data.ok) {
+    } else if (data && !data.ok && !data.cached) {
       console.warn("Website CMS sync did not complete; using the existing static catalogue.", data.error || "");
     }
   }).catch(error => console.warn("Website CMS sync failed; using the existing static catalogue.", error));
