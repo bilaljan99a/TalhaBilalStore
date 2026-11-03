@@ -169,6 +169,11 @@ Deno.serve(async(req)=>{
         if(b[k]!==undefined){const n=Number(b[k]);if(!Number.isFinite(n)||n<0)return out({error:"Invalid value for "+k},400);patch[k]=n;}
       }
       if(b.finance_note!==undefined) patch.finance_note=String(b.finance_note||"").trim();
+      for(const k of ["full_name","phone","address","city"]) if(b[k]!==undefined) patch[k]=String(b[k]||"").trim();
+      if(b.admin_note!==undefined) patch.admin_note=String(b.admin_note||"").trim();
+      if(patch.full_name!==undefined||patch.phone!==undefined||patch.address!==undefined||patch.city!==undefined){
+        if(!patch.full_name||!patch.phone||!patch.address||!patch.city) return out({error:"Please provide name, phone, address and city."},400);
+      }
       if(!Object.keys(patch).length) return out({error:"Nothing to update"},400);
       const {error}=await db.from("orders").update(patch).eq("id",b.id);
       if(error) return out({error:error.message},500);
