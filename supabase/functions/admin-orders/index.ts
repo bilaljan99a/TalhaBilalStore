@@ -165,6 +165,7 @@ Deno.serve(async(req)=>{
       const patch:any={};
       if(b.status!==undefined) patch.status=String(b.status);
       if(b.tracking_number!==undefined) patch.tracking_number=String(b.tracking_number||"").trim();
+      if(b.courier!==undefined) patch.courier=String(b.courier||"").trim();
       for(const k of ["product_cost","shipping_cost","return_shipping_cost","ads_cost","packaging_cost","other_cost"]){
         if(b[k]!==undefined){const n=Number(b[k]);if(!Number.isFinite(n)||n<0)return out({error:"Invalid value for "+k},400);patch[k]=n;}
       }
