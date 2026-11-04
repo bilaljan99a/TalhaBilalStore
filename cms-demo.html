@@ -23,14 +23,14 @@ body.cms-authenticated #logoutBtn{display:inline-block}
 .assignment-item{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:9px;padding:10px;background:#fff;min-width:0}
 .assignment-item input{width:17px;height:17px;flex:0 0 auto}.assignment-item .assignment-copy{min-width:0}
 .assignment-item strong{display:block;font-size:13px}
-.assignment-item small{display:block;color:var(--muted);font-size:11px;margin-top:3px;overflow-wrap:anywhere}
-.cms-assignment-filters{display:grid;grid-template-columns:minmax(200px,2fr) minmax(150px,1fr) minmax(125px,.8fr);gap:10px;margin-top:12px}
+.assignment-item small{display:block;color:var(--muted);font-size:11px;margin-top:3px;overflow-wrap:anywhere}.assignment-position{display:inline-block;margin-top:5px;padding:2px 8px;border-radius:999px;background:#ff6a00;color:#fff;font-size:11px;font-weight:800}
+.cms-assignment-filters{display:grid;grid-template-columns:minmax(200px,2fr) minmax(150px,1fr) minmax(125px,.8fr) minmax(140px,1fr);gap:10px;margin-top:12px}
 .cms-assignment-filters label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 .cms-assignment-filters input,.cms-assignment-filters select{box-sizing:border-box;width:100%;min-width:0;min-height:40px;border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:var(--panel);color:var(--text)}
 .cms-assignment-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 8px}
 .cms-assignment-summary{font-size:12px;color:var(--muted);margin:8px 0}
 .cms-assignment-pagination{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
-.cms-selected-order-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:18px 0 8px}
+.cms-selected-order-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:18px 0 8px}.cms-order-search input{box-sizing:border-box;width:100%;min-height:40px;border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:var(--panel);color:var(--text);margin:0 0 8px}
 .cms-selected-order-header strong{font-size:14px}.cms-selected-order{display:grid;gap:8px;margin:8px 0 16px}
 .cms-order-row{display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:grab}
 .cms-order-row:active{cursor:grabbing}.cms-order-grip{color:var(--muted);font-size:18px;user-select:none}
@@ -1831,10 +1831,13 @@ function cmsPageAssignmentFilteredProducts(){
  const search=String(document.getElementById("pgProductSearch")?.value||"").trim().toLowerCase();
  const category=String(document.getElementById("pgProductCategory")?.value||"");
  const status=String(document.getElementById("pgProductStatus")?.value||"all").toLowerCase();
+  const assignment=String(document.getElementById("pgProductAssignment")?.value||"all");
  return cmsPageAssignmentProducts.filter(p=>{
   const cat=String(p.category_id??"");
   if(category&&cat!==category)return false;
   if(status!=="all"&&String(p.status||"draft").toLowerCase()!==status)return false;
+  if(assignment==="assigned"&&!cmsPageSelectedIds.has(Number(p.id)))return false;
+  if(assignment==="unassigned"&&cmsPageSelectedIds.has(Number(p.id)))return false;
   if(!search)return true;
   const haystack=[p.name,p.slug,p.sku].map(x=>String(x||"")).join(" ").toLowerCase();
   return haystack.includes(search);
@@ -1860,7 +1863,7 @@ function cmsRenderPageAssignmentList(){
  list.innerHTML=visible.map(p=>{
   const id=Number(p.id),category=categoryById.get(Number(p.category_id))||"Unassigned";
   const details=[category,String(p.status||"draft"),p.slug?" /"+p.slug:"",p.sku?"SKU "+p.sku:""].filter(Boolean).map(esc).join(" • ");
-  return '<label class="assignment-item"><input type="checkbox" data-page-product value="'+id+'" '+(cmsPageSelectedIds.has(id)?"checked":"")+' onchange="cmsTogglePageProduct(this)"><span class="assignment-copy"><strong>'+esc(p.name||"Untitled product")+'</strong><small>'+details+'</small></span></label>';
+  const pos=cmsPageProductOrder.indexOf(id)+1;return '<label class="assignment-item"><input type="checkbox" data-page-product value="'+id+'" '+(cmsPageSelectedIds.has(id)?"checked":"")+' onchange="cmsTogglePageProduct(this)"><span class="assignment-copy"><strong>'+esc(p.name||"Untitled product")+'</strong><small>'+details+'</small>'+(pos>0?'<span class="assignment-position">Position '+pos+'</span>':'')+'</span></label>';
  }).join("")||'<p class="hint">No products match these filters. Try a different search or category.</p>';
  cmsUpdatePageAssignmentSummary(filtered);
   cmsRenderPageProductOrder();
@@ -1879,14 +1882,17 @@ function cmsReconcilePageProductOrder(){
   const ordered=cmsPageProductOrder.map(id=>byId.get(Number(id))).filter(Boolean);
   const summary=document.getElementById("pgOrderSummary");
   if(summary)summary.textContent=ordered.length?ordered.length+" selected • First product appears at the top":"No products selected yet";
+  const orderSearch=String(document.getElementById("pgOrderSearch")?.value||"").trim().toLowerCase();
+  const rows=orderSearch?ordered.filter(p=>String(p.name||"").toLowerCase().includes(orderSearch)):ordered;
   if(!ordered.length){target.innerHTML='<div class="cms-order-empty">Select products below, then arrange their display order here.</div>';return}
-  target.innerHTML=ordered.map((p,index)=>{
-   const id=Number(p.id),position=index+1,name=esc(p.name||"Untitled product");
+  if(!rows.length){target.innerHTML='<div class="cms-order-empty">No selected products match this search.</div>';return}
+  target.innerHTML=rows.map((p)=>{
+   const id=Number(p.id),position=cmsPageProductOrder.indexOf(id)+1,name=esc(p.name||"Untitled product");
    return '<div class="cms-order-row" draggable="true" ondragstart="cmsStartPageProductDrag(event,'+id+')" ondragover="cmsAllowPageProductDrop(event)" ondrop="cmsDropPageProduct(event,'+id+')" ondragend="cmsEndPageProductDrag()">'+
     '<span class="cms-order-grip" aria-hidden="true" title="Drag to reorder">☰</span>'+
     '<div class="cms-order-name"><strong>'+name+'</strong><small>Position '+position+' • Drag to reorder</small></div>'+
     '<label class="cms-order-position">Position <input type="number" min="1" max="'+ordered.length+'" value="'+position+'" onchange="cmsSetPageProductPosition('+id+',this.value)" aria-label="Position for '+name+'"></label>'+
-    '<div class="cms-order-controls"><button type="button" class="btn" title="Move up" aria-label="Move '+name+' up" '+(index===0?'disabled':'')+' onclick="cmsMovePageProductBy('+id+',-1)">↑</button><button type="button" class="btn" title="Move down" aria-label="Move '+name+' down" '+(index===ordered.length-1?'disabled':'')+' onclick="cmsMovePageProductBy('+id+',1)">↓</button></div>'+
+    '<div class="cms-order-controls"><button type="button" class="btn" title="Move up" aria-label="Move '+name+' up" '+(position===1?'disabled':'')+' onclick="cmsMovePageProductBy('+id+',-1)">↑</button><button type="button" class="btn" title="Move down" aria-label="Move '+name+' down" '+(position===ordered.length?'disabled':'')+' onclick="cmsMovePageProductBy('+id+',1)">↓</button></div>'+
    '</div>';
   }).join("");
  }
@@ -1923,6 +1929,7 @@ function cmsReconcilePageProductOrder(){
   cmsReconcilePageProductOrder();
   cmsUpdatePageAssignmentSummary(cmsPageAssignmentFilteredProducts());
   cmsRenderPageProductOrder();
+  cmsRenderPageAssignmentList();
  }
  function cmsPageAssignmentFilterChanged(){cmsPageAssignmentCurrentPage=1;cmsRenderPageAssignmentList()}
  function cmsChangePageAssignmentPage(delta){cmsPageAssignmentCurrentPage+=Number(delta||0);cmsRenderPageAssignmentList()}
@@ -1947,12 +1954,12 @@ async function cmsEditPage(r,id){
  const fields=cmsField("Page title","pgTitle",r.title,"text")+cmsField("URL slug","pgSlug",r.slug,"text","Use home for the homepage assignment, products for the catalogue, or a custom slug such as kids-care (published at /page/kids-care).")+
  cmsSelect("CMS status","pgStatus",[{value:"draft",label:"Draft — not public"},{value:"published",label:"Published"}],r.status||"draft")+cmsField("Page content / intro","pgContent",content,"textarea",["home","homepage"].includes(String(r.slug||"").toLowerCase())?"The homepage keeps its existing storefront template. Use Banners / Sliders to manage homepage promotional creative.":String(r.slug||"").toLowerCase()==="products"?"This updates the heading and intro on the live /products catalogue page after you save. The product grid and checkout remain template-managed.":"This content is rendered on a published custom CMS page.")+
  (String(r.slug||"").toLowerCase()==="products"?"":cmsField("Items to show on this page","pgItemsLimit",assignLimitValue,"number","How many assigned products show on this page (default 12). Type a number to show fewer or more — for example 50 to show up to 50."))+
- '<div class="field full cms-assignment-manager"><label>Assign products to this page</label><p class="field-help">Search by product name, slug or SKU; filter by category/status. Your selections stay saved in the editor when you change filters or pages.</p>'+
+ '<div class="field full cms-assignment-manager"><label>Assign products to this page</label><p class="field-help">Search by product name, slug or SKU; filter by category, status and assignment (assigned / unassigned). Your selections stay saved in the editor when you change filters or pages.</p>'+
  '<div class="cms-assignment-filters"><div><label for="pgProductSearch">Search products</label><input id="pgProductSearch" type="search" placeholder="Search product name, slug or SKU…" oninput="cmsPageAssignmentFilterChanged()" autocomplete="off"></div>'+
  '<div><label for="pgProductCategory">Category</label><select id="pgProductCategory" onchange="cmsPageAssignmentFilterChanged()">'+categoryOptions+'</select></div>'+
- '<div><label for="pgProductStatus">Status</label><select id="pgProductStatus" onchange="cmsPageAssignmentFilterChanged()"><option value="all">All statuses</option><option value="active">Active</option><option value="draft">Draft</option><option value="archived">Archived</option></select></div></div>'+
+ '<div><label for="pgProductStatus">Status</label><select id="pgProductStatus" onchange="cmsPageAssignmentFilterChanged()"><option value="all">All statuses</option><option value="active">Active</option><option value="draft">Draft</option><option value="archived">Archived</option></select></div><div><label for="pgProductAssignment">Assignment</label><select id="pgProductAssignment" onchange="cmsPageAssignmentFilterChanged()"><option value="all">All products</option><option value="assigned">Assigned only</option><option value="unassigned">Unassigned only</option></select></div></div>'+
  '<div class="cms-assignment-actions"><button type="button" class="btn" onclick="cmsSelectFilteredPageProducts(true)">Select all matching</button><button type="button" class="btn" onclick="cmsSelectFilteredPageProducts(false)">Clear matching selections</button></div>'+
- '<div class="cms-selected-order-header"><div><strong>Selected products — display order</strong><p class="field-help">First product is shown at the top. Drag rows, change a position number, or use ↑ / ↓. This order is saved with the page.</p></div><span class="cms-assignment-summary" id="pgOrderSummary" aria-live="polite"></span></div><div id="pgSelectedProductOrder" class="cms-selected-order"><div class="cms-order-empty">Select products below, then arrange their display order here.</div></div><div class="cms-assignment-summary" id="pgAssignmentSummary" aria-live="polite"></div><div class="assignment-list" id="pgProductList"><p class="hint">Loading products…</p></div><div class="cms-assignment-pagination" id="pgAssignmentPagination"></div></div>'+
+ '<div class="cms-selected-order-header"><div><strong>Selected products — display order</strong><p class="field-help">First product is shown at the top. Drag rows, change a position number, or use ↑ / ↓. Use the search below to find a selected product without scrolling. This order is saved with the page.</p></div><span class="cms-assignment-summary" id="pgOrderSummary" aria-live="polite"></span></div><div class="cms-order-search"><input id="pgOrderSearch" type="search" placeholder="Search selected products…" oninput="cmsRenderPageProductOrder()" autocomplete="off"></div><div id="pgSelectedProductOrder" class="cms-selected-order"><div class="cms-order-empty">Select products below, then arrange their display order here.</div></div><div class="cms-assignment-summary" id="pgAssignmentSummary" aria-live="polite"></div><div class="assignment-list" id="pgProductList"><p class="hint">Loading products…</p></div><div class="cms-assignment-pagination" id="pgAssignmentPagination"></div></div>'+
  cmsField("SEO title","pgSeoTitle",cmsFormSeo.title||r.seo?.title||"","text")+cmsField("SEO meta description","pgSeoDesc",cmsFormSeo.description||r.seo?.description||"","textarea");
  cmsEditorShell(id===null?"Add Website Page":"Edit Website Page","Search, filter and assign products. The list shows 40 products per page; save to apply your changes.",fields,"cmsSavePage("+(id===null?"null":Number(id))+")","pages");
  cmsRenderPageAssignmentList();
