@@ -1,4 +1,7 @@
-const CMS_PUBLIC_URL='https://dxdjqeqlmyawqrzphzdb.supabase.co/functions/v1/cms-public';
+// Worker API base (Phase 5): the Cloudflare Worker replaced the Supabase
+// Edge Functions. Worker base set 2026-11-05: https://talhabilalstore-api.bilaljan99a.workers.dev (Worker name: talhabilalstore-api).
+const TB_API_BASE_URL='https://talhabilalstore-api.bilaljan99a.workers.dev';
+const CMS_PUBLIC_URL=TB_API_BASE_URL+'/functions/v1/cms-public';
 const TEMPLATE_PATH='/blog/how-to-make-mango-drink-from-mango-pulp-premix.html';
 
 function htmlEscape(value){

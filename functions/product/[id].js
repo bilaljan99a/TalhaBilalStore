@@ -6,7 +6,10 @@ const PRODUCTS={
   'mango-5kg':{name:'Mango Pulp Drink Premix 5kg',description:'1kg × 5 pack for larger gatherings — makes approximately 49–50 liters.',price:2130,image:'assets/products/5kg-mango-pulp.jpg',weight:5},
   'mango-10kg':{name:'Mango Pulp Drink Premix 10kg',description:'Large 10kg pack for events, families and bulk use — makes approximately 98–100 liters.',price:4130,image:'assets/products/10kg-mango-pulp.webp',weight:10}
 };
-const CMS_PUBLIC_URL='https://dxdjqeqlmyawqrzphzdb.supabase.co/functions/v1/cms-public';
+// Worker API base (Phase 5): the Cloudflare Worker replaced the Supabase
+// Edge Functions. Worker base set 2026-11-05: https://talhabilalstore-api.bilaljan99a.workers.dev (Worker name: talhabilalstore-api).
+const TB_API_BASE_URL='https://talhabilalstore-api.bilaljan99a.workers.dev';
+const CMS_PUBLIC_URL=TB_API_BASE_URL+'/functions/v1/cms-public';
 function attr(value){return String(value??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function seoForProduct(p,id){
   const site='https://www.talhabilalstore.com',cleanUrl=(p.seo?.canonical)||site+'/product/'+encodeURIComponent(id);

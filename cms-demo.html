@@ -206,7 +206,7 @@ body.cms-back-visible #backBtn{display:inline-block}
 <div class="content" id="app"></div>
 </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\n<script>
+\n<script>
 const seed={
 products:[{name:'Mango Premix Drink — 1kg',price:'450',status:'Active'},{name:'Mango Premix Drink — 2kg',price:'800',status:'Active'},{name:'Mango Premix Drink — 5kg',price:'1850',status:'Active'}],
 pages:[{name:'Homepage',sections:'Hero • Featured Products • Reviews • FAQ • CTA'},{name:'Why Us',sections:'Quality • 60% Mango Pulp • Easy Ordering'},{name:'How to Order',sections:'Order Steps • COD • Delivery'}],
@@ -277,7 +277,7 @@ function attributes(){app.innerHTML=head('Product Attributes','Optional attribut
 function audit(){app.innerHTML=head('Change History','Future CMS writes will record user, time, action and before/after values.')+'<div class="panel"><p class="hint">Audit log foundation is included in the new CMS database. Existing admin history is not modified.</p></div>'}
 
 function demoRows(title,cols,rows){return '<div class="panel"><h2>'+title+'</h2><div class="table-wrap"><table class="table"><tr>'+cols.map(x=>'<th>'+x+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</table></div></div>'}
-function dashboard(){app.innerHTML=head('CMS Dashboard','A safe demo of the future content management system.')+'<div class="cards"><div class="card"><span>Products</span><strong>'+db.products.length+'</strong></div><div class="card"><span>Website Pages</span><strong>'+db.pages.length+'</strong></div><div class="card"><span>Blog Posts</span><strong>'+db.blog.length+'</strong></div><div class="card"><span>Reviews</span><strong>'+db.reviews.length+'</strong></div></div><div class="panel"><h2>What this demo proves</h2><p class="hint">This separate CMS can eventually control website content without touching the existing Orders / Finance admin. Right now all demo edits stay inside this browser using local storage. No production Supabase data is changed.</p></div>'}
+function dashboard(){app.innerHTML=head('CMS Dashboard','A safe demo of the future content management system.')+'<div class="cards"><div class="card"><span>Products</span><strong>'+db.products.length+'</strong></div><div class="card"><span>Website Pages</span><strong>'+db.pages.length+'</strong></div><div class="card"><span>Blog Posts</span><strong>'+db.blog.length+'</strong></div><div class="card"><span>Reviews</span><strong>'+db.reviews.length+'</strong></div></div><div class="panel"><h2>What this demo proves</h2><p class="hint">This separate CMS can eventually control website content without touching the existing Orders / Finance admin. Right now all demo edits stay inside this browser using local storage. No production data is changed.</p></div>'}
 function products(){app.innerHTML=head('Products','Manage names, prices, descriptions, images, pack sizes and SEO in the future.','<button class="btn primary" onclick="addProduct()">+ Add Product</button>')+'<div class="panel"><div class="item-list">'+db.products.map((p,i)=>'<div class="item"><div><strong>'+esc(p.name)+'</strong><small>Rs. '+esc(p.price)+' • '+esc(p.status)+'</small></div><div class="item-actions"><button class="btn" onclick="editProduct('+i+')">Edit</button><button class="btn danger" onclick="removeItem(\'products\','+i+')">Delete</button></div></div>').join('')+'</div></div>'}
 function addProduct(){db.products.push({name:'New Product',price:'0',status:'Active'});save();render('products');editProduct(db.products.length-1)}
 function editProduct(i){const p=db.products[i];app.innerHTML=head('Edit Product','Demo editor — changes are local to this demo.')+'<div class="panel"><div class="form-grid"><div class="field full"><label>Product Name</label><input id="pn" value="'+esc(p.name)+'"></div><div class="field"><label>Price</label><input id="pp" value="'+esc(p.price)+'"></div><div class="field"><label>Status</label><select id="ps"><option '+(p.status==='Active'?'selected':'')+'>Active</option><option '+(p.status==='Draft'?'selected':'')+'>Draft</option></select></div></div><div class="section-actions"><button class="btn" onclick="render(\'products\')">Cancel</button><button class="btn primary" onclick="saveProduct('+i+')">Save Product</button></div></div>'}
@@ -297,9 +297,8 @@ function settings(){app.innerHTML=head('Website Settings','Store-wide informatio
 function removeItem(type,i){cmsConfirmDialog('Delete this demo item?',()=>{db[type].splice(i,1);save();render(type==='products'?'products':type)});}
 document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-page]');if(b)render(b.dataset.page)});
 
-const SUPABASE_URL="https://dxdjqeqlmyawqrzphzdb.supabase.co";
-const SUPABASE_KEY="sb_publishable__VZebPfljfwPNTxcWbDD7Q_pzIJvn_K";
-const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+// Worker API base (Phase 5): the Cloudflare Worker replaced the Supabase Edge Functions. Worker base set 2026-11-05: https://talhabilalstore-api.bilaljan99a.workers.dev (Worker name: talhabilalstore-api).
+window.TB_API_BASE_URL = window.TB_API_BASE_URL || 'https://talhabilalstore-api.bilaljan99a.workers.dev';
 let liveData=null;
 let cmsFormSeo={};
 let cmsCache={products:[],categories:[],pages:[],blog:[],banners:[],seo:[]};
@@ -334,7 +333,7 @@ function money(v){return "Rs. "+Number(v||0).toLocaleString("en-PK",{maximumFrac
 function liveLogin(){
  document.body.classList.remove("cms-authenticated");
  const gate=document.getElementById("authGate");
- gate.innerHTML='<div class="auth-shell">'+head("Secure CMS Login","Sign in with the same Supabase account used by your existing admin panel.")+
+ gate.innerHTML='<div class="auth-shell">'+head("Secure CMS Login","Sign in with your existing admin account.")+
  '<form id="cmsLoginForm" class="panel login-card" style="margin:20px auto" onsubmit="event.preventDefault();doLogin()">'+
  '<div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="username" value="bilaljan99@gmail.com" required></div>'+
  '<div class="field" style="margin-top:12px"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required></div>'+
@@ -348,14 +347,16 @@ async function doLogin(){
  if(!email||!password){errorBox.textContent="Enter your existing admin email and password.";return}
  button.disabled=true;button.textContent="Signing in…";
  try{
-  const {error}=await supabaseClient.auth.signInWithPassword({email,password});
-  if(error){errorBox.textContent=error.message;return}
+  const r=await fetch(window.TB_API_BASE_URL+"/functions/v1/auth-login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok||!j.ok){errorBox.textContent=j.error||"Sign in failed. Please try again.";return}
+  localStorage.setItem("tb_admin_token",j.token);
   await loadLiveData();
  }catch(e){errorBox.textContent=e instanceof Error?e.message:"Sign in failed. Please try again."}
  finally{const current=document.getElementById("signInButton");if(current){current.disabled=false;current.textContent="Sign In"}}
 }
 async function logoutCMS(){
- await supabaseClient.auth.signOut();liveData=null;cmsNavHistory=[];cmsCurrentModule="dashboard";cmsEditorBackModule=null;
+ const token=localStorage.getItem("tb_admin_token");if(token){try{await fetch(window.TB_API_BASE_URL+"/functions/v1/auth-logout",{method:"POST",headers:{Authorization:"Bearer "+token}})}catch{}}localStorage.removeItem("tb_admin_token");liveData=null;cmsNavHistory=[];cmsCurrentModule="dashboard";cmsEditorBackModule=null;
  const status=document.getElementById("liveState");if(status)status.textContent="Signed out";
  cmsUpdateBackButton();liveLogin();
 }
@@ -369,8 +370,9 @@ function showConnectionError(message){
 }
 async function loadLiveData(){
  const status=document.getElementById("liveState");
- const {data:{session}}=await supabaseClient.auth.getSession();
- if(!session){if(status)status.textContent="Login required";liveLogin();return}
+ const token=localStorage.getItem("tb_admin_token");
+ if(!token){if(status)status.textContent="Login required";liveLogin();return}
+ try{const sr=await fetch(window.TB_API_BASE_URL+"/functions/v1/auth-session",{headers:{Authorization:"Bearer "+token}});const sj=await sr.json().catch(()=>({}));if(!sr.ok||!sj.ok)throw new Error("Login required")}catch(e){localStorage.removeItem("tb_admin_token");if(status)status.textContent="Login required";liveLogin();return}
  if(status)status.textContent="Checking Website Management access…";
  try{
   await cmsRequest("cms_products");
@@ -447,12 +449,12 @@ const CMS_SCHEMAS = {
  redirects:{table:"cms_redirects",title:"URL Redirects (CMS Draft)",fields:[["source_path","Source path","text"],["destination_path","Destination path","text"],["status_code","HTTP status (301/302)","number"],["is_active","Active (true/false)","boolean"]],summary:["source_path","destination_path","status_code"]}
 };
 async function cmsRequest(table, method="GET", id=null, data=null){
- const {data:{session}}=await supabaseClient.auth.getSession();
- if(!session) throw new Error("Please sign in again.");
- const base=SUPABASE_URL+"/functions/v1/cms-manage?table="+encodeURIComponent(table)+(id!==null?"&id="+encodeURIComponent(id):"");
+ const token=localStorage.getItem("tb_admin_token");
+ if(!token) throw new Error("Please sign in again.");
+ const base=window.TB_API_BASE_URL+"/functions/v1/cms-manage?table="+encodeURIComponent(table)+(id!==null?"&id="+encodeURIComponent(id):"");
  const fetchChunk=async(offset=null)=>{
   const u=base+(offset!==null?"&offset="+encodeURIComponent(offset)+"&limit=1000":"");
-  const response=await fetch(u,{method,headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_KEY,"Content-Type":"application/json"},...(method==="GET"||method==="DELETE"?{}:{body:JSON.stringify({data})})});
+  const response=await fetch(u,{method,headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},...(method==="GET"||method==="DELETE"?{}:{body:JSON.stringify({data})})});
   const payload=await response.json().catch(()=>({error:"Invalid server response"}));
   if(!response.ok||!payload.ok) throw new Error(payload.error||("Request failed: "+response.status));
   return payload.data;
@@ -780,25 +782,34 @@ function cmsRememberRichSelection(targetId){
  if(target.contains(range.commonAncestorContainer))cmsSavedRichRange=range.cloneRange();
 }
 async function cmsUploadFiles(input,targetId,folder,mode){
+ // (Phase 6) CMS uploads go to GitHub assets/ via the Worker endpoint
+ // /functions/v1/upload-image — the store rule is GitHub assets/ ONLY,
+ // never Supabase Storage (gone with the backend move) and no R2. The
+ // Worker returns the /assets/... URL, which fills the field exactly
+ // like the old Supabase public URL did. If the endpoint is not
+ // configured yet (no GITHUB_TOKEN at deploy time), it answers 503 and
+ // the manual GitHub-web flow from Phase 5 applies instead.
  const status=document.getElementById("upload-status-"+targetId),target=document.getElementById(targetId);
  if(!input||!input.files||!input.files.length||!target)return;
  if(status)status.textContent="Uploading image(s)…";
  input.disabled=true;
  try{
-  const result=await supabaseClient.auth.getSession(),session=result?.data?.session;
-  if(!session)throw new Error("Your login expired. Sign in again and retry.");
-  await cmsRequest("cms_products");
+  const token=localStorage.getItem("tb_admin_token");
+  if(!token)throw new Error("Your login expired. Sign in again and retry.");
   const urls=[];
   for(const file of Array.from(input.files)){
    if(!/^image\/(jpeg|png|webp|gif|avif)$/i.test(file.type))throw new Error(file.name+": choose a JPG, PNG, WEBP, GIF or AVIF image.");
    if(file.size>8*1024*1024)throw new Error(file.name+": image must be 8 MB or smaller.");
-   const cleanName=file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]+/g,"-").replace(/^-+|-+$/g,"").slice(-100)||"image";
-   const nonce=(window.crypto&&typeof window.crypto.randomUUID==="function")?window.crypto.randomUUID():(Date.now().toString(36)+Math.random().toString(36).slice(2));
-   const path=folder+"/"+Date.now()+"-"+nonce+"-"+cleanName;
-   const uploaded=await supabaseClient.storage.from("cms-assets").upload(path,file,{cacheControl:"3600",upsert:false,contentType:file.type});
-   if(uploaded.error)throw new Error(uploaded.error.message||"Image upload failed.");
-   const publicUrl=supabaseClient.storage.from("cms-assets").getPublicUrl(uploaded.data.path).data.publicUrl;
-   if(!publicUrl)throw new Error("Could not create a public image URL.");
+   const form=new FormData();
+   form.append("file",file);
+   form.append("folder",folder);
+   const r=await fetch(window.TB_API_BASE_URL+"/functions/v1/upload-image",{method:"POST",headers:{Authorization:"Bearer "+token},body:form});
+   const j=await r.json().catch(()=>({}));
+   if(!r.ok||!j.ok){
+    if(r.status===503&&j.manual_upload)throw new Error("Image upload from the CMS is not configured yet: upload the image to the store's GitHub assets/ folder first, then paste its /assets/... URL into the image field.");
+    throw new Error(j.error||("Image upload failed: "+r.status));
+   }
+   const publicUrl=j.url;
    urls.push(publicUrl);
    try{await cmsRequest("cms_media","POST",null,{name:file.name,url:publicUrl,type:"image",alt_text:null,folder})}catch(e){console.warn("Media library index did not save",e)}
    const alt=file.name.replace(/\.[^.]+$/,"").replace(/[-_]+/g," ").trim().replace(/["<>]/g,"");
@@ -1414,21 +1425,26 @@ function cmsPreviewVarThumb(i) {
 }
 
 async function cmsUploadVariationImage(input, index) {
+ // (Phase 6) Same Worker GitHub upload as cmsUploadFiles; see there.
  if (!input || !input.files || !input.files.length) return;
  const file = input.files[0];
  try {
-  const result = await supabaseClient.auth.getSession(), session = result?.data?.session;
-  if (!session) throw new Error("Please log in to upload images.");
-  const nonce = (window.crypto && typeof window.crypto.randomUUID === "function") ? window.crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2));
-  const cleanName = file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(-100) || "image";
-  const path = "products/variants/" + Date.now() + "-" + nonce + "-" + cleanName;
-  const uploaded = await supabaseClient.storage.from("cms-assets").upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
-  if (uploaded.error) throw new Error(uploaded.error.message || "Upload failed.");
-  const publicUrl = supabaseClient.storage.from("cms-assets").getPublicUrl(uploaded.data.path).data.publicUrl;
-  if (!publicUrl) throw new Error("Could not get public URL.");
+  const token = localStorage.getItem("tb_admin_token");
+  if (!token) throw new Error("Please log in to upload images.");
+  if (!/^image\/(jpeg|png|webp|gif|avif)$/i.test(file.type)) throw new Error("Choose a JPG, PNG, WEBP, GIF or AVIF image.");
+  if (file.size > 8 * 1024 * 1024) throw new Error("Image must be 8 MB or smaller.");
+  const form = new FormData();
+  form.append("file", file);
+  form.append("folder", "products/variants");
+  const r = await fetch(window.TB_API_BASE_URL + "/functions/v1/upload-image", { method: "POST", headers: { Authorization: "Bearer " + token }, body: form });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.ok) {
+   if (r.status === 503 && j.manual_upload) throw new Error("Image upload from the CMS is not configured yet: upload the image to the store's GitHub assets/ folder first, then paste its /assets/... URL into the image field.");
+   throw new Error(j.error || ("Upload failed: " + r.status));
+  }
   const imgInput = document.getElementById("vImage_" + index);
   if (imgInput) {
-   imgInput.value = publicUrl;
+   imgInput.value = j.url;
    cmsPreviewVarThumb(index);
   }
  } catch (err) {
@@ -1711,7 +1727,7 @@ async function cmsEditProduct(r,id){
  cmsSelect("Publish status","pStatus",[{value:"draft",label:"Draft — not shown on website"},{value:"active",label:"Active — publish to website"},{value:"archived",label:"Archived — hidden"}],r.status||"draft")+
  cmsField("Short description (max 135 characters)","pShort",r.short_description,"textarea-135","Short summary shown on the product detail page. Product cards show only image, title, price and buttons.")+
  cmsRenderRichEditor("pDescription",r.description,"Full description (Product Details)","Shown inside Product Details on the product page. Use bold text, headings, bullet points and images to build an attractive, high-converting product description.")+
- cmsField("Product video link (optional)","pVideoUrl",r.video_url,"text","Paste a YouTube watch, youtu.be, Shorts or embed link. The player appears on this product page; the actual video remains on YouTube and does not use Supabase Storage.")+
+ cmsField("Product video link (optional)","pVideoUrl",r.video_url,"text","Paste a YouTube watch, youtu.be, Shorts or embed link. The player appears on this product page; the actual video remains on YouTube.")+
  cmsUploadField("Upload image inside product description","pDescription","products/description",false,"inline","Recommended: 1200 px wide, proportional height, WebP/JPG, ideally 150–300 KB. Use this for in-article illustrations, not the main product gallery.")+
  '<div class="field full"><label for="pDescGalleryPick">Insert an existing gallery image into the description</label><p class="field-help">Pick a gallery image from the list, click inside the description where the image should go, then press Insert. No re-upload and no URL typing needed.</p><div style="display:flex;gap:8px"><select id="pDescGalleryPick"></select><button type="button" class="btn" id="pDescGalleryInsert" onclick="cmsInsertGalleryImageIntoDescription()">Insert into description</button></div></div>'+
  cmsRenderVariationsManager(r.variations, r)+
@@ -2241,7 +2257,9 @@ async function dashboard(){
  '<div class="panel"><h2>Two-admin setup</h2><p class="hint">Use this panel for website content only. Orders, delivery statuses, finance calculations and Meta Ads stay in your existing admin.</p></div>'+
  '<div class="module-note"><strong>Automatic publishing:</strong> Active catalog products and categories, homepage product assignments, active banners, published blog posts, custom CMS pages and SEO records are served through the CMS sync. Existing checkout/order code remains separate.</div>';
 }
-supabaseClient.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){liveData=null;liveLogin()}});
+// (Phase 5) No client-side auth listener any more: sign-out is explicit
+// via logoutCMS(), and an expired token surfaces as "Please sign in
+// again." from cmsRequest().
 
 loadLiveData();
 </script>

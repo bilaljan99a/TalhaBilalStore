@@ -1,4 +1,7 @@
 const SITE='https://www.talhabilalstore.com';
+// Worker API base (Phase 5): the Cloudflare Worker replaced the Supabase
+// Edge Functions. Worker base set 2026-11-05: https://talhabilalstore-api.bilaljan99a.workers.dev (Worker name: talhabilalstore-api).
+const TB_API_BASE_URL='https://talhabilalstore-api.bilaljan99a.workers.dev';
 const STATIC_PAGES=[
   '/',
   '/product/mango-1kg',
@@ -67,7 +70,7 @@ async function getDynamicCmsPaths(){
 
   // Published CMS posts and custom pages are included automatically.
   try{
-    const response=await fetch('https://dxdjqeqlmyawqrzphzdb.supabase.co/functions/v1/cms-public',{
+    const response=await fetch(TB_API_BASE_URL+'/functions/v1/cms-public',{
       headers:{'Accept':'application/json'},
       cf:{cacheTtl:0}
     });

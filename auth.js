@@ -1,11 +1,20 @@
-const TB_SUPABASE_URL='https://dxdjqeqlmyawqrzphzdb.supabase.co';
-const TB_SUPABASE_KEY='sb_publishable__VZebPfljfwPNTxcWbDD7Q_pzIJvn_K';
-const tbSupabase=window.supabase.createClient(TB_SUPABASE_URL,TB_SUPABASE_KEY);
-const TB_ACCOUNT_FUNCTION=`${TB_SUPABASE_URL}/functions/v1/customer-account`;
-const TB_REVIEW_FUNCTION=`${TB_SUPABASE_URL}/functions/v1/submit-review`;
-async function tbSession(){const {data}=await tbSupabase.auth.getSession();return data.session;}
-async function tbRequireLogin(){const session=await tbSession();if(!session){const returnTo=location.pathname+location.search;location.href=`login.html?return=${encodeURIComponent(returnTo)}`;return null;}return session;}
-async function tbLogout(){await tbSupabase.auth.signOut();location.href='login.html';}
-async function tbAccountOrders(session){const res=await fetch(TB_ACCOUNT_FUNCTION,{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`,apikey:TB_SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({action:'orders'})});const data=await res.json().catch(()=>({}));if(!res.ok||!data.success)throw new Error(data.error||'Could not load your orders.');return data.orders||[];}
+// Talha Bilal Store — customer-account helpers (Phase 5 stub).
+//
+// Customer login was REMOVED by the user (2026-11-05): it was live at the
+// start, then he took it down after Google Search Console flagged a security
+// issue on the customer account pages. There is no customer session any
+// more — checkout is anonymous guest Cash on Delivery, and reviews are
+// admin-managed only (cms-demo). The old customer-account / login-by-phone /
+// submit-review / purchase-data endpoints were NOT ported to the new Worker
+// backend, and no login.html / account.html rebuild exists.
+//
+// These function names stay (returning "no customer session") so any page
+// that still references them cannot throw. No page loads a customer session
+// any more; index.html / products.html / reviews.html no longer include
+// this file.
+async function tbSession(){return null;}
+async function tbRequireLogin(){return null;}
+async function tbLogout(){/* no customer session to sign out of */}
+async function tbAccountOrders(){return [];}
 function tbFormatDate(value){try{return new Date(value).toLocaleDateString('en-PK',{day:'numeric',month:'short',year:'numeric'});}catch{return value||''}}
 function tbStatusClass(status){return String(status||'').toLowerCase().replace(/\s+/g,'-')}

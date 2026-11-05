@@ -1,4 +1,8 @@
 (() => {
+// Worker API base (Phase 5): the Cloudflare Worker replaced the Supabase
+// Edge Functions. Worker base set 2026-11-05:
+// https://talhabilalstore-api.bilaljan99a.workers.dev (Worker: talhabilalstore-api).
+window.TB_API_BASE_URL = window.TB_API_BASE_URL || 'https://talhabilalstore-api.bilaljan99a.workers.dev';
   // Meta Pixel — Talha Bilal Store
   // Pixel ID: 2937138116646692
   const TB_META_PIXEL_ID = '2937138116646692';
@@ -61,7 +65,7 @@
         try{data=await window.CMS_SITE_READY}catch{}
       }
       if(!data||data.ok!==true||!Array.isArray(data.categories)){
-        const response=await fetch('https://dxdjqeqlmyawqrzphzdb.supabase.co/functions/v1/cms-public',{
+        const response=await fetch(window.TB_API_BASE_URL+'/functions/v1/cms-public',{
           headers:{'Accept':'application/json'},
           cache:'no-store'
         });
