@@ -63,8 +63,8 @@
 .gallery-main{aspect-ratio:auto!important}
 .gallery-main img{width:100%!important;height:auto!important;max-height:none!important;object-fit:contain!important;object-position:center!important}
 /* Mobile swipe gallery: slides + dots (desktop keeps single image + thumbs) */
-.gallery-main img.gallery-slide{display:none}
-.gallery-main img.gallery-slide.active{display:block}
+.gallery-main img.gallery-slide{display:none!important}
+.gallery-main img.gallery-slide.active{display:block!important}
 .gallery-dots{display:none}
 @media(max-width:560px){
 .gallery-main{display:flex!important;overflow-x:auto!important;scroll-snap-type:x mandatory!important;scrollbar-width:none!important;-webkit-overflow-scrolling:touch!important}
