@@ -62,6 +62,19 @@
 /* Main gallery image must always fit fully inside its box — never cropped at the bottom */
 .gallery-main{aspect-ratio:auto!important}
 .gallery-main img{width:100%!important;height:auto!important;max-height:none!important;object-fit:contain!important;object-position:center!important}
+/* Mobile swipe gallery: slides + dots (desktop keeps single image + thumbs) */
+.gallery-main img.gallery-slide{display:none}
+.gallery-main img.gallery-slide.active{display:block}
+.gallery-dots{display:none}
+@media(max-width:560px){
+.gallery-main{display:flex!important;overflow-x:auto!important;scroll-snap-type:x mandatory!important;scrollbar-width:none!important;-webkit-overflow-scrolling:touch!important}
+.gallery-main::-webkit-scrollbar{display:none}
+.gallery-main img.gallery-slide{display:block!important;flex:0 0 100%!important;scroll-snap-align:start!important}
+.gallery-thumbs{display:none!important}
+.gallery-dots{display:flex!important;justify-content:center!important;gap:6px!important;margin-top:10px!important}
+.gallery-dot{width:8px!important;height:8px!important;border-radius:50%!important;border:0!important;background:#d1d5db!important;padding:0!important;cursor:pointer!important}
+.gallery-dot.active{background:#1f2937!important}
+}
 </style>
 <!-- Meta Pixel Code -->
 <script>
@@ -94,7 +107,7 @@ src="https://www.facebook.com/tr?id=2937138116646692&ev=PageView&noscript=1"
 const SUPABASE_URL='https://dxdjqeqlmyawqrzphzdb.supabase.co';const SUPABASE_KEY='sb_publishable__VZebPfljfwPNTxcWbDD7Q_pzIJvn_K';const supabaseClient=window.supabase?.createClient?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;const currency=v=>`Rs. ${Number(v).toLocaleString('en-PK')}`;const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));const DELIVERY_FEES={1:200,2:290,3:380,4:470,5:570,6:655,7:750,8:841,9:950,10:1030};const deliveryForWeight=weight=>{const w=Math.max(0,Math.ceil(Number(weight)||0));if(!w)return 0;if(w<=10)return DELIVERY_FEES[w];const tens=Math.floor(w/10),remainder=w%10;return tens*DELIVERY_FEES[10]+(remainder?DELIVERY_FEES[remainder]:0)};const detail=document.getElementById('detail');const pathProductId=()=>{const m=location.pathname.match(/^\/product\/([^/]+)\/?$/i);return m?decodeURIComponent(m[1]):null};let selectedId=pathProductId()||new URLSearchParams(location.search).get('id')||'mango-1kg';let p=PRODUCTS.find(x=>x.id===selectedId)||PRODUCTS[0];
 function reviewRows(rows){return (rows||[]).map(r=>({name:r.customer_name||'Customer',rating:Number(r.rating)||5,text:r.review_text||'',images:r.image_url?[r.image_url]:[]})).filter(r=>r.text)}
 function reviewMarkup(rows){const data=reviewRows(rows);if(!data.length)return '<div class="empty-reviews">There are no reviews currently.</div>';return `<div class="detail-reviews">${data.map(r=>`<article class="detail-review"><div class="review-top"><strong>${esc(r.name)}</strong><span class="review-stars" aria-label="${r.rating} out of 5 stars">${'★'.repeat(Math.min(5,r.rating))}${'☆'.repeat(Math.max(0,5-r.rating))}</span></div><p>${esc(r.text)}</p>${r.images.length?`<div class="detail-review-photos">${r.images.slice(0,3).map(u=>`<img src="${esc(u)}" alt="Customer review photo" loading="lazy">`).join('')}</div>`:''}</article>`).join('')}</div>`}
-function gallery(){const images=[{src:'assets/products/mango-pulp-product-image.webp',alt:'Mango Pulp Drink Premix product on a plain white background'},{src:p.image,alt:`${p.name} product image`},{src:'assets/how-to-prepare-mango-juice.png',alt:'How to prepare Mango Juice'}];return `<div class="product-gallery"><div class="gallery-main"><img id="galleryMain" src="${images[0].src}" alt="${images[0].alt}"></div><div class="gallery-thumbs" role="list">${images.map((im,i)=>`<button class="gallery-thumb ${i===0?'active':''}" type="button" data-gallery-src="${im.src}" data-gallery-alt="${im.alt}" aria-label="View product image ${i+1}"><img src="${im.src}" alt="" loading="lazy"></button>`).join('')}</div></div>`}
+function gallery(){const images=[{src:'assets/products/mango-pulp-product-image.webp',alt:'Mango Pulp Drink Premix product on a plain white background'},{src:p.image,alt:`${p.name} product image`},{src:'assets/how-to-prepare-mango-juice.png',alt:'How to prepare Mango Juice'}];return `<div class="product-gallery"><div class="gallery-main">${images.map((im,i)=>`<img class="gallery-slide ${i===0?'active':''}" ${i===0?'id="galleryMain" data-orig-src="'+im.src+'"':''} src="${im.src}" alt="${im.alt}"${i>0?' loading="lazy"':''}>`).join('')}</div>${images.length>1?`<div class="gallery-dots">${images.map((_,i)=>`<button type="button" class="gallery-dot ${i===0?'active':''}" data-gallery-dot="${i}" aria-label="View image ${i+1}"></button>`).join('')}</div>`:''}<div class="gallery-thumbs" role="list">${images.map((im,i)=>`<button class="gallery-thumb ${i===0?'active':''}" type="button" data-gallery-src="${im.src}" data-gallery-alt="${im.alt}" aria-label="View product image ${i+1}"><img src="${im.src}" alt="" loading="lazy"></button>`).join('')}</div></div>`}
 function yieldText(){const match=String(p.description||'').match(/makes\s+(?:approximately\s+)?([^\.]+?)(?:\.|$)/i);return match?match[1].trim():'approximately '+(Number(p.weight)*9.8).toFixed(1)+' liters'}
 function setMeta(name,content){let meta=document.querySelector(`meta[name="${name}"]`);if(!meta){meta=document.createElement('meta');meta.name=name;document.head.appendChild(meta)}meta.content=content}
 function setProperty(property,content){let meta=document.querySelector(`meta[property="${property}"]`);if(!meta){meta=document.createElement('meta');meta.setAttribute('property',property);document.head.appendChild(meta)}meta.content=content}
@@ -113,7 +126,7 @@ function syncMangoQty(){let q=parseInt(qInput?.value,10);if(!Number.isFinite(q)|
 qMinus?.addEventListener('click',()=>{let q=parseInt(qInput?.value,10)||1;if(q>1){qInput.value=q-1;syncMangoQty()}});
 qPlus?.addEventListener('click',()=>{let q=parseInt(qInput?.value,10)||1;if(q<99){qInput.value=q+1;syncMangoQty()}});
 qInput?.addEventListener('input',syncMangoQty);qInput?.addEventListener('change',syncMangoQty);
-document.querySelectorAll('[data-gallery-src]').forEach(btn=>btn.addEventListener('click',()=>{const main=document.getElementById('galleryMain');if(!main)return;main.src=btn.dataset.gallerySrc;main.alt=btn.dataset.galleryAlt;document.querySelectorAll('.gallery-thumb').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}))}
+document.querySelectorAll('[data-gallery-src]').forEach((btn,i)=>btn.addEventListener('click',()=>{const track=btn.closest('.product-gallery')?.querySelector('.gallery-main');if(track?._galleryGoTo){track._galleryGoTo(i);return}const main=document.getElementById('galleryMain');if(!main)return;main.src=btn.dataset.gallerySrc;main.alt=btn.dataset.galleryAlt;document.querySelectorAll('.gallery-thumb').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}));initGallerySwipe()}
 async function loadReviews(){const box=document.getElementById('productReviews');if(!box)return;const sec=box.closest('.customer-reviews-section');const hideReviews=()=>{if(sec){sec.hidden=true}else{box.innerHTML=''}};const showReviews=(html)=>{if(sec){sec.hidden=false}box.innerHTML=html};if(!supabaseClient){hideReviews();return}try{const {data,error}=await supabaseClient.from('cms_reviews').select('customer_name,rating,review_text,image_url,product_id,created_at').eq('status','approved').order('created_at',{ascending:false});if(error)throw error;const ids=new Set();if(Number(p?.cmsRecordId))ids.add(Number(p.cmsRecordId));try{const site=window.CMS_SITE_DATA?.products||[];const srow=site.find(x=>String(x.slug)===String(p?.id)||String(x.slug)===String(p?.slug));if(srow&&Number(srow.id))ids.add(Number(srow.id))}catch{}if(!ids.size){try{const res=await fetch('https://dxdjqeqlmyawqrzphzdb.supabase.co/functions/v1/cms-public',{cache:'no-store'});const j=await res.json();const srow=(j.products||[]).find(x=>String(x.slug)===String(p?.id)||String(x.slug)===String(p?.slug));if(srow&&Number(srow.id))ids.add(Number(srow.id))}catch{}}const isMangoPage=!p?.isCmsProduct||p?.isMangoPremix;const matched=(data||[]).filter(r=>(r.product_id!=null&&ids.has(Number(r.product_id)))||(r.product_id==null&&isMangoPage));if(!reviewRows(matched).length){hideReviews()}else{showReviews(reviewMarkup(matched))}}catch{hideReviews()}}
 function cmsDeliveryFee(weight,mode="weight",manualFee=0){
  if(mode==="manual")return Math.max(0,Number(manualFee)||0);
@@ -349,7 +362,7 @@ function renderCmsGenericProduct(){
  const breadcrumbCategoryName=String(p.categoryName||'All Products');
  const breadcrumbCategoryHref=p.categorySlug?('/products?category='+encodeURIComponent(p.categorySlug)):'/products';
  detail.innerHTML='<div class="detail-breadcrumb"><a href="/">Home</a> / <a href="'+esc(breadcrumbCategoryHref)+'">'+esc(breadcrumbCategoryName)+'</a> / '+esc(p.name)+'</div>'+
- '<section class="detail-top"><div><div class="product-gallery"><div class="gallery-main"><img id="cmsGalleryMain" src="'+esc(mainImage)+'" alt="'+esc(p.name)+'"></div><div class="gallery-thumbs" role="list">'+thumbs+'</div></div></div>'+
+ '<section class="detail-top"><div><div class="product-gallery"><div class="gallery-main">'+images.map((src,i)=>'<img class="gallery-slide '+(i===0?'active':'')+'" '+(i===0?'id="cmsGalleryMain" data-orig-src="'+esc(src)+'" ':'')+'src="'+esc(src)+'" alt="'+esc(p.name)+'"'+(i>0?' loading="lazy"':'')+'>').join('')+'</div>'+(images.length>1?'<div class="gallery-dots">'+images.map((_,i)=>'<button type="button" class="gallery-dot '+(i===0?'active':'')+'" data-gallery-dot="'+i+'" aria-label="View image '+(i+1)+'"></button>').join('')+'</div>':'')+'<div class="gallery-thumbs" role="list">'+thumbs+'</div></div></div>'+
  '<div class="detail-info" data-product-id="'+esc(p.id)+'"><span class="eyebrow">'+esc(p.categoryName||p.tag||'PRODUCT')+'</span><h1>'+esc(p.name)+'</h1><p class="detail-description">'+esc(p.shortDescription||'')+'</p>'+
  '<div class="detail-price"><span data-cms-current-price>'+currency(displayPrice)+'</span>'+oldPriceMarkup+'</div>'+'<p class="cms-pack-save-line" data-cms-pack-save hidden></p>'+
  (showWeight?'<p class="pack-info" data-cms-weight-info><strong>Weight:</strong> <span data-cms-current-weight>'+displayWeight+'</span> kg</p>':'')+
@@ -369,7 +382,7 @@ function renderCmsGenericProduct(){
  '<section class="detail-section customer-reviews-section"><div class="section-heading"><div><span class="eyebrow">CUSTOMER REVIEWS</span><h2>Reviews for this product</h2></div></div><div id="productReviews"></div></section>'+cmsRelatedProductsMarkup(p)+
  '<div class="detail-bottom-link"><a class="detail-back" href="/products">← All Products</a></div>';
 
- document.querySelectorAll('[data-cms-gallery]').forEach(btn=>btn.addEventListener('click',()=>{const im=document.getElementById('cmsGalleryMain');if(im)im.src=btn.dataset.cmsGallery;document.querySelectorAll('[data-cms-gallery]').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}));
+ document.querySelectorAll('[data-cms-gallery]').forEach((btn,i)=>btn.addEventListener('click',()=>{const im=document.getElementById('cmsGalleryMain');if(i===0&&im&&im.dataset.origSrc)im.src=im.dataset.origSrc;const track=btn.closest('.product-gallery')?.querySelector('.gallery-main');if(track?._galleryGoTo){track._galleryGoTo(i);return}if(im)im.src=btn.dataset.cmsGallery;document.querySelectorAll('[data-cms-gallery]').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}));initGallerySwipe();
  syncPackSaveLine(defaultVariant);
 
  function syncPackSaveLine(variant){const el=document.querySelector('[data-cms-pack-save]');if(!el)return;const text=variant?cmsPackSaveText(variant,normVariants,Number(p.price)||0):'';if(text){el.textContent=text;el.hidden=false}else{el.hidden=true}}
@@ -421,6 +434,8 @@ function renderCmsGenericProduct(){
    if(v.image){
     const main=document.getElementById('cmsGalleryMain');
     if(main)main.src=v.image;
+    const track=main?.closest('.gallery-main');
+    if(track?._galleryGoTo)track._galleryGoTo(0);
    }
   });
  });
@@ -436,6 +451,18 @@ function renderCmsGenericProduct(){
   syncCmsQty();
   syncPackSaveLine({name:String(Object.values(chosen)[0]||''),price:price});
  }));
+}
+function initGallerySwipe(){
+ const track=document.querySelector('.gallery-main');if(!track||track._galleryGoTo)return;
+ const slides=[...track.querySelectorAll('img.gallery-slide')];if(!slides.length)return;
+ const dots=[...document.querySelectorAll('[data-gallery-dot]')];
+ const thumbs=[...document.querySelectorAll('.gallery-thumb')];
+ const setActive=i=>{slides.forEach((s,j)=>s.classList.toggle('active',j===i));dots.forEach((d,j)=>d.classList.toggle('active',j===i));thumbs.forEach((t,j)=>t.classList.toggle('active',j===i))};
+ const goTo=i=>{i=Math.max(0,Math.min(slides.length-1,i));setActive(i);const w=track.clientWidth;if(w)track.scrollTo({left:i*w,behavior:'smooth'})};
+ dots.forEach((d,i)=>d.addEventListener('click',()=>goTo(i)));
+ let raf=0;
+ track.addEventListener('scroll',()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;const w=track.clientWidth||1;const idx=Math.round(track.scrollLeft/w);if(idx>=0&&idx<slides.length)setActive(idx)})},{passive:true});
+ track._galleryGoTo=goTo;
 }
 function renderProduct(){
  if(p?.isCmsProduct&&!p.isMangoPremix){renderCmsGenericProduct();return}
