@@ -106,10 +106,17 @@ window.DEX_CITIES_ALL = ["Athmuqam", "Bagh", "Barnala", "Bhimber", "Chak Swari",
     if (!window.DEX_PROVINCES || !window.DEX_CITIES_BY_PROVINCE) return;
     injectCss();
     makeCombo(provInput, function () { return window.DEX_PROVINCES; });
-    makeCombo(cityInput, function () {
+    var cityCombo = makeCombo(cityInput, function () {
       var p = provInput.value.trim();
       return window.DEX_CITIES_BY_PROVINCE[p] || window.DEX_CITIES_ALL || [];
     });
+    // When the province changes, refresh the city list right away so the
+    // user does not have to re-tap the City field to see the new matches.
+    function refreshCity() {
+      if (cityCombo) cityCombo.render(document.activeElement === cityInput);
+    }
+    provInput.addEventListener("input", refreshCity);
+    provInput.addEventListener("change", refreshCity);
   }
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initDexLocationLists);
