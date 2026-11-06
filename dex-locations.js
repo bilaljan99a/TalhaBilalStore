@@ -61,7 +61,6 @@ window.DEX_CITIES_ALL = ["Athmuqam", "Bagh", "Barnala", "Bhimber", "Chak Swari",
               e.preventDefault();
               input.value = val;
               hide();
-              input.dispatchEvent(new Event("input", { bubbles: true }));
               input.dispatchEvent(new Event("change", { bubbles: true }));
             });
             list.appendChild(d);
@@ -90,7 +89,6 @@ window.DEX_CITIES_ALL = ["Athmuqam", "Bagh", "Barnala", "Bhimber", "Chak Swari",
           e.preventDefault();
           input.value = els2[activeIdx].textContent;
           hide();
-          input.dispatchEvent(new Event("input", { bubbles: true }));
           input.dispatchEvent(new Event("change", { bubbles: true }));
         }
       } else if (e.key === "Escape") {
