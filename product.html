@@ -62,10 +62,15 @@
 /* Main gallery image must always fit fully inside its box — never cropped at the bottom.
    Desktop uses the same uniform square frame as mobile (mobile fix 2026-11-09): tall
    portrait photos no longer stretch the page. object-fit:contain still shows the full
-   image, so nothing is cropped. */
-.gallery-main{aspect-ratio:1/1!important}
+   image, so nothing is cropped.
+   WHY display:flex: .gallery-main was display:grid with an auto row — a percentage
+   height on the slide resolves to auto against an auto grid row, so the tall portrait
+   (481x1000) rendered at its natural 1,231px height and overflow:hidden cropped the
+   bottom 52%. A flex container gives the slide a definite height to resolve against,
+   so height:100% + max-height:100% + object-fit:contain fits the whole image. */
+.gallery-main{display:flex!important;aspect-ratio:1/1!important}
 .gallery-main img{width:100%!important;height:auto!important;max-height:none!important;object-fit:contain!important;object-position:center!important}
-.gallery-main img.gallery-slide.active{height:100%!important}
+.gallery-main img.gallery-slide.active{height:100%!important;max-height:100%!important}
 /* Mobile swipe gallery: slides + dots (desktop keeps single image + thumbs) */
 .gallery-main img.gallery-slide{display:none!important}
 .gallery-main img.gallery-slide.active{display:block!important}
