@@ -59,9 +59,13 @@
   .product-qty-field{width:46px!important;height:36px!important;font-size:14px!important}
 }
 
-/* Main gallery image must always fit fully inside its box — never cropped at the bottom */
-.gallery-main{aspect-ratio:auto!important}
+/* Main gallery image must always fit fully inside its box — never cropped at the bottom.
+   Desktop uses the same uniform square frame as mobile (mobile fix 2026-11-09): tall
+   portrait photos no longer stretch the page. object-fit:contain still shows the full
+   image, so nothing is cropped. */
+.gallery-main{aspect-ratio:1/1!important}
 .gallery-main img{width:100%!important;height:auto!important;max-height:none!important;object-fit:contain!important;object-position:center!important}
+.gallery-main img.gallery-slide.active{height:100%!important}
 /* Mobile swipe gallery: slides + dots (desktop keeps single image + thumbs) */
 .gallery-main img.gallery-slide{display:none!important}
 .gallery-main img.gallery-slide.active{display:block!important}
