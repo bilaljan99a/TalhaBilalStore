@@ -75,7 +75,11 @@ export async function onRequestGet(context){
 
   const template=await context.env.ASSETS.fetch(new URL(TEMPLATE_PATH,requestUrl));
   if(!template.ok)return new Response('Blog template unavailable.',{status:500});
-  const canonical=(post.seo&&post.seo.canonical)||post.url||('https://www.talhabilalstore.com/blog/'+post.slug+'.html');
+  // Canonical must be the absolute, extensionless final URL: strip a trailing
+  // .html (the .html URL 308-redirects) and make a relative canonical absolute.
+  let canonical=(post.seo&&post.seo.canonical)||post.url||('https://www.talhabilalstore.com/blog/'+post.slug);
+  canonical=String(canonical).replace(/\.html$/i,'');
+  if(canonical.startsWith('/'))canonical='https://www.talhabilalstore.com'+canonical;
   const metaTitle=(post.seo&&(post.seo.meta_title||post.seo.title))||post.title;
   const metaDescription=(post.seo&&(post.seo.meta_description||post.seo.description))||post.excerpt||post.siteSeo?.description||'Helpful guides and tips from Talha Bilal Store.';
   const image=post.featured_image_url||'https://www.talhabilalstore.com/assets/here-banner.webp';

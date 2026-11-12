@@ -11,17 +11,21 @@ const STATIC_PAGES=[
   '/product/mango-5kg',
   '/product/mango-10kg',
   '/products',
+  '/products?category=home-gadget',
+  '/products?category=grocery-beverages',
+  '/products?category=beauty-personal-care',
+  '/products?category=baby-kids-care',
   '/reviews',
   '/policies',
   '/track-order',
   '/why-us',
   '/how-to-order',
-  '/contact.html',
-  '/privacy.html',
-  '/blog.html',
-  '/blog/how-to-make-mango-drink-from-mango-pulp-premix.html',
-  '/blog/where-to-buy-mango-pulp-in-pakistan.html',
-  '/blog/pakistani-mango-varieties-guide.html'
+  '/contact',
+  '/privacy',
+  '/blog',
+  '/blog/how-to-make-mango-drink-from-mango-pulp-premix',
+  '/blog/where-to-buy-mango-pulp-in-pakistan',
+  '/blog/pakistani-mango-varieties-guide'
 ];
 
 function xmlEscape(value){
@@ -43,7 +47,11 @@ function normalizeBlogPath(href){
 
   value=value.split('#')[0].split('?')[0];
 
-  if(!value.startsWith('/blog/') || !value.endsWith('.html')) return null;
+  // Accept .html or extensionless blog URLs; always return the extensionless final URL.
+  value=value.replace(/\.html$/i,'');
+
+  if(!value.startsWith('/blog/')) return null;
+  if(value==='/blog'||value==='/blog/') return null;
 
   return value;
 }
@@ -78,7 +86,7 @@ async function getDynamicCmsPaths(){
       const data=await response.json();
       for(const post of (Array.isArray(data.blog_posts)?data.blog_posts:[])){
         const slug=String(post.slug||'');
-        if(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))paths.add('/blog/'+slug+'.html');
+        if(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))paths.add('/blog/'+slug);
       }
       for(const product of (Array.isArray(data.products)?data.products:[])){
         const slug=String(product.slug||'');

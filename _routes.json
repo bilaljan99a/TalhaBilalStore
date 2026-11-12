@@ -4,6 +4,7 @@
     "/sitemap.xml",
     "/product",
     "/product/*",
+    "/products",
     "/api/*",
     "/blog/*",
     "/page/*",
