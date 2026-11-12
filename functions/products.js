@@ -43,7 +43,7 @@ export async function onRequestGet(context){
     .on('title',{element(el){el.setInnerContent(cat.title)}})
     .on('meta[name="description"]',{element(el){el.setAttribute('content',cat.description)}})
     .on('link[rel="canonical"]',{element(el){el.setAttribute('href',canonical)}})
-    .on('h1#catalogTitle',{element(el){el.setInnerContent(esc(cat.name))}})
+    .on('h1#catalogTitle',{element(el){el.setInnerContent(cat.name)}})
     .on('head',{element(el){el.append('<meta property="og:title" content="'+esc(cat.title)+'"><meta property="og:description" content="'+esc(cat.description)+'"><meta property="og:url" content="'+esc(canonical)+'">',{html:true})}})
     .transform(asset);
 }
